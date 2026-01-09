@@ -55,20 +55,12 @@ function ApartmentCard({ apartment, matchScore, onPress, isSaved, onSavePress })
         )}
 
         {/* Floating Save Button */}
-        <TouchableOpacity 
-          style={styles.saveBadge} 
-          onPress={onSavePress}
-          activeOpacity={0.7}
-        >
-          {isSaved ? (
-            <SaveFilledIcon width={14} height={14} fill="#BF5700" /> // Red when saved
-          ) : (
-            <SaveOutlineIcon width={14} height={14} stroke="#374151" />
-          )}
-          <Text style={styles.saveBadgeText}>
-            {isSaved ? 'Saved' : 'Save'}
-          </Text>
-        </TouchableOpacity>
+        {isSaved && (
+          <View style={styles.saveBadge}>
+            <SaveFilledIcon width={14} height={14} fill="#BF5700" />
+          </View>
+        )}
+
 
         {matchScore && (
           <View style={[styles.matchBadge, { backgroundColor: '#ffffffde' }]}>
@@ -467,7 +459,7 @@ cardDetailText: {
   marginLeft: 4,  // Space between icon and text
 },
 cardPrice: {
-  fontSize: 18,
+  fontSize: 21,
   fontWeight: 'bold',
   color: '#BF5700',
 },

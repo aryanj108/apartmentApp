@@ -16,8 +16,9 @@ import { calculateMatchScore, getMatchColor } from '../data/matchingAlgorithm';
 import PercentIcon from '../../assets/percentIcon.svg';
 import BedIcon from '../../assets/bedIcon.svg';
 import BathIcon from '../../assets/bathIcon.svg';
-import SaveOutlineIcon from '../../assets/saveIcon.svg';
 import SaveFilledIcon from '../../assets/filledInSaveIcon.svg';
+import DistanceIcon from '../../assets/distanceIcon(2).svg';
+
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -46,20 +47,11 @@ function ApartmentVerticalCard({ apartment, matchScore, onPress, isSaved, onSave
         )}
         
         {/* Floating Save Button */}
-        <TouchableOpacity 
-          style={styles.saveBadge} 
-          onPress={onSavePress}
-          activeOpacity={0.7}
-        >
-          {isSaved ? (
+        {isSaved && (
+          <View style={styles.saveBadge}>
             <SaveFilledIcon width={14} height={14} fill="#BF5700" />
-          ) : (
-            <SaveOutlineIcon width={14} height={14} stroke="#374151" />
-          )}
-          <Text style={styles.saveBadgeText}>
-            {isSaved ? 'Saved' : 'Save'}
-          </Text>
-        </TouchableOpacity>
+          </View>
+        )}
 
         {/* Match Badge */}
         {matchScore && (
@@ -90,6 +82,10 @@ function ApartmentVerticalCard({ apartment, matchScore, onPress, isSaved, onSave
             <View style={styles.cardDetailItem}>
               <BathIcon width={16} height={16} />
               <Text style={styles.cardDetailText}>{apartment.bathrooms} Bath</Text>
+            </View>
+            <View style={styles.cardDetailItem}>
+              <DistanceIcon width={16} height={16} />
+              <Text style={styles.cardDetailText}>{apartment.distance} mi</Text>
             </View>
           </View>
           <Text style={styles.cardPrice}>${apartment.price}/mo</Text>
@@ -183,7 +179,7 @@ export default function Search({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
+    backgroundColor: '#ffffff',
   },
   loadingContainer: {
     flex: 1,
@@ -201,7 +197,6 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingBottom: 20,
     backgroundColor: '#ffffff',
-    borderBottomWidth: 1,
     borderBottomColor: '#e5e7eb',
   },
   headerTitle: {
@@ -218,7 +213,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   card: {
-    backgroundColor: '#ffffff',
+    backgroundColor: '#ffffffb2',
     borderRadius: 12,
     marginBottom: 16,
     overflow: 'hidden',
@@ -286,7 +281,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   cardTitle: {
-    fontSize: 18,
+    fontSize: 23,
     fontWeight: 'bold',
     color: '#000000',
     marginBottom: 4,
@@ -317,7 +312,7 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   cardPrice: {
-    fontSize: 18,
+    fontSize: 19,
     fontWeight: 'bold',
     color: '#BF5700',
   },

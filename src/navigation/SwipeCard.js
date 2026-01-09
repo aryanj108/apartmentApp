@@ -111,7 +111,7 @@ export default function SwipeCard({ apartment, matchScore, matchColor, matchDesc
       </View>
       </View>
 
-      {/* Saved Badge */}
+      {/* Saved Badge 
 <TouchableOpacity
   activeOpacity={0.7} // optional: makes it fade slightly when pressed
   onPress={() => {
@@ -157,7 +157,7 @@ export default function SwipeCard({ apartment, matchScore, matchColor, matchDesc
       {isSaved ? 'Saved' : 'Save Listing'}
     </Text>
   </View>
-</TouchableOpacity>
+</TouchableOpacity>*/}
 
 
       {children}

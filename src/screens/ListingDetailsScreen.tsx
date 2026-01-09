@@ -5,7 +5,8 @@ import {
   StyleSheet,
   Dimensions,
   ScrollView,
-  TouchableOpacity
+  TouchableOpacity,
+  Alert
 } from 'react-native';
 
 import BedIcon from '../../assets/bedIcon.svg';
@@ -17,15 +18,19 @@ import FeaturesIcon from '../../assets/featuresIcon.svg';
 import ContactIcon from '../../assets/contactIcon.svg';
 import LeaseIcon from '../../assets/leaseIcon.svg';
 import BackIcon from '../../assets/backIcon.svg';
+import { usePreferences } from '../context/PreferencesContext';
+import SaveOutlineIcon from '../../assets/saveIcon.svg';
+import SaveFilledIcon from '../../assets/filledInSaveIcon.svg';
 
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+
 
 import ImageCarousel from '../navigation/ImageCarousel';
 
 
 export default function ListingDetailsScreen({ navigation, route }) {
-  // Get the apartment data passed from SwipeScreen
+  const { savedIds, toggleSave } = usePreferences();
   const apartment = route.params?.listing || {
     name: 'Modern Downtown Loft',
     address: '123 Main St, Downtown',
@@ -48,6 +53,8 @@ export default function ListingDetailsScreen({ navigation, route }) {
     },
     website: ''
   };
+  const isSaved = savedIds.includes(apartment.id);
+
 
   // Create details array based on apartment data
   const details = [
@@ -87,6 +94,52 @@ export default function ListingDetailsScreen({ navigation, route }) {
               </View>
             </View>
           </TouchableOpacity>
+
+        <TouchableOpacity
+          activeOpacity={0.7} // optional: makes it fade slightly when pressed
+          onPress={() => {
+            const wasSaved = isSaved;
+
+            Alert.alert(
+            wasSaved ? 'Listing Unsaved' : 'Listing Saved',
+            wasSaved
+              ? 'This listing has been removed from your saved listings.'
+              : 'This listing has been added to your saved listings.'
+          );
+              toggleSave(apartment.id)
+          }}
+          style={{
+            position: 'absolute',
+            top: 50,
+            right: 20,
+            zIndex: 100,
+          }}
+        >
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              paddingHorizontal: 16,
+              paddingVertical: 10,
+              borderRadius: 20,
+              backgroundColor: '#f3f4f6',
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.25,
+              shadowRadius: 4,
+              elevation: 5,
+            }}
+          >
+              {isSaved ? (
+                <SaveFilledIcon width={16} height={16} />
+              ) : (
+                <SaveOutlineIcon width={16} height={16} />
+              )}
+            <Text style={{ fontSize: 14, fontWeight: 'bold', marginLeft: 6 }}>
+              {isSaved ? 'Saved' : 'Save Listing'}
+            </Text>
+          </View>
+        </TouchableOpacity>
 
           <ImageCarousel images={apartment.images || []} />
         </View>
@@ -263,7 +316,7 @@ imageGalleryContainer: {
 },
   backButtonOverlay: {
     position: 'absolute',
-    top: 20, // Distance from top of the image section
+    top: 40, // Distance from top of the image section
     left: 20, // Distance from left of the image section
     zIndex: 10,
   },
