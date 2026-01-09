@@ -49,7 +49,7 @@ function ApartmentVerticalCard({ apartment, matchScore, onPress, isSaved, onSave
         {/* Floating Save Button */}
         {isSaved && (
           <View style={styles.saveBadge}>
-            <SaveFilledIcon width={14} height={14} fill="#BF5700" />
+            <SaveFilledIcon width={15} height={15} fill="#BF5700" />
           </View>
         )}
 
@@ -127,7 +127,7 @@ export default function Search({ navigation }) {
   }, [preferences, prefsLoading]);
 
   const handleCardPress = (apartment) => {
-    navigation.navigate('ListingDetails', {
+    navigation.navigate('RoomListingDetailsScreen_SearchVersion', {
       listing: apartment,
       matchScore: apartment.matchScore,
     });

@@ -218,7 +218,7 @@ export default function SwipeScreen({ navigation }: any) {
                   <TouchableOpacity
                     style={styles.viewDetailsButton}
                     onPress={() =>
-                      navigation.navigate('ListingDetails', {
+                      navigation.navigate('ApartmentListingDetails', {
                         listing: currentApartment,
                         matchScore,
                       })
@@ -234,7 +234,7 @@ export default function SwipeScreen({ navigation }: any) {
                   <TouchableOpacity
                     style={styles.viewDetailsButton}
                     onPress={() =>
-                      navigation.navigate('ListingDetails', {
+                      navigation.navigate('RoomListingDetailsScreen', {
                         listing: currentApartment,
                         matchScore,
                       })

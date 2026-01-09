@@ -29,8 +29,9 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 import ImageCarousel from '../navigation/ImageCarousel';
 
 
-export default function ListingDetailsScreen({ navigation, route }) {
+export default function RoomListingDetailsScreen({ navigation, route }) {
   const { savedIds, toggleSave } = usePreferences();
+  const { listing, matchScore } = route.params;
   const apartment = route.params?.listing || {
     name: 'Modern Downtown Loft',
     address: '123 Main St, Downtown',
@@ -54,6 +55,12 @@ export default function ListingDetailsScreen({ navigation, route }) {
     website: ''
   };
   const isSaved = savedIds.includes(apartment.id);
+  const handleViewApartmentDetails = () => {
+    navigation.navigate('ApartmentListingDetails', {
+      listing: listing, // Passing the full apartment object
+      matchScore: matchScore,
+    });
+  };
 
 
   // Create details array based on apartment data
@@ -189,7 +196,7 @@ export default function ListingDetailsScreen({ navigation, route }) {
             <View style={styles.iconContainerDistance}>
               <DescriptionIcon width={30} height={30} style={styles.icon} />
             </View>
-            <Text style={styles.sectionTitle}>Description</Text>
+            <Text style={styles.sectionTitle}>Room Desc</Text>
           </View>
           <Text style={styles.description}>
             {apartment.description || 'No description available.'}
@@ -271,11 +278,16 @@ export default function ListingDetailsScreen({ navigation, route }) {
         </View>
 
         {/* Website Button - Only show if website exists */}
-        {apartment.website && (
-          <TouchableOpacity style={styles.contactButton}>
-            <Text style={styles.contactButtonText}>Visit Website</Text>
+
+<View style={styles.apartmentLinkSection}>
+          <Text style={styles.subHeaderText}>Interested in the building?</Text>
+          <TouchableOpacity 
+            style={styles.apartmentButton}
+            onPress={handleViewApartmentDetails}
+          >
+            <Text style={styles.apartmentButtonText}>View Apartment Details</Text>
           </TouchableOpacity>
-        )}
+        </View>
       </ScrollView>
     </View>
   );
@@ -460,5 +472,33 @@ imageGalleryContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 12,
+  },
+  apartmentLinkSection: {
+    padding: 20,
+    backgroundColor: '#f9fafb',
+    marginHorizontal: 20,
+    borderRadius: 12,
+    marginTop: 10,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  subHeaderText: {
+    fontSize: 14,
+    color: '#6b7280',
+    marginBottom: 8,
+  },
+  apartmentButton: {
+    backgroundColor: '#BF5700', // Burnt Orange
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 25,
+    width: '100%',
+    alignItems: 'center',
+  },
+  apartmentButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });

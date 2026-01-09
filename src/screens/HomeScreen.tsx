@@ -177,7 +177,7 @@ export default function Home({ navigation }) {
       preferences,
       selectedAmenities.map(id => ({ id, selected: true }))
     );
-    navigation.navigate('ListingDetails', {
+    navigation.navigate('RoomListingDetailsScreen_SearchVersion', {
       listing: apartment,
       matchScore: score,
     });

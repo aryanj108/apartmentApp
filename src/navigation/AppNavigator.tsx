@@ -9,7 +9,10 @@ import VerifyEmailScreen from '../screens/VerifyEmailScreen';
 import PreferencesScreen from '../screens/PreferencesScreen';
 import MainTabs from './MainTabs';
 import SwipeScreen from '../screens/SwipeScreen';
-import ListingDetailsScreen from '../screens/ListingDetailsScreen';
+import ApartmentListingDetailsScreen from '../screens/ApartmentListingDetailsScreen';
+import RoomListingDetailsScreen from '../screens/RoomListingDetailsScreen';
+import RoomListingDetailsScreen_SearchScreen from '../screens/RoomListingDetailsScreen_SearchTab';
+
 import Home from '../screens/HomeScreen';
 
 const Stack = createNativeStackNavigator();
@@ -47,7 +50,9 @@ export default function AppNavigator() {
           <Stack.Screen name="MainTabs" component={MainTabs} />
           <Stack.Screen name="SwipeSearch" component={SwipeScreen} />
           <Stack.Screen name="HomePage" component={Home} />
-          <Stack.Screen name="ListingDetails" component={ListingDetailsScreen} />
+          <Stack.Screen name="ApartmentListingDetails" component={ApartmentListingDetailsScreen} />
+          <Stack.Screen name="RoomListingDetailsScreen" component={RoomListingDetailsScreen} />
+          <Stack.Screen name="RoomListingDetailsScreen_SearchVersion" component={RoomListingDetailsScreen_SearchScreen} />
         </>
       )}
     </Stack.Navigator>
