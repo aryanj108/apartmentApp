@@ -61,7 +61,7 @@ function ApartmentCard({ apartment, matchScore, onPress, isSaved, onSavePress })
           activeOpacity={0.7}
         >
           {isSaved ? (
-            <SaveFilledIcon width={14} height={14} fill="#000000ff" /> // Red when saved
+            <SaveFilledIcon width={14} height={14} fill="#BF5700" /> // Red when saved
           ) : (
             <SaveOutlineIcon width={14} height={14} stroke="#374151" />
           )}
@@ -71,7 +71,7 @@ function ApartmentCard({ apartment, matchScore, onPress, isSaved, onSavePress })
         </TouchableOpacity>
 
         {matchScore && (
-          <View style={[styles.matchBadge, { backgroundColor: getMatchColor(matchScore) }]}>
+          <View style={[styles.matchBadge, { backgroundColor: '#ffffffde' }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <PercentIcon width={13} height={13} />
               <Text style={styles.matchText}> {matchScore}%</Text>
@@ -387,15 +387,15 @@ const styles = StyleSheet.create({
   },
   card: {
     width: CARD_WIDTH,
-    backgroundColor: 'transparent',
+    backgroundColor: '#ffffffde',
     borderRadius: 16,
     marginRight: CARD_MARGIN,
     overflow: 'visible',
-    //shadowColor: '#000',
-    //shadowOffset: { width: 0, height: 2 },
-    //shadowOpacity: 0.1,
-    //shadowRadius: 8,
-    //elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
   cardImageContainer: {
     position: 'relative',
@@ -469,7 +469,7 @@ cardDetailText: {
 cardPrice: {
   fontSize: 18,
   fontWeight: 'bold',
-  color: '#000000',
+  color: '#BF5700',
 },
   cardDetails: {
     flexDirection: 'row',
@@ -557,7 +557,7 @@ cardPrice: {
   },
   saveBadge: {
     position: 'absolute',
-    bottom: 10,
+    top: 10,
     left: 10,
     flexDirection: 'row',
     alignItems: 'center',

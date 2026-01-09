@@ -103,7 +103,7 @@ export default function LoginScreen({ navigation }: any) {
             style={styles.eyeButton}
             onPress={() => setShowPassword(!showPassword)}
           >
-              {showPassword ? (
+            {showPassword ? (
             <EyeOpenOutline width={25} height={25} />
             ) : (
             <EyeOffOutline width={25} height={25} />
