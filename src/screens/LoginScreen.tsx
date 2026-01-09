@@ -12,6 +12,8 @@ import {
   Alert,
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
+import EyeOffOutline from '../../assets/eye-off-outline.svg';
+import EyeOpenOutline from '../../assets/eye-open.svg';
 
 const { width } = Dimensions.get('window');
 const scale = (size: number) => (width / 375) * size;
@@ -20,6 +22,7 @@ export default function LoginScreen({ navigation }: any) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   
   const { signInWithEmail, signUpWithEmail, sendVerificationEmail, loading, error, setError } = useAuth();
 
@@ -84,16 +87,29 @@ export default function LoginScreen({ navigation }: any) {
           autoComplete="email"
         />
 
-        <TextInput
-          placeholder="Password (min 6 characters)"
-          placeholderTextColor="#999"
-          style={styles.input}
-          autoCapitalize="none"
-          secureTextEntry
-          value={password}
-          onChangeText={setPassword}
-          autoComplete={isSignUp ? 'password-new' : 'password'}
-        />
+        {/* Password Input with Toggle */}
+        <View style={styles.passwordContainer}>
+          <TextInput
+            placeholder="Password"
+            placeholderTextColor="#999"
+            style={styles.passwordInput}
+            secureTextEntry={!showPassword}  // ← Toggle based on state
+            autoCapitalize="none"
+            value={password}
+            onChangeText={setPassword}
+            autoComplete={isSignUp ? 'password-new' : 'password'}
+          />
+          <Pressable 
+            style={styles.eyeButton}
+            onPress={() => setShowPassword(!showPassword)}
+          >
+              {showPassword ? (
+            <EyeOpenOutline width={25} height={25} />
+            ) : (
+            <EyeOffOutline width={25} height={25} />
+            )}
+          </Pressable>
+        </View>
 
         {/* Error Message */}
         {error && (
@@ -166,6 +182,28 @@ const styles = StyleSheet.create({
     paddingHorizontal: scale(16),
     fontSize: scale(16),
     marginBottom: scale(20),
+  },
+  passwordContainer: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  borderWidth: 1,
+  borderColor: '#ddd',
+  borderRadius: scale(10),
+  backgroundColor: '#fafafa',
+  marginBottom: scale(16),
+  },
+  passwordInput: {
+    flex: 1,
+    paddingVertical: scale(14),
+    paddingHorizontal: scale(16),
+    fontSize: scale(16),
+  },
+  eyeButton: {
+    padding: scale(10),
+    paddingRight: scale(16),
+  },
+  eyeIcon: {
+    fontSize: scale(20),
   },
   button: {
     backgroundColor: '#BF5700',
