@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useAuth } from './AuthContext';
-import { getUserProfile, updateUserPreferences, updateUserProfile } from '../services/userService';
+import { getUserProfile, updateUserProfile } from '../services/userService';
 
 export type Preferences = {
   minPrice: number;
@@ -60,28 +60,26 @@ export const PreferencesProvider = ({ children }: PreferencesProviderProps) => {
           setLoading(true);
           const userProfile = await getUserProfile(user.uid);
           
-          if (userProfile) {
-            // Load preferences if they exist
-            if (userProfile.preferences) {
-              setPreferences({
-                minPrice: userProfile.preferences.minPrice || 0,
-                maxPrice: userProfile.preferences.maxPrice || 5000,
-                beds: userProfile.preferences.bedrooms || 1,
-                bathrooms: userProfile.preferences.bathrooms || 1,
-                distance: userProfile.preferences.maxDistance || 0.5,
-                parking: userProfile.preferences.parking || false,
-                wifi: userProfile.preferences.wifi || false,
-                gym: userProfile.preferences.gym || false,
-                pool: userProfile.preferences.pool || false,
-                petFriendly: userProfile.preferences.petFriendly || false,
-                furnished: userProfile.preferences.furnished || false,
-              });
-            }
+          if (userProfile && userProfile.preferences) {
+            // Use ?? (nullish coalescing) to properly handle 0 values
+            setPreferences({
+              minPrice: userProfile.preferences.minPrice ?? 0,
+              maxPrice: userProfile.preferences.maxPrice ?? 5000,
+              beds: userProfile.preferences.bedrooms ?? 1,
+              bathrooms: userProfile.preferences.bathrooms ?? 1,
+              distance: userProfile.preferences.maxDistance ?? 0.5,
+              parking: userProfile.preferences.parking ?? false,
+              wifi: userProfile.preferences.wifi ?? false,
+              gym: userProfile.preferences.gym ?? false,
+              pool: userProfile.preferences.pool ?? false,
+              petFriendly: userProfile.preferences.petFriendly ?? false,
+              furnished: userProfile.preferences.furnished ?? false,
+            });
+          }
 
-            // Load saved apartments
-            if (userProfile.savedApartments) {
-              setSavedIds(userProfile.savedApartments.map(id => parseInt(id)));
-            }
+          // Load saved apartments
+          if (userProfile?.savedApartments) {
+            setSavedIds(userProfile.savedApartments.map(id => parseInt(id)));
           }
         } catch (error) {
           console.error('Error loading user data:', error);
@@ -96,31 +94,10 @@ export const PreferencesProvider = ({ children }: PreferencesProviderProps) => {
     loadUserData();
   }, [user?.uid]);
 
-  // Custom setPreferences that also saves to Firestore
-  const handleSetPreferences = async (prefs: Preferences) => {
+  // Just update local state - NO auto-save to Firestore
+  // Saves only happen when user clicks "Save Preferences" button
+  const handleSetPreferences = (prefs: Preferences) => {
     setPreferences(prefs);
-    
-    // Save to Firestore if user is logged in
-    if (user?.uid) {
-      try {
-        await updateUserPreferences(user.uid, {
-          maxPrice: prefs.maxPrice,
-          bedrooms: prefs.beds,
-          bathrooms: prefs.bathrooms,
-          parking: prefs.parking,
-          wifi: prefs.wifi,
-          gym: prefs.gym,
-          pool: prefs.pool,
-          petFriendly: prefs.petFriendly,
-          minPrice: prefs.minPrice,
-          furnished: prefs.furnished,
-          maxDistance: prefs.distance,
-        });
-        console.log('Preferences synced to Firestore');
-      } catch (error) {
-        console.error('Error syncing preferences:', error);
-      }
-    }
   };
 
   // Toggle save with Firestore sync

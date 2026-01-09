@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 import { Image } from 'react-native';
 import { usePreferences } from '../context/PreferencesContext';
+import { useAuth } from '../context/AuthContext';  
+import { updateUserPreferences } from '../services/userService';  
 
 import { TouchableOpacity } from 'react-native';
 import Slider from '@react-native-community/slider';
@@ -19,7 +21,19 @@ import PetIcon from '../../assets/petIcon.svg';
 import BedIcon from '../../assets/bedIcon.svg';
 
 export default function PreferencesScreen({ navigation }) {
-  const { preferences, setPreferences } = usePreferences();
+  const { user } = useAuth();
+  const { preferences, setPreferences, loading } = usePreferences();
+  console.log("Current Render minPrice:", preferences.minPrice);
+  console.log("Current Render beds:", preferences.beds);
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#d1d5db' }}>
+        <ActivityIndicator size="large" color="#000000" />
+        <Text style={{ marginTop: 16, fontSize: 16, color: '#6b7280' }}>Loading preferences...</Text>
+      </View>
+    );
+  }
 
   const [amenities, setAmenities] = useState([
     { id: 'wifi', label: 'WiFi', selected: false, icon: WifiIcon },
@@ -306,10 +320,32 @@ export default function PreferencesScreen({ navigation }) {
       {/* Section 6 */}
       <TouchableOpacity
         style={styles.startButton}
-        onPress={() => {
-          alert('Preferences saved!');
-          console.log('Saved preferences:', preferences);
-          navigation.navigate('SwipeSearch');
+        onPress={async () => {
+          try {
+            if (user?.uid) {
+              // Manually save preferences to Firestore
+              await updateUserPreferences(user.uid, {
+                minPrice: preferences.minPrice,
+                maxPrice: preferences.maxPrice,
+                bedrooms: preferences.beds,
+                bathrooms: preferences.bathrooms,
+                maxDistance: preferences.distance,
+                parking: preferences.parking,
+                furnished: preferences.furnished,
+                wifi: preferences.wifi,
+                gym: preferences.gym,
+                pool: preferences.pool,
+                petFriendly: preferences.petFriendly,
+              });
+              
+              alert('Preferences saved!');
+              console.log('Saved preferences:', preferences);
+              navigation.navigate('SwipeSearch');
+            }
+          } catch (error) {
+            console.error('Error saving preferences:', error);
+            alert('Error saving preferences');
+          }
         }}
       >
         <Text style={styles.startButtonText}>Save Preferences</Text>
