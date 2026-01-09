@@ -1,8 +1,6 @@
 import React, { useRef } from 'react';
 import { View, Text, StyleSheet, Animated, PanResponder, Dimensions, Alert, TouchableOpacity } from 'react-native';
 import PercentIcon from '../../assets/percentIcon.svg';
-import SaveOutlineIcon from '../../assets/saveIcon.svg';
-import SaveFilledIcon from '../../assets/filledInSaveIcon.svg';
 import { usePreferences } from '../context/PreferencesContext';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -102,10 +100,10 @@ export default function SwipeCard({ apartment, matchScore, matchColor, matchDesc
       style={[styles.card, cardStyle]}
       {...panResponder.panHandlers}
     >
-      {/* Match Badge */}
-      <View style={[styles.matchBadge, { backgroundColor: matchColor }]}>
+      {/* Match Badge matchColor*/}
+      <View style={[styles.matchBadge, { backgroundColor: '#ffffffde'}]}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-        <PercentIcon width={18} height={18} />
+        <PercentIcon width={20} height={20} />
         <Text style={styles.matchScoreText}>{matchScore}%</Text>
         {/*<Text style={styles.matchDescriptionText}>{matchDescription}</Text> */}
       </View>
@@ -217,7 +215,7 @@ const styles = StyleSheet.create({
     top: 20,
     right: 20,
     paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingVertical: 8,
     borderRadius: 20,
     marginTop: 20,
     shadowColor: '#000',

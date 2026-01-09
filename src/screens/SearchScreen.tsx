@@ -57,7 +57,7 @@ function ApartmentVerticalCard({ apartment, matchScore, onPress, isSaved, onSave
         {matchScore && (
           <View style={[styles.matchBadge, { backgroundColor:  '#ffffffde'}]}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <PercentIcon width={13} height={13} />
+              <PercentIcon width={15} height={15} />
               <Text style={styles.matchText}> {matchScore}%</Text>
             </View>
           </View>
