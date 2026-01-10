@@ -22,6 +22,11 @@ import { usePreferences } from '../context/PreferencesContext';
 import SaveOutlineIcon from '../../assets/saveIcon.svg';
 import SaveFilledIcon from '../../assets/filledInSaveIcon.svg';
 
+import SaveOutlineIconHeart from '../../assets/heartOutline.svg';
+import SaveFilledIconHeart from '../../assets/heart.svg';
+
+
+
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -57,23 +62,7 @@ export default function ApartmentListingDetailsScreen({ navigation, route }) {
 
 
   // Create details array based on apartment data
-  const details = [
-    { 
-      id: 'bath', 
-      label: `${apartment.bathrooms} Bath${apartment.bathrooms !== 1 ? 's' : ''}`, 
-      icon: BathIcon 
-    },
-    { 
-      id: 'bed', 
-      label: `${apartment.bedrooms} Bed${apartment.bedrooms !== 1 ? 's' : ''}`, 
-      icon: BedIcon 
-    },
-    { 
-      id: 'distance', 
-      label: `${apartment.distance} Mile${apartment.distance !== 1 ? 's' : ''}`, 
-      icon: DistanceIcon 
-    },
-  ];
+
 
   return (
 <View style={styles.container}>
@@ -131,9 +120,9 @@ export default function ApartmentListingDetailsScreen({ navigation, route }) {
             }}
           >
               {isSaved ? (
-                <SaveFilledIcon width={16} height={16} />
+                <SaveFilledIconHeart width={16} height={16} />
               ) : (
-                <SaveOutlineIcon width={16} height={16} />
+                <SaveOutlineIconHeart width={16} height={16} />
               )}
             <Text style={{ fontSize: 14, fontWeight: 'bold', marginLeft: 6 }}>
               {isSaved ? 'Saved' : 'Save Listing'}
@@ -161,26 +150,6 @@ export default function ApartmentListingDetailsScreen({ navigation, route }) {
               <Text style={styles.price}>${apartment.price}/mo</Text>
             </View>
           </View>
-        </View>
-
-        <View style={styles.chipsContainer}>
-          {details.map((detail) => (
-            <View 
-              key={detail.id}
-              style={[styles.chip]}
-            >
-              <View style={styles.chipContent}>
-                <detail.icon 
-                  width={24} 
-                  height={24} 
-                  style={styles.chipIconLeft}
-                />
-                <Text style={[styles.chipText]}>
-                  {detail.label}
-                </Text>
-              </View>
-            </View>
-          ))}
         </View>
       
         {/* Description */}

@@ -18,6 +18,9 @@ import BedIcon from '../../assets/bedIcon.svg';
 import BathIcon from '../../assets/bathIcon.svg';
 import SaveFilledIcon from '../../assets/filledInSaveIcon.svg';
 import DistanceIcon from '../../assets/distanceIcon(2).svg';
+import Stars from '../../assets/stars.svg';
+import SaveFilledIconHeart from '../../assets/heart.svg';
+
 
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -49,15 +52,15 @@ function ApartmentVerticalCard({ apartment, matchScore, onPress, isSaved, onSave
         {/* Floating Save Button */}
         {isSaved && (
           <View style={styles.saveBadge}>
-            <SaveFilledIcon width={15} height={15} fill="#BF5700" />
+            <SaveFilledIconHeart width={25} height={25} fill="#BF5700" />
           </View>
         )}
 
         {/* Match Badge */}
         {matchScore && (
-          <View style={[styles.matchBadge, { backgroundColor:  '#ffffffde'}]}>
+          <View style={[styles.matchBadge, { backgroundColor:  '#BF5700'}]}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <PercentIcon width={15} height={15} />
+              <Stars width={15} height={15} fill={'#ffffff'} />
               <Text style={styles.matchText}> {matchScore}%</Text>
             </View>
           </View>
@@ -170,7 +173,7 @@ export default function Search({ navigation }) {
           />
         )}
         contentContainerStyle={styles.listContainer}
-        showsVerticalScrollIndicator={false}
+        showsVerticalScrollIndicator={true}
       />
     </View>
   );
@@ -212,25 +215,29 @@ const styles = StyleSheet.create({
   listContainer: {
     padding: 16,
   },
-  card: {
-    backgroundColor: '#ffffffb2',
-    borderRadius: 12,
-    marginBottom: 16,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  cardImageContainer: {
-    position: 'relative',
-    width: '100%',
-    height: 200,
-  },
+card: {
+  backgroundColor: '#ffffff',  // ← Change from '#ffffffb2' to solid white
+  borderRadius: 12,
+  marginBottom: 16,
+  overflow: 'hidden',
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 4 },  // ← Increase from 2 to 4
+  shadowOpacity: 0.15,  // ← Increase from 0.1 to 0.15
+  shadowRadius: 12,  // ← Increase from 8 to 12
+  elevation: 5,  // ← Increase from 3 to 5
+},
+cardImageContainer: {
+  position: 'relative',
+  width: '100%',
+  height: 200,
+  borderTopLeftRadius: 12,  // ← ADD THIS to match card radius
+  borderTopRightRadius: 12,  // ← ADD THIS
+  overflow: 'hidden',  // ← ADD THIS
+},
   cardImage: {
     width: '100%',
     height: '100%',
+    borderRadius: 12,
   },
   placeholderImage: {
     backgroundColor: '#e5e7eb',
@@ -248,15 +255,15 @@ const styles = StyleSheet.create({
     left: 10,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 15,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
-    elevation: 4,
+    //backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    //paddingHorizontal: 10,
+    //paddingVertical: 6,
+    //borderRadius: 15,
+    //shadowColor: '#000',
+    //shadowOffset: { width: 0, height: 1 },
+    //shadowOpacity: 0.2,
+    //shadowRadius: 2,
+    //elevation: 4,
   },
   saveBadgeText: {
     fontSize: 12,
@@ -273,7 +280,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   matchText: {
-    color: '#000000',
+    color: '#ffffff',
     fontSize: 14,
     fontWeight: 'bold',
   },

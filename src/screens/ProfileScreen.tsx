@@ -15,6 +15,25 @@ export default function Profile() {
   const [refreshing, setRefreshing] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
 
+const formatMemberSince = () => {
+  try {
+    if (!user?.metadata?.creationTime) return 'Recently';
+    
+    const date = new Date(user.metadata.creationTime);
+    
+    if (isNaN(date.getTime())) return 'Recently';
+    
+    const month = date.toLocaleDateString('en-US', { month: 'short' });
+    const day = date.getDate();
+    const year = date.getFullYear();
+    
+    return `${month} ${day}, ${year}`;
+  } catch (error) {
+    console.error('Date formatting error:', error);
+    return 'Recently';
+  }
+};
+
   const handleSignOut = async () => {
     Alert.alert(
       'Sign Out',
@@ -83,9 +102,7 @@ export default function Profile() {
           </View>
           <Text style={styles.emailText}>{user?.email}</Text>
           <Text style={styles.memberSince}>
-            Member since {user?.metadata?.creationTime 
-              ? new Date(user.metadata.creationTime).toLocaleDateString()
-              : 'Recently'}
+            Member since {formatMemberSince()}
           </Text>
         </View>
 

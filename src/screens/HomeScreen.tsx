@@ -22,6 +22,9 @@ import BedIcon from '../../assets/bedIcon.svg';
 import BathIcon from '../../assets/bathIcon.svg';
 import SaveOutlineIcon from '../../assets/saveIcon.svg';
 import SaveFilledIcon from '../../assets/filledInSaveIcon.svg';
+import Stars from '../../assets/stars.svg';
+import Heart from '../../assets/heart.svg';
+
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH * 0.7;
@@ -57,15 +60,15 @@ function ApartmentCard({ apartment, matchScore, onPress, isSaved, onSavePress })
         {/* Floating Save Button */}
         {isSaved && (
           <View style={styles.saveBadge}>
-            <SaveFilledIcon width={14} height={14} fill="#BF5700" />
+            <Heart width={25} height={25} fill="#BF5700" />
           </View>
         )}
 
 
         {matchScore && (
-          <View style={[styles.matchBadge, { backgroundColor: '#ffffffde' }]}>
+          <View style={[styles.matchBadge, { backgroundColor: '#BF5700' }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <PercentIcon width={15} height={15} />
+              <Stars width={15} height={15} fill={'#ffffff'} />
               <Text style={styles.matchText}> {matchScore}%</Text>
             </View>
           </View>
@@ -206,9 +209,8 @@ export default function Home({ navigation }) {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.carouselContainer}
-          snapToInterval={CARD_WIDTH + CARD_MARGIN * 2}
-          decelerationRate="fast"
+          contentContainerStyle={styles.carouselContainer}  
+          
         >
           {data.map((apartment) => {
             const score = calculateMatchScore(
@@ -243,7 +245,7 @@ export default function Home({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={true}>
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerContent}>
@@ -370,36 +372,40 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#000000',
     paddingHorizontal: 20,
-    marginBottom: 16,
+    //marginBottom: 16,
   },
   carouselContainer: {
     paddingLeft: 20,
-    paddingRight: 12,
-    paddingVertical: 10
+    paddingRight: 20,
+    paddingVertical: 10,
+    //paddingBottom: 50,
   },
-  card: {
-    width: CARD_WIDTH,
-    backgroundColor: '#ffffffde',
-    borderRadius: 16,
-    marginRight: CARD_MARGIN,
-    overflow: 'visible',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  cardImageContainer: {
-    position: 'relative',
-    width: '100%',
-    height: 180,
-  },
-  cardImage: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 10,
-
-  },
+card: {
+  width: CARD_WIDTH,
+  backgroundColor: '#ffffff',  // ← Change from '#ffffffde' to solid white
+  borderRadius: 16,
+  marginRight: CARD_MARGIN,
+  //marginLeft: 20,  // ← Add left margin for first card
+  overflow: 'visible',  // ← Change from 'visible' to 'hidden' to clip content
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 4 },  // ← Increase
+  shadowOpacity: 0.15,  // ← Increase
+  shadowRadius: 12,  // ← Increase
+  elevation: 5,  // ← Increase for Android
+},
+cardImageContainer: {
+  position: 'relative',
+  width: '100%',
+  height: 180,
+  borderTopLeftRadius: 16, 
+  borderTopRightRadius: 16,  
+  overflow: 'hidden',  
+},
+cardImage: {
+  width: '100%',
+  height: '100%',
+  borderRadius: 12,
+},
   placeholderImage: {
     backgroundColor: '#e5e7eb',
     justifyContent: 'center',
@@ -420,7 +426,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   matchText: {
-    color: '#000000ff',
+    color: '#ffffff',
     fontSize: 14,
     fontWeight: 'bold',
   },
@@ -553,15 +559,15 @@ cardPrice: {
     left: 10,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.95)', // Slight transparency
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 15,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
-    elevation: 4,
+    //backgroundColor: 'rgba(255, 255, 255, 0.95)', // Slight transparency
+    //paddingHorizontal: 10,
+    //paddingVertical: 6,
+    //borderRadius: 15,
+    //shadowColor: '#000',
+    //shadowOffset: { width: 0, height: 1 },
+    //shadowOpacity: 0.2,
+    //shadowRadius: 2,
+    //elevation: 4,
   },
   saveBadgeText: {
     fontSize: 12,

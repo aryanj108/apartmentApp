@@ -22,14 +22,15 @@ import { usePreferences } from '../context/PreferencesContext';
 import SaveOutlineIcon from '../../assets/saveIcon.svg';
 import SaveFilledIcon from '../../assets/filledInSaveIcon.svg';
 
-
+import SaveOutlineIconHeart from '../../assets/heartOutline.svg';
+import SaveFilledIconHeart from '../../assets/heart.svg';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 
 import ImageCarousel from '../navigation/ImageCarousel';
 
 
-export default function RoomListingDetailsScreen({ navigation, route }) {
+export default function RoomListingDetailsScreen_SearchTab({ navigation, route }) {
   const { savedIds, toggleSave } = usePreferences();
   const { listing, matchScore } = route.params;
   const apartment = route.params?.listing || {
@@ -138,9 +139,9 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
             }}
           >
               {isSaved ? (
-                <SaveFilledIcon width={16} height={16} />
+                <SaveFilledIconHeart width={16} height={16} />
               ) : (
-                <SaveOutlineIcon width={16} height={16} />
+                <SaveOutlineIconHeart width={16} height={16} />
               )}
             <Text style={{ fontSize: 14, fontWeight: 'bold', marginLeft: 6 }}>
               {isSaved ? 'Saved' : 'Save Listing'}

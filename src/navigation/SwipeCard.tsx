@@ -118,8 +118,6 @@ const styles = StyleSheet.create({
     pointerEvents: 'box-none', // Allows touches to pass through to cards below if needed
   },
   actualCard: {
-    // Give this the same width/height as your CARD_WIDTH/HEIGHT in SwipeScreen
-    // Or just let it wrap the children
     borderRadius: 20,
     backgroundColor: 'white', // Ensures overlay doesn't leak through
     shadowColor: '#000',

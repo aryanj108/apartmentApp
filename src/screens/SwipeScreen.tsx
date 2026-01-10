@@ -18,6 +18,11 @@ import ParkingIcon from '../../assets/parkingIcon.svg';
 import FurnishedIcon from '../../assets/furnishedIcon.svg';
 import PetIcon from '../../assets/petIcon.svg';
 import PercentIcon from '../../assets/percentIcon.svg';
+import Stars from '../../assets/stars.svg';
+import Heart from '../../assets/heart.svg';
+
+
+
 
 import { apartmentsData } from '../data/apartments';
 import { usePreferences } from '../context/PreferencesContext';
@@ -32,8 +37,9 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 const CARD_HEIGHT = SCREEN_HEIGHT * 0.75;  // 75% of screen height
 const CARD_WIDTH = SCREEN_WIDTH * 0.92;    // 92% of screen width
-const IMAGE_HEIGHT = CARD_HEIGHT * 0.65;   // 65% of card is image
-const INFO_HEIGHT = CARD_HEIGHT * 0.35;    // 35% of card is info
+const IMAGE_HEIGHT = CARD_HEIGHT * 0.60;   // 65% of card is image
+const INFO_HEIGHT = CARD_HEIGHT * 0.40;    // 35% of card is info
+const AMENITY_WIDTH = (CARD_WIDTH - 32 - 16) / 3;
 
 const allAmenities = [
   { id: 'wifi', label: 'WiFi', icon: WifiIcon },
@@ -107,7 +113,7 @@ export default function SwipeScreen({ navigation }: any) {
         .reverse()
         .map(apartment => {
           const score = calculateMatchScore(apartment, preferences, selectedAmenities);
-          const color = '#ffffff';
+          const color = '#BF5700';
 
           return (
             <SwipeCard
@@ -130,7 +136,7 @@ export default function SwipeScreen({ navigation }: any) {
                   {/* Match Badge on Image */}
                   <View style={[styles.matchBadge, { backgroundColor: color }]}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                      <PercentIcon width={16} height={16} />
+                      <Stars width={16} height={16} fill={'#fff'}/>
                       <Text style={styles.matchScoreText}>{score}%</Text>
                     </View>
                   </View>
@@ -166,7 +172,7 @@ export default function SwipeScreen({ navigation }: any) {
                     <View style={styles.amenitiesContainer}>
                       {apartmentAmenities.map(amenity => (
                         <View key={amenity.id} style={styles.amenityChip}>
-                          <amenity.icon width={16} height={16} />
+                          <amenity.icon width={20} height={20} />
                           <Text style={styles.amenityText}>{amenity.label}</Text>
                         </View>
                       ))}
@@ -231,13 +237,14 @@ const styles = StyleSheet.create({
   apartmentImage: {
     width: '100%',
     height: '100%',
+    borderRadius: 15,
   },
   matchBadge: {
     position: 'absolute',
     top: 12,
     right: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
     borderRadius: 16,
     flexDirection: 'row',
     alignItems: 'center',
@@ -250,7 +257,7 @@ const styles = StyleSheet.create({
   matchScoreText: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#000000',
+    color: '#ffffff',
   },
   infoSection: {
     height: INFO_HEIGHT,
@@ -318,6 +325,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 14,
+    width: AMENITY_WIDTH,
+    justifyContent: 'center'
   },
   amenityText: {
     fontSize: 11,
@@ -337,7 +346,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: '#000000',
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 16,
+    fontWeight: '700',
   },
 });
