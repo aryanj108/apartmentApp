@@ -17,19 +17,23 @@ import PoolIcon from '../../assets/poolIcon.svg';
 import ParkingIcon from '../../assets/parkingIcon.svg';
 import FurnishedIcon from '../../assets/furnishedIcon.svg';
 import PetIcon from '../../assets/petIcon.svg';
+import PercentIcon from '../../assets/percentIcon.svg';
 
 import { apartmentsData } from '../data/apartments';
 import { usePreferences } from '../context/PreferencesContext';
 import {
   calculateMatchScore,
-  //getMatchDescription,
   getMatchColor,
 } from '../data/matchingAlgorithm';
 
 import SwipeCard from '../navigation/SwipeCard';
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } =
-  Dimensions.get('window');
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+
+const CARD_HEIGHT = SCREEN_HEIGHT * 0.75;  // 75% of screen height
+const CARD_WIDTH = SCREEN_WIDTH * 0.92;    // 92% of screen width
+const IMAGE_HEIGHT = CARD_HEIGHT * 0.65;   // 65% of card is image
+const INFO_HEIGHT = CARD_HEIGHT * 0.35;    // 35% of card is info
 
 const allAmenities = [
   { id: 'wifi', label: 'WiFi', icon: WifiIcon },
@@ -42,7 +46,6 @@ const allAmenities = [
 
 export default function SwipeScreen({ navigation }: any) {
   const { preferences } = usePreferences();
-
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAmenities, setSelectedAmenities] = useState<any[]>([]);
 
@@ -55,50 +58,40 @@ export default function SwipeScreen({ navigation }: any) {
   }, [preferences]);
 
   useEffect(() => {
-  // Navigate to Home when user finishes swiping
-  if (currentIndex >= apartmentsData.length - 1) {
-    // Optional: Add a small delay or show a completion message
-    setTimeout(() => {
-      navigation.navigate('MainTabs');
-    }, 500);
-  }
-}, [currentIndex]);
+    if (currentIndex >= apartmentsData.length - 1) {
+      setTimeout(() => {
+        navigation.navigate('MainTabs');
+      }, 500);
+    }
+  }, [currentIndex]);
 
   const currentApartment = apartmentsData[currentIndex];
+  
   if (!currentApartment) {
-  return (
-    <View style={styles.container}>
-      <Text style={{ marginTop: 100, textAlign: 'center' }}>Loading next matches...</Text>
-    </View>
-  );
-}
+    return (
+      <View style={styles.container}>
+        <Text style={{ marginTop: 100, textAlign: 'center' }}>Loading next matches...</Text>
+      </View>
+    );
+  }
 
-  const matchScore = calculateMatchScore(
-    currentApartment,
-    preferences,
-    selectedAmenities
-  );
-  //const matchDescription = getMatchDescription(matchScore);
+  const matchScore = calculateMatchScore(currentApartment, preferences, selectedAmenities);
   const matchColor = getMatchColor(matchScore);
 
   const details = [
     {
       id: 'bath',
-      label: `${currentApartment.bathrooms} Bath${
-        currentApartment.bathrooms !== 1 ? 's' : ''
-      }`,
+      label: `${currentApartment.bathrooms} Bath${currentApartment.bathrooms !== 1 ? 's' : ''}`,
       icon: BathIcon,
     },
     {
       id: 'bed',
-      label: `${currentApartment.bedrooms} Bed${
-        currentApartment.bedrooms !== 1 ? 's' : ''
-      }`,
+      label: `${currentApartment.bedrooms} Bed${currentApartment.bedrooms !== 1 ? 's' : ''}`,
       icon: BedIcon,
     },
     {
       id: 'distance',
-      label: `${currentApartment.distance} Miles`,
+      label: `${currentApartment.distance} Mi`,
       icon: DistanceIcon,
     },
   ];
@@ -107,145 +100,105 @@ export default function SwipeScreen({ navigation }: any) {
     currentApartment.amenities.includes(amenity.id)
   );
 
-  const handleNextApartment = () => {
-    if (currentIndex < apartmentsData.length - 1) {
-      setCurrentIndex(i => i + 1);
-    }
-  };
-
-  const handlePreviousApartment = () => {
-    if (currentIndex > 0) {
-      setCurrentIndex(i => i - 1);
-    }
-  };
-
   return (
     <View style={styles.container}>
       {apartmentsData
         .slice(currentIndex, currentIndex + 2)
         .reverse()
         .map(apartment => {
-          const score = calculateMatchScore(
-            apartment,
-            preferences,
-            selectedAmenities
-          );
-          //const description = getMatchDescription(score);
-          const color = getMatchColor(score);
+          const score = calculateMatchScore(apartment, preferences, selectedAmenities);
+          const color = '#ffffff';
 
           return (
-<SwipeCard
-  key={apartment.id}
-  apartment={apartment}
-  navigation={navigation}
-  matchScore={score}
-  matchColor={color}
-  //matchDescription={description}
-  onSwipeLeft={() => setCurrentIndex(i => i + 1)}
-  onSwipeRight={() => setCurrentIndex(i => i + 1)}
->
-  <View style={{ flex: 1 }}>
-    {/* Picture Section */}
-    <View style={styles.pictureSection}>
-    <Image
-    source={currentApartment.images[0]}
-    style={styles.apartmentImage}
-    resizeMode="cover"
-  />
-    </View>
+            <SwipeCard
+              key={apartment.id}
+              apartment={apartment}
+              navigation={navigation}
+              matchScore={score}
+              matchColor={color}
+              onSwipeLeft={() => setCurrentIndex(i => i + 1)}
+              onSwipeRight={() => setCurrentIndex(i => i + 1)}
+            >
+              <View style={styles.cardContent}>
+                {/* Picture Section */}
+                <View style={styles.pictureSection}>
+                  <Image
+                    source={apartment.images[0]}
+                    style={styles.apartmentImage}
+                    resizeMode="cover"
+                  />
+                  {/* Match Badge on Image */}
+                  <View style={[styles.matchBadge, { backgroundColor: color }]}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <PercentIcon width={16} height={16} />
+                      <Text style={styles.matchScoreText}>{score}%</Text>
+                    </View>
+                  </View>
+                </View>
 
                 {/* Info Section */}
                 <View style={styles.infoSection}>
-                  <View style={styles.infoContent}>
+                  {/* Title & Price */}
+                  <View style={styles.infoHeader}>
                     <View style={styles.leftInfo}>
-                      <Text style={styles.apartmentName}>
+                      <Text style={styles.apartmentName} numberOfLines={1}>
                         {currentApartment.name}
                       </Text>
-                      <Text style={styles.address}>
+                      <Text style={styles.address} numberOfLines={1}>
                         {currentApartment.address}
                       </Text>
                     </View>
-
-                    <View style={styles.rightInfo}>
-                      <Text style={styles.price}>
-                        ${currentApartment.price}/mo
-                      </Text>
-                    </View>
+                    <Text style={styles.price}>${currentApartment.price}/mo</Text>
                   </View>
 
+                  {/* Details Chips (Bed, Bath, Distance) */}
                   <View style={styles.chipsContainer}>
                     {details.map(detail => (
                       <View key={detail.id} style={styles.chip}>
-                        <View style={styles.chipContent}>
-                          <detail.icon
-                            width={24}
-                            height={24}
-                            style={styles.chipIconLeft}
-                          />
-                          <Text style={styles.chipText}>
-                            {detail.label}
-                          </Text>
-                        </View>
+                        <detail.icon width={25} height={25} />
+                        <Text style={styles.chipText}>{detail.label}</Text>
                       </View>
                     ))}
                   </View>
 
+                  {/* Amenities */}
                   {apartmentAmenities.length > 0 && (
-                    <View style={styles.chipsContainerAmenaties}>
+                    <View style={styles.amenitiesContainer}>
                       {apartmentAmenities.map(amenity => (
-                        <View
-                          key={amenity.id}
-                          style={styles.chipAmenaties}
-                        >
-                          <View
-                            style={styles.chipContentAmenaties}
-                          >
-                            <amenity.icon
-                              width={23}
-                              height={23}
-                            />
-                            <Text
-                              style={styles.chipTextAmenaties}
-                            >
-                              {amenity.label}
-                            </Text>
-                          </View>
+                        <View key={amenity.id} style={styles.amenityChip}>
+                          <amenity.icon width={16} height={16} />
+                          <Text style={styles.amenityText}>{amenity.label}</Text>
                         </View>
                       ))}
                     </View>
                   )}
 
-                  <TouchableOpacity
-                    style={styles.viewDetailsButton}
-                    onPress={() =>
-                      navigation.navigate('ApartmentListingDetails', {
-                        listing: currentApartment,
-                        matchScore,
-                      })
-                    }
-                  >
-                    <Text
-                      style={styles.viewDetailsButtonText}
+                  {/* Buttons */}
+                  <View style={styles.buttonsContainer}>
+                    <TouchableOpacity
+                      style={styles.detailsButton}
+                      onPress={() =>
+                        navigation.navigate('ApartmentListingDetails', {
+                          listing: currentApartment,
+                          matchScore,
+                        })
+                      }
                     >
-                      View Apartment Details
-                    </Text>
-                  </TouchableOpacity>
-                  
-                  <TouchableOpacity
-                    style={styles.viewDetailsButton}
-                    onPress={() =>
-                      navigation.navigate('RoomListingDetailsScreen', {
-                        listing: currentApartment,
-                        matchScore,
-                      })
-                    }
-                  >
-                    <Text
-                      style={styles.viewDetailsButtonText}
+                      <Text style={styles.buttonText}>Apartment Details</Text>
+                    </TouchableOpacity>
+                    
+                    <TouchableOpacity
+                      style={styles.detailsButton}
+                      onPress={() =>
+                        navigation.navigate('RoomListingDetailsScreen', {
+                          listing: currentApartment,
+                          matchScore,
+                        })
+                      }
                     >
-                      View Room Details
-                    </Text>
-                  </TouchableOpacity>
+                      <Text style={styles.buttonText}>Room Details</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
               </View>
             </SwipeCard>
@@ -255,178 +208,136 @@ export default function SwipeScreen({ navigation }: any) {
   );
 }
 
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f3f4f6',
-  },
-  pictureSection: {
-    flex: 1.3,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingVertical: 20,
+  },
+  cardContent: {
+    width: CARD_WIDTH,
+    height: CARD_HEIGHT,
+    borderRadius: 20,
+    overflow: 'hidden',
+    backgroundColor: '#ffffff',
+  },
+  pictureSection: {
+    height: IMAGE_HEIGHT,
+    width: '100%',
     position: 'relative',
+  },
+  apartmentImage: {
+    width: '100%',
+    height: '100%',
   },
   matchBadge: {
     position: 'absolute',
-    top: 20,
-    right: 20,
-    paddingHorizontal: 10,
+    top: 12,
+    right: 12,
+    paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 20,
+    borderRadius: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 5,
-    alignItems: 'center',
   },
   matchScoreText: {
-    fontSize: 24,
+    fontSize: 14,
     fontWeight: 'bold',
-    color: '#ffffff',
-  },
-  matchDescriptionText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#ffffff',
-    //marginTop: 2,
+    color: '#000000',
   },
   infoSection: {
-    flex: 1,
+    height: INFO_HEIGHT,
     backgroundColor: '#ffffff',
-    padding: 20,
+    padding: 16,
   },
-  infoContent: {
+  infoHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
+    marginBottom: 12,
   },
   leftInfo: {
     flex: 1,
+    marginRight: 12,
   },
   apartmentName: {
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#000000',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   address: {
-    fontSize: 18,
-    color: '#6b7280',
-  },
-  rightInfo: {
-    marginLeft: 16,
-  },
-  price: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#000000',
-  },
-  text: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#000000',
-  },
-  debugText: {
     fontSize: 14,
     color: '#6b7280',
-    marginTop: 10,
   },
-  navButtons: {
-    flexDirection: 'row',
-    gap: 20,
-    marginTop: 20,
-  },
-  navText: {
-    fontSize: 16,
-    color: '#000000',
-    fontWeight: '600',
+  price: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#BF5700',
   },
   chipsContainer: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginTop: 10,
-    gap: 10,
+    justifyContent: 'space-between',
+    marginBottom: 12,
+    width: '100%',
   },
   chip: {
-    width: '31%',
-    paddingVertical: 12,
-    paddingHorizontal: 19,
-    borderRadius: 20,
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'transparent',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
   },
   chipText: {
-    fontSize: 16,
-    color: '#000000ff',
-    fontWeight: '800',
+    fontSize: 13,
+    color: '#000000',
+    fontWeight: '700',
   },
-  chipContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  chipIconLeft: {
-    width: 20,
-    height: 20,
-  },
-  chipsContainerAmenaties: {
+  amenitiesContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginTop: 15,
-    gap: 10,
+    gap: 8,
+    marginBottom: 12,
   },
-  chipAmenaties: {
-    width: '31%',
-    paddingVertical: 5,
-    paddingHorizontal: 17,
-    borderRadius: 30,
-    backgroundColor: '#f3f4f6',
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    alignItems: 'center',
-  },
-  chipTextAmenaties: {
-    fontSize: 12,
-    color: '#000000ff',
-    fontWeight: '800',
-  },
-  chipContentAmenaties: {
+  amenityChip: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#f9fafb',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 14,
+  },
+  amenityText: {
+    fontSize: 11,
+    color: '#374151',
+    fontWeight: '600',
+  },
+  buttonsContainer: {
+    flexDirection: 'row',
     gap: 8,
   },
-  viewDetailsButton: {
+  detailsButton: {
+    flex: 1,
     backgroundColor: '#f3f4f6',
-    width: '100%',
-    paddingVertical: 10,
+    paddingVertical: 12,
+    borderRadius: 12,
     alignItems: 'center',
-    alignSelf: 'center',
-    padding: 24,
-    marginBottom: 12,
-    marginTop: 30,
-    borderRadius: 16,
-    elevation: 2,
   },
-  viewDetailsButtonText: {
-    color: '#000000ff',
-    fontSize: 23,
-    fontWeight: '500',
+  buttonText: {
+    color: '#000000',
+    fontSize: 14,
+    fontWeight: '600',
   },
-  apartmentImage: {
-    position: 'absolute',  // Add this
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%',
-},
-debugOverlay: {
-  position: 'absolute',
-  bottom: 20,
-  left: 0,
-  right: 0,
-  alignItems: 'center',
-  backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  padding: 10,
-},
 });
