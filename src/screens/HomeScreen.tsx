@@ -8,11 +8,10 @@ import {
   Image,
   Dimensions,
   Modal,
-  LayoutAnimation, 
-  Platform, 
+  LayoutAnimation,
+  Platform,
   UIManager
 } from 'react-native';
-
 import { apartmentsData } from '../data/apartments';
 import { usePreferences } from '../context/PreferencesContext';
 import { calculateMatchScore, getMatchColor } from '../data/matchingAlgorithm';
@@ -25,7 +24,6 @@ import SaveFilledIcon from '../../assets/filledInSaveIcon.svg';
 import Stars from '../../assets/stars.svg';
 import Heart from '../../assets/heart.svg';
 
-
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH * 0.7;
 const CARD_MARGIN = 12;
@@ -37,65 +35,57 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 // Apartment Card Component
 function ApartmentCard({ apartment, matchScore, onPress, isSaved, onSavePress }) {
   const hasImages = apartment.images && apartment.images.length > 0;
-  
+
   return (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={onPress}
-      activeOpacity={0.9}
-    >
-      <View style={styles.cardImageContainer}>
-        {hasImages ? (
-          <Image
-            source={apartment.images[0]}
-            style={styles.cardImage}
-            resizeMode="cover"
-          />
-        ) : (
-          <View style={[styles.cardImage, styles.placeholderImage]}>
-            <Text style={styles.placeholderText}>No Image</Text>
-          </View>
-        )}
-
-        {/* Floating Save Button */}
-        {isSaved && (
-          <View style={styles.saveBadge}>
-            <Heart width={25} height={25} fill="#BF5700" />
-          </View>
-        )}
-
-
-        {matchScore && (
-          <View style={[styles.matchBadge, { backgroundColor: '#BF5700' }]}>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Stars width={15} height={15} fill={'#ffffff'} />
-              <Text style={styles.matchText}> {matchScore}%</Text>
+    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.9}>
+      <View style={styles.cardInner}>
+        <View style={styles.cardImageContainer}>
+          {hasImages ? (
+            <Image source={apartment.images[0]} style={styles.cardImage} resizeMode="cover" />
+          ) : (
+            <View style={[styles.cardImage, styles.placeholderImage]}>
+              <Text style={styles.placeholderText}>No Image</Text>
             </View>
-          </View>
-        )}
-      </View>
-      
-      {/* ADD THIS MISSING VIEW TAG */}
-      <View style={styles.cardContent}>
-        <Text style={styles.cardTitle} numberOfLines={1}>
-          {apartment.name}
-        </Text>
-        <Text style={styles.cardAddress} numberOfLines={1}>
-          {apartment.address}
-        </Text>
+          )}
 
-        <View style={styles.cardDetailsRow}>
-          <View style={styles.leftDetails}>
-            <View style={styles.cardDetailItem}>
-              <BedIcon width={16} height={16} />
-              <Text style={styles.cardDetailText}>{apartment.bedrooms} Bed</Text>
+          {/* Floating Save Button */}
+          {isSaved && (
+            <View style={styles.saveBadge}>
+              <Heart width={25} height={25} fill="#BF5700" />
             </View>
-            <View style={styles.cardDetailItem}>
-              <BathIcon width={16} height={16} />
-              <Text style={styles.cardDetailText}>{apartment.bathrooms} Bath</Text>
+          )}
+
+          {matchScore && (
+            <View style={[styles.matchBadge, { backgroundColor: '#BF5700' }]}>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Stars width={15} height={15} fill={'#ffffff'} />
+                <Text style={styles.matchText}> {matchScore}%</Text>
+              </View>
             </View>
+          )}
+        </View>
+
+        {/* Card Content */}
+        <View style={styles.cardContent}>
+          <Text style={styles.cardTitle} numberOfLines={1}>
+            {apartment.name}
+          </Text>
+          <Text style={styles.cardAddress} numberOfLines={1}>
+            {apartment.address}
+          </Text>
+          <View style={styles.cardDetailsRow}>
+            <View style={styles.leftDetails}>
+              <View style={styles.cardDetailItem}>
+                <BedIcon width={16} height={16} />
+                <Text style={styles.cardDetailText}>{apartment.bedrooms} Bed</Text>
+              </View>
+              <View style={styles.cardDetailItem}>
+                <BathIcon width={16} height={16} />
+                <Text style={styles.cardDetailText}>{apartment.bathrooms} Bath</Text>
+              </View>
+            </View>
+            <Text style={styles.cardPrice}>${apartment.price}</Text>
           </View>
-          <Text style={styles.cardPrice}>${apartment.price}</Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -103,20 +93,21 @@ function ApartmentCard({ apartment, matchScore, onPress, isSaved, onSavePress })
 }
 
 export default function Home({ navigation }) {
-
   const handleToggleSave = (id) => {
-  // This line tells React: "Animate the next change that happens to the UI"
-  LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-  toggleSave(id);
+    // This line tells React: "Animate the next change that happens to the UI"
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    toggleSave(id);
   };
-  const { preferences, savedIds, toggleSave} = usePreferences();
+
+  const { preferences, savedIds, toggleSave } = usePreferences();
+
   const [recentlyViewed, setRecentlyViewed] = useState([]);
   const [savedListings, setSavedListings] = useState([]);
   const [budgetFriendly, setBudgetFriendly] = useState([]);
   const [closeToYou, setCloseToYou] = useState([]);
   const [hasAllAmenities, setHasAllAmenities] = useState([]);
-  const [lovedByLonghorns, setLonghornFavorites] = useState([]);  
-  
+  const [lovedByLonghorns, setLonghornFavorites] = useState([]);
+
   // Filter modal state
   const [filterModalVisible, setFilterModalVisible] = useState(false);
   const [visibleSections, setVisibleSections] = useState({
@@ -130,17 +121,25 @@ export default function Home({ navigation }) {
 
   // Get selected amenities from preferences
   const allAmenities = ['wifi', 'gym', 'pool', 'parking', 'furnished', 'petFriendly'];
-  const selectedAmenities = allAmenities.filter(amenity => preferences?.[amenity]);
+  const selectedAmenities = allAmenities.filter((amenity) => preferences?.[amenity]);
 
   useEffect(() => {
     if (!preferences || !savedIds) return;
 
-      const sortByScore = (apartments) => {
+    const sortByScore = (apartments) => {
       return [...apartments].sort((a, b) => {
         try {
           if (!a || !b) return 0;
-          const scoreA = calculateMatchScore(a, preferences, selectedAmenities.map(id => ({ id, selected: true })));
-          const scoreB = calculateMatchScore(b, preferences, selectedAmenities.map(id => ({ id, selected: true })));
+          const scoreA = calculateMatchScore(
+            a,
+            preferences,
+            selectedAmenities.map((id) => ({ id, selected: true }))
+          );
+          const scoreB = calculateMatchScore(
+            b,
+            preferences,
+            selectedAmenities.map((id) => ({ id, selected: true }))
+          );
           return scoreB - scoreA;
         } catch (error) {
           return 0;
@@ -149,26 +148,29 @@ export default function Home({ navigation }) {
     };
 
     if (!apartmentsData || apartmentsData.length === 0) return;
-    
+
     const userBudget = preferences?.maxPrice || 2000;
     const maxDistance = 2;
 
     setRecentlyViewed(sortByScore(apartmentsData.slice(0, 5)));
-
-    const saved = apartmentsData.filter(apt => savedIds.includes(apt.id));
+    const saved = apartmentsData.filter((apt) => savedIds.includes(apt.id));
     setSavedListings(sortByScore(saved));
-
-    const budget = apartmentsData.filter(apt => apt && apt.price !== undefined && apt.price <= userBudget);
+    const budget = apartmentsData.filter(
+      (apt) => apt && apt.price !== undefined && apt.price <= userBudget
+    );
     setBudgetFriendly(sortByScore(budget));
-
-    const nearby = apartmentsData.filter(apt => apt && apt.distance !== undefined && apt.distance <= maxDistance);
+    const nearby = apartmentsData.filter(
+      (apt) => apt && apt.distance !== undefined && apt.distance <= maxDistance
+    );
     setCloseToYou(sortByScore(nearby));
-
     setLonghornFavorites(sortByScore(apartmentsData.slice(0, 6)));
 
     if (selectedAmenities.length > 0) {
-      const withAmenities = apartmentsData.filter(apt =>
-        apt && apt.amenities && selectedAmenities.every(amenity => apt.amenities.includes(amenity))
+      const withAmenities = apartmentsData.filter(
+        (apt) =>
+          apt &&
+          apt.amenities &&
+          selectedAmenities.every((amenity) => apt.amenities.includes(amenity))
       );
       setHasAllAmenities(sortByScore(withAmenities));
     }
@@ -178,7 +180,7 @@ export default function Home({ navigation }) {
     const score = calculateMatchScore(
       apartment,
       preferences,
-      selectedAmenities.map(id => ({ id, selected: true }))
+      selectedAmenities.map((id) => ({ id, selected: true }))
     );
     navigation.navigate('RoomListingDetailsScreen_SearchVersion', {
       listing: apartment,
@@ -187,36 +189,31 @@ export default function Home({ navigation }) {
   };
 
   const toggleSection = (sectionKey) => {
-    setVisibleSections(prev => ({
-      ...prev,
-      [sectionKey]: !prev[sectionKey]
-    }));
+    setVisibleSections((prev) => ({ ...prev, [sectionKey]: !prev[sectionKey] }));
   };
 
   const renderSection = (title, data, sectionKey) => {
     if (data.length === 0 || !visibleSections[sectionKey]) {
       if (sectionKey === 'savedListings') {
-       // Optional: return a "No saved items" view here
-       return null; 
+        // Optional: return a "No saved items" view here
+        return null;
+      }
+      return null;
     }
-    return null;
-  }
 
     return (
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>{title}</Text>
-        
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.carouselContainer}  
-          
+          contentContainerStyle={styles.carouselContainer}
         >
           {data.map((apartment) => {
             const score = calculateMatchScore(
               apartment,
               preferences,
-              selectedAmenities.map(id => ({ id, selected: true }))
+              selectedAmenities.map((id) => ({ id, selected: true }))
             );
             return (
               <ApartmentCard
@@ -251,23 +248,20 @@ export default function Home({ navigation }) {
           <View style={styles.headerContent}>
             <View>
               <Text style={styles.headerTitle}>Longhorn Living</Text>
-              <Text style={styles.headerSubtitle}>
-                Find your ideal apartment
-              </Text>
+              <Text style={styles.headerSubtitle}> Find your ideal apartment </Text>
             </View>
-            
             {/* Filter Button */}
             <TouchableOpacity
-            style={styles.filterButton}
-            onPress={() => setFilterModalVisible(true)}
-          >
-            <FilterIcon width={30} height={30} />
-          </TouchableOpacity>
+              style={styles.filterButton}
+              onPress={() => setFilterModalVisible(true)}
+            >
+              <FilterIcon width={30} height={30} />
+            </TouchableOpacity>
           </View>
         </View>
 
         {/* Sections */}
-        {sections.map(section => (
+        {sections.map((section) => (
           <React.Fragment key={section.key}>
             {renderSection(section.title, section.data, section.key)}
           </React.Fragment>
@@ -291,25 +285,21 @@ export default function Home({ navigation }) {
                 <Text style={styles.closeButton}>✕</Text>
               </TouchableOpacity>
             </View>
-
             <ScrollView style={styles.filterList}>
-              {sections.map(section => (
+              {sections.map((section) => (
                 <TouchableOpacity
                   key={section.key}
                   style={styles.filterItem}
                   onPress={() => toggleSection(section.key)}
                 >
                   <View style={styles.checkbox}>
-                    {visibleSections[section.key] && (
-                      <Text style={styles.checkmark}>✓</Text>
-                    )}
+                    {visibleSections[section.key] && <Text style={styles.checkmark}>✓</Text>}
                   </View>
                   <Text style={styles.filterItemText}>{section.title}</Text>
                   <Text style={styles.filterItemCount}>({section.data.length})</Text>
                 </TouchableOpacity>
               ))}
             </ScrollView>
-
             <TouchableOpacity
               style={styles.applyButton}
               onPress={() => setFilterModalVisible(false)}
@@ -359,7 +349,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: 10,
-    marginBottom: 20
+    marginBottom: 20,
   },
   filterButtonText: {
     fontSize: 20,
@@ -372,40 +362,40 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#000000',
     paddingHorizontal: 20,
-    //marginBottom: 16,
   },
   carouselContainer: {
     paddingLeft: 20,
     paddingRight: 20,
-    paddingVertical: 10,
-    //paddingBottom: 50,
+    paddingVertical: 16,
   },
-card: {
-  width: CARD_WIDTH,
-  backgroundColor: '#ffffff',  // ← Change from '#ffffffde' to solid white
-  borderRadius: 16,
-  marginRight: CARD_MARGIN,
-  //marginLeft: 20,  // ← Add left margin for first card
-  overflow: 'visible',  // ← Change from 'visible' to 'hidden' to clip content
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 4 },  // ← Increase
-  shadowOpacity: 0.15,  // ← Increase
-  shadowRadius: 12,  // ← Increase
-  elevation: 5,  // ← Increase for Android
-},
-cardImageContainer: {
-  position: 'relative',
-  width: '100%',
-  height: 180,
-  borderTopLeftRadius: 16, 
-  borderTopRightRadius: 16,  
-  overflow: 'hidden',  
-},
-cardImage: {
-  width: '100%',
-  height: '100%',
-  borderRadius: 12,
-},
+  card: {
+    width: CARD_WIDTH,
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    marginRight: CARD_MARGIN,
+    marginVertical: 8,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  cardInner: {
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  cardImageContainer: {
+    position: 'relative',
+    width: '100%',
+    height: 180,
+  },
+  cardImage: {
+    width: '100%',
+    height: '100%',
+  },
   placeholderImage: {
     backgroundColor: '#e5e7eb',
     justifyContent: 'center',
@@ -415,7 +405,7 @@ cardImage: {
     fontSize: 16,
     color: '#6b7280',
     fontWeight: '600',
-     marginLeft: 4,
+    marginLeft: 4,
   },
   matchBadge: {
     position: 'absolute',
@@ -444,37 +434,36 @@ cardImage: {
     color: '#6b7280',
     marginBottom: 12,
   },
-cardDetailsRow: {
-  flexDirection: 'row',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-},
-leftDetails: {
-  flexDirection: 'row',
-  alignItems: 'center',
-},
-cardDetailItem: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  marginRight: 16,  // Remove gap, use marginRight instead
-},
-cardDetailText: {
-  fontSize: 12,
-  color: '#374151',
-  fontWeight: '600',
-  marginLeft: 4,  // Space between icon and text
-},
-cardPrice: {
-  fontSize: 21,
-  fontWeight: 'bold',
-  color: '#BF5700',
-},
+  cardDetailsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  leftDetails: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  cardDetailItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  cardDetailText: {
+    fontSize: 12,
+    color: '#374151',
+    fontWeight: '600',
+    marginLeft: 4,
+  },
+  cardPrice: {
+    fontSize: 21,
+    fontWeight: 'bold',
+    color: '#BF5700',
+  },
   cardDetails: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  // Modal styles
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -559,15 +548,6 @@ cardPrice: {
     left: 10,
     flexDirection: 'row',
     alignItems: 'center',
-    //backgroundColor: 'rgba(255, 255, 255, 0.95)', // Slight transparency
-    //paddingHorizontal: 10,
-    //paddingVertical: 6,
-    //borderRadius: 15,
-    //shadowColor: '#000',
-    //shadowOffset: { width: 0, height: 1 },
-    //shadowOpacity: 0.2,
-    //shadowRadius: 2,
-    //elevation: 4,
   },
   saveBadgeText: {
     fontSize: 12,

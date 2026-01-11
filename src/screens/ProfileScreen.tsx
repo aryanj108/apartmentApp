@@ -17,17 +17,34 @@ export default function Profile() {
 
 const formatMemberSince = () => {
   try {
-    if (!user?.metadata?.creationTime) return 'Recently';
+    if (!user?.metadata?.creationTime) {
+      console.log('No creationTime found');
+      return 'Recently';
+    }
+    
+    console.log('Raw creationTime:', user.metadata.creationTime);
     
     const date = new Date(user.metadata.creationTime);
+    console.log('Parsed date:', date);
+    console.log('Date timestamp:', date.getTime());
     
-    if (isNaN(date.getTime())) return 'Recently';
+    if (isNaN(date.getTime())) {
+      console.log('Invalid date');
+      return 'Recently';
+    }
     
-    const month = date.toLocaleDateString('en-US', { month: 'short' });
+    // Use getMonth() and getFullYear() for better compatibility
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const month = months[date.getMonth()];
     const day = date.getDate();
     const year = date.getFullYear();
     
-    return `${month} ${day}, ${year}`;
+    console.log('Formatted parts - Month:', month, 'Day:', day, 'Year:', year);
+    
+    const result = `${month} ${day}, ${year}`;
+    console.log('Final result:', result);
+    
+    return result;
   } catch (error) {
     console.error('Date formatting error:', error);
     return 'Recently';
@@ -101,7 +118,7 @@ const formatMemberSince = () => {
             </Text>
           </View>
           <Text style={styles.emailText}>{user?.email}</Text>
-          <Text style={styles.memberSince}>
+          <Text style={styles.memberSince} numberOfLines={1} ellipsizeMode="clip">
             Member since {formatMemberSince()}
           </Text>
         </View>
@@ -218,6 +235,9 @@ const styles = StyleSheet.create({
   memberSince: {
     fontSize: 14,
     color: '#6b7280',
+    width: '100%',
+    textAlign: 'center',
+    paddingHorizontal: 20,
   },
   verificationAlert: {
     backgroundColor: '#fef3c7',

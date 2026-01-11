@@ -19,7 +19,6 @@ import FurnishedIcon from '../../assets/furnishedIcon.svg';
 import PetIcon from '../../assets/petIcon.svg';
 import PercentIcon from '../../assets/percentIcon.svg';
 import Stars from '../../assets/stars.svg';
-import Heart from '../../assets/heart.svg';
 
 
 
@@ -54,6 +53,7 @@ export default function SwipeScreen({ navigation }: any) {
   const { preferences } = usePreferences();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAmenities, setSelectedAmenities] = useState<any[]>([]);
+  const [modalVisible, setModalVisible] = useState(false);
 
   useEffect(() => {
     const selected = allAmenities.map(amenity => ({
@@ -179,19 +179,19 @@ export default function SwipeScreen({ navigation }: any) {
                     </View>
                   )}
 
-                  {/* Buttons */}
-                  <View style={styles.buttonsContainer}>
-                    <TouchableOpacity
-                      style={styles.detailsButton}
-                      onPress={() =>
-                        navigation.navigate('ApartmentListingDetails', {
-                          listing: currentApartment,
-                          matchScore,
-                        })
-                      }
-                    >
-                      <Text style={styles.buttonText}>Apartment Details</Text>
-                    </TouchableOpacity>
+                    {/* Buttons */}
+                    <View style={styles.buttonsContainer}>
+                      <TouchableOpacity
+                        style={styles.detailsButton}
+                        onPress={() =>
+                          navigation.navigate('ApartmentListingDetails', {
+                            listing: currentApartment,
+                            matchScore,
+                          })
+                        }
+                      >
+                        <Text style={styles.buttonText}>Apartment Details</Text>
+                      </TouchableOpacity>
                     
                     <TouchableOpacity
                       style={styles.detailsButton}

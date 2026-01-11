@@ -21,8 +21,12 @@ import BackIcon from '../../assets/backIcon.svg';
 import { usePreferences } from '../context/PreferencesContext';
 import SaveOutlineIcon from '../../assets/saveIcon.svg';
 import SaveFilledIcon from '../../assets/filledInSaveIcon.svg';
+
 import SaveOutlineIconHeart from '../../assets/heartOutline.svg';
 import SaveFilledIconHeart from '../../assets/heart.svg';
+
+
+
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -58,23 +62,7 @@ export default function ApartmentListingDetailsScreen({ navigation, route }) {
 
 
   // Create details array based on apartment data
-  const details = [
-    { 
-      id: 'bath', 
-      label: `${apartment.bathrooms} Bath${apartment.bathrooms !== 1 ? 's' : ''}`, 
-      icon: BathIcon 
-    },
-    { 
-      id: 'bed', 
-      label: `${apartment.bedrooms} Bed${apartment.bedrooms !== 1 ? 's' : ''}`, 
-      icon: BedIcon 
-    },
-    { 
-      id: 'distance', 
-      label: `${apartment.distance} Mile${apartment.distance !== 1 ? 's' : ''}`, 
-      icon: DistanceIcon 
-    },
-  ];
+
 
   return (
 <View style={styles.container}>
@@ -163,26 +151,6 @@ export default function ApartmentListingDetailsScreen({ navigation, route }) {
             </View>
           </View>
         </View>
-
-        <View style={styles.chipsContainer}>
-          {details.map((detail) => (
-            <View 
-              key={detail.id}
-              style={[styles.chip]}
-            >
-              <View style={styles.chipContent}>
-                <detail.icon 
-                  width={24} 
-                  height={24} 
-                  style={styles.chipIconLeft}
-                />
-                <Text style={[styles.chipText]}>
-                  {detail.label}
-                </Text>
-              </View>
-            </View>
-          ))}
-        </View>
       
         {/* Description */}
         <View style={styles.section}>
@@ -190,7 +158,7 @@ export default function ApartmentListingDetailsScreen({ navigation, route }) {
             <View style={styles.iconContainerDistance}>
               <DescriptionIcon width={30} height={30} style={styles.icon} />
             </View>
-            <Text style={styles.sectionTitle}>Description</Text>
+            <Text style={styles.sectionTitle}>Apartment Description</Text>
           </View>
           <Text style={styles.description}>
             {apartment.description || 'No description available.'}

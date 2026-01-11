@@ -35,65 +35,69 @@ function ApartmentVerticalCard({ apartment, matchScore, onPress, isSaved, onSave
       onPress={onPress}
       activeOpacity={0.9}
     >
-      {/* Image Section */}
-      <View style={styles.cardImageContainer}>
-        {hasImages ? (
-          <Image
-            source={apartment.images[0]}
-            style={styles.cardImage}
-            resizeMode="cover"
-          />
-        ) : (
-          <View style={[styles.cardImage, styles.placeholderImage]}>
-            <Text style={styles.placeholderText}>No Image</Text>
-          </View>
-        )}
+      {/* NEW: Inner wrapper for overflow clipping */}
+      <View style={styles.cardInner}>
+        {/* Image Section */}
+        <View style={styles.cardImageContainer}>
+          {hasImages ? (
+            <Image
+              source={apartment.images[0]}
+              style={styles.cardImage}
+              resizeMode="cover"
+            />
+          ) : (
+            <View style={[styles.cardImage, styles.placeholderImage]}>
+              <Text style={styles.placeholderText}>No Image</Text>
+            </View>
+          )}
+          
+          {/* Floating Save Button */}
+          {isSaved && (
+            <View style={styles.saveBadge}>
+              <SaveFilledIconHeart width={25} height={25} fill="#BF5700" />
+            </View>
+          )}
+
+          {/* Match Badge */}
+          {matchScore && (
+            <View style={[styles.matchBadge, { backgroundColor:  '#BF5700'}]}>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Stars width={15} height={15} fill={'#ffffff'} />
+                <Text style={styles.matchText}> {matchScore}%</Text>
+              </View>
+            </View>
+          )}
+        </View>
         
-        {/* Floating Save Button */}
-        {isSaved && (
-          <View style={styles.saveBadge}>
-            <SaveFilledIconHeart width={25} height={25} fill="#BF5700" />
-          </View>
-        )}
+        {/* Info Section Below Image */}
+        <View style={styles.cardContent}>
+          <Text style={styles.cardTitle} numberOfLines={1}>
+            {apartment.name}
+          </Text>
+          <Text style={styles.cardAddress} numberOfLines={1}>
+            {apartment.address}
+          </Text>
 
-        {/* Match Badge */}
-        {matchScore && (
-          <View style={[styles.matchBadge, { backgroundColor:  '#BF5700'}]}>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Stars width={15} height={15} fill={'#ffffff'} />
-              <Text style={styles.matchText}> {matchScore}%</Text>
+          <View style={styles.cardDetailsRow}>
+            <View style={styles.leftDetails}>
+              <View style={styles.cardDetailItem}>
+                <BedIcon width={16} height={16} />
+                <Text style={styles.cardDetailText}>{apartment.bedrooms} Bed</Text>
+              </View>
+              <View style={styles.cardDetailItem}>
+                <BathIcon width={16} height={16} />
+                <Text style={styles.cardDetailText}>{apartment.bathrooms} Bath</Text>
+              </View>
+              <View style={styles.cardDetailItem}>
+                <DistanceIcon width={16} height={16} />
+                <Text style={styles.cardDetailText}>{apartment.distance} mi</Text>
+              </View>
             </View>
+            <Text style={styles.cardPrice}>${apartment.price}/mo</Text>
           </View>
-        )}
-      </View>
-      
-      {/* Info Section Below Image */}
-      <View style={styles.cardContent}>
-        <Text style={styles.cardTitle} numberOfLines={1}>
-          {apartment.name}
-        </Text>
-        <Text style={styles.cardAddress} numberOfLines={1}>
-          {apartment.address}
-        </Text>
-
-        <View style={styles.cardDetailsRow}>
-          <View style={styles.leftDetails}>
-            <View style={styles.cardDetailItem}>
-              <BedIcon width={16} height={16} />
-              <Text style={styles.cardDetailText}>{apartment.bedrooms} Bed</Text>
-            </View>
-            <View style={styles.cardDetailItem}>
-              <BathIcon width={16} height={16} />
-              <Text style={styles.cardDetailText}>{apartment.bathrooms} Bath</Text>
-            </View>
-            <View style={styles.cardDetailItem}>
-              <DistanceIcon width={16} height={16} />
-              <Text style={styles.cardDetailText}>{apartment.distance} mi</Text>
-            </View>
-          </View>
-          <Text style={styles.cardPrice}>${apartment.price}/mo</Text>
         </View>
       </View>
+      {/* END: Inner wrapper */}
     </TouchableOpacity>
   );
 }
@@ -215,29 +219,29 @@ const styles = StyleSheet.create({
   listContainer: {
     padding: 16,
   },
-card: {
-  backgroundColor: '#ffffff',  // ← Change from '#ffffffb2' to solid white
-  borderRadius: 12,
-  marginBottom: 16,
-  overflow: 'hidden',
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 4 },  // ← Increase from 2 to 4
-  shadowOpacity: 0.15,  // ← Increase from 0.1 to 0.15
-  shadowRadius: 12,  // ← Increase from 8 to 12
-  elevation: 5,  // ← Increase from 3 to 5
-},
-cardImageContainer: {
-  position: 'relative',
-  width: '100%',
-  height: 200,
-  borderTopLeftRadius: 12,  // ← ADD THIS to match card radius
-  borderTopRightRadius: 12,  // ← ADD THIS
-  overflow: 'hidden',  // ← ADD THIS
-},
+  card: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    marginBottom: 16,
+    // Shadow properties here (no overflow)
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  cardInner: {
+    borderRadius: 12,
+    overflow: 'hidden',  // Clips content to rounded corners
+  },
+  cardImageContainer: {
+    position: 'relative',
+    width: '100%',
+    height: 200,
+  },
   cardImage: {
     width: '100%',
     height: '100%',
-    borderRadius: 12,
   },
   placeholderImage: {
     backgroundColor: '#e5e7eb',
@@ -255,15 +259,6 @@ cardImageContainer: {
     left: 10,
     flexDirection: 'row',
     alignItems: 'center',
-    //backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    //paddingHorizontal: 10,
-    //paddingVertical: 6,
-    //borderRadius: 15,
-    //shadowColor: '#000',
-    //shadowOffset: { width: 0, height: 1 },
-    //shadowOpacity: 0.2,
-    //shadowRadius: 2,
-    //elevation: 4,
   },
   saveBadgeText: {
     fontSize: 12,
