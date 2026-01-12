@@ -104,9 +104,9 @@ export default function LoginScreen({ navigation }: any) {
             onPress={() => setShowPassword(!showPassword)}
           >
             {showPassword ? (
-            <EyeOpenOutline width={25} height={25} />
-            ) : (
             <EyeOffOutline width={25} height={25} />
+            ) : (
+            <EyeOpenOutline width={25} height={25} />
             )}
           </Pressable>
         </View>

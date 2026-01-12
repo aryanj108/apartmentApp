@@ -6,6 +6,7 @@ import {
   Dimensions,
   TouchableOpacity,
   Image,
+  ScrollView,
 } from 'react-native';
 
 import BedIcon from '../../assets/bedIcon.svg';
@@ -20,9 +21,6 @@ import PetIcon from '../../assets/petIcon.svg';
 import PercentIcon from '../../assets/percentIcon.svg';
 import Stars from '../../assets/stars.svg';
 
-
-
-
 import { apartmentsData } from '../data/apartments';
 import { usePreferences } from '../context/PreferencesContext';
 import {
@@ -34,10 +32,10 @@ import SwipeCard from '../navigation/SwipeCard';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-const CARD_HEIGHT = SCREEN_HEIGHT * 0.75;  // 75% of screen height
-const CARD_WIDTH = SCREEN_WIDTH * 0.92;    // 92% of screen width
-const IMAGE_HEIGHT = CARD_HEIGHT * 0.60;   // 65% of card is image
-const INFO_HEIGHT = CARD_HEIGHT * 0.40;    // 35% of card is info
+const CARD_HEIGHT = SCREEN_HEIGHT * 0.80;
+const CARD_WIDTH = SCREEN_WIDTH * 0.92;
+const IMAGE_HEIGHT = CARD_HEIGHT * 0.55; // Reduced from 0.60 to give more space to info
+const INFO_HEIGHT = CARD_HEIGHT * 0.45; // Increased from 0.40
 const AMENITY_WIDTH = (CARD_WIDTH - 32 - 16) / 3;
 
 const allAmenities = [
@@ -142,57 +140,62 @@ export default function SwipeScreen({ navigation }: any) {
                   </View>
                 </View>
 
-                {/* Info Section */}
+                {/* Info Section with ScrollView */}
                 <View style={styles.infoSection}>
-                  {/* Title & Price */}
-                  <View style={styles.infoHeader}>
-                    <View style={styles.leftInfo}>
-                      <Text style={styles.apartmentName} numberOfLines={1}>
-                        {currentApartment.name}
-                      </Text>
-                      <Text style={styles.address} numberOfLines={1}>
-                        {currentApartment.address}
-                      </Text>
-                    </View>
-                    <Text style={styles.price}>${currentApartment.price}/mo</Text>
-                  </View>
-
-                  {/* Details Chips (Bed, Bath, Distance) */}
-                  <View style={styles.chipsContainer}>
-                    {details.map(detail => (
-                      <View key={detail.id} style={styles.chip}>
-                        <detail.icon width={25} height={25} />
-                        <Text style={styles.chipText}>{detail.label}</Text>
+                  <ScrollView 
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={styles.scrollContent}
+                  >
+                    {/* Title & Price */}
+                    <View style={styles.infoHeader}>
+                      <View style={styles.leftInfo}>
+                        <Text style={styles.apartmentName} numberOfLines={1}>
+                          {currentApartment.name}
+                        </Text>
+                        <Text style={styles.address} numberOfLines={1}>
+                          {currentApartment.address}
+                        </Text>
                       </View>
-                    ))}
-                  </View>
+                      <Text style={styles.price}>${currentApartment.price}/mo</Text>
+                    </View>
 
-                  {/* Amenities */}
-                  {apartmentAmenities.length > 0 && (
-                    <View style={styles.amenitiesContainer}>
-                      {apartmentAmenities.map(amenity => (
-                        <View key={amenity.id} style={styles.amenityChip}>
-                          <amenity.icon width={20} height={20} />
-                          <Text style={styles.amenityText}>{amenity.label}</Text>
+                    {/* Details Chips (Bed, Bath, Distance) */}
+                    <View style={styles.chipsContainer}>
+                      {details.map(detail => (
+                        <View key={detail.id} style={styles.chip}>
+                          <detail.icon width={25} height={25} />
+                          <Text style={styles.chipText}>{detail.label}</Text>
                         </View>
                       ))}
                     </View>
-                  )}
 
-                    {/* Buttons */}
-                    <View style={styles.buttonsContainer}>
-                      <TouchableOpacity
-                        style={styles.detailsButton}
-                        onPress={() =>
-                          navigation.navigate('ApartmentListingDetails', {
-                            listing: currentApartment,
-                            matchScore,
-                          })
-                        }
-                      >
-                        <Text style={styles.buttonText}>Apartment Details</Text>
-                      </TouchableOpacity>
-                    
+                    {/* Amenities */}
+                    {apartmentAmenities.length > 0 && (
+                      <View style={styles.amenitiesContainer}>
+                        {apartmentAmenities.map(amenity => (
+                          <View key={amenity.id} style={styles.amenityChip}>
+                            <amenity.icon width={18} height={18} />
+                            <Text style={styles.amenityText}>{amenity.label}</Text>
+                          </View>
+                        ))}
+                      </View>
+                    )}
+                  </ScrollView>
+
+                  {/* Buttons - Fixed at Bottom */}
+                  <View style={styles.buttonsContainer}>
+                    <TouchableOpacity
+                      style={styles.detailsButton}
+                      onPress={() =>
+                        navigation.navigate('ApartmentListingDetails', {
+                          listing: currentApartment,
+                          matchScore,
+                        })
+                      }
+                    >
+                      <Text style={styles.buttonText}>Apartment Details</Text>
+                    </TouchableOpacity>
+                  
                     <TouchableOpacity
                       style={styles.detailsButton}
                       onPress={() =>
@@ -262,7 +265,12 @@ const styles = StyleSheet.create({
   infoSection: {
     height: INFO_HEIGHT,
     backgroundColor: '#ffffff',
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 12,
+  },
+  scrollContent: {
+    paddingBottom: 8,
   },
   infoHeader: {
     flexDirection: 'row',
@@ -336,6 +344,9 @@ const styles = StyleSheet.create({
   buttonsContainer: {
     flexDirection: 'row',
     gap: 8,
+    paddingTop: 8,
+    //borderTopWidth: 1,
+    borderTopColor: '#f3f4f6',
   },
   detailsButton: {
     flex: 1,
