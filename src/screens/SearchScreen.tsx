@@ -8,6 +8,7 @@ import {
   Image,
   Dimensions,
   ActivityIndicator,
+  Switch,
 } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 
@@ -19,6 +20,7 @@ import BathIcon from '../../assets/bathIcon.svg';
 import DistanceIcon from '../../assets/distanceIcon(2).svg';
 import Stars from '../../assets/stars.svg';
 import SaveFilledIconHeart from '../../assets/heart.svg';
+import PinIcon from '../../assets/pinIcon.svg';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -41,10 +43,7 @@ function CustomMarker({ apartment, matchScore, onPress }) {
       onPress={() => onPress(apartment)}
     >
       <View style={styles.markerContainer}>
-        <View style={styles.markerBubble}>
-          <Text style={styles.markerPrice}>${apartment.price}</Text>
-        </View>
-        <View style={styles.markerArrow} />
+        <PinIcon width={40} height={40} fill="#BF5700" />
       </View>
     </Marker>
   );
@@ -161,6 +160,12 @@ export default function Search({ navigation }) {
     handleCardPress(apartmentWithScore);
   };
 
+  const handleResetMap = () => {
+    if (mapRef.current) {
+      mapRef.current.animateToRegion(AUSTIN_REGION, 1000);
+    }
+  };
+
   if (loading || prefsLoading) {
     return (
       <View style={styles.loadingContainer}>
@@ -173,38 +178,48 @@ export default function Search({ navigation }) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Browse All Apartments</Text>
-        <Text style={styles.headerSubtitle}>
-          {sortedApartments.length} listings sorted by match
-        </Text>
-        
-        <TouchableOpacity 
-          style={styles.toggleButton}
-          onPress={() => setShowMap(!showMap)}
-        >
-          <Text style={styles.toggleButtonText}>
-            {showMap ? '📋 Show List' : '🗺️ Show Map'}
+        <Text style={styles.headerTitle}>Browse Listings</Text>
+        <View style={styles.headerBottom}>
+          <Text style={styles.headerSubtitle}>
+            {sortedApartments.length} Listings • {showMap ? 'Map View' : 'List View'}
           </Text>
-        </TouchableOpacity>
+          <Switch
+            value={showMap}
+            onValueChange={setShowMap}
+            trackColor={{ false: '#d1d5db', true: '#FDB863' }}
+            thumbColor={showMap ? '#BF5700' : '#f3f4f6'}
+            ios_backgroundColor="#d1d5db"
+            style={styles.toggle}
+          />
+        </View>
       </View>
 
       {showMap ? (
-        <MapView
-          ref={mapRef}
-          style={styles.map}
-          initialRegion={AUSTIN_REGION}
-          showsUserLocation={false}
-          showsMyLocationButton={false}
-        >
-          {sortedApartments.map((apartment) => (
-            <CustomMarker
-              key={apartment.id}
-              apartment={apartment}
-              matchScore={apartment.matchScore}
-              onPress={handleMarkerPress}
-            />
-          ))}
-        </MapView>
+        <View style={styles.mapWrapper}>
+          <MapView
+            ref={mapRef}
+            style={styles.map}
+            initialRegion={AUSTIN_REGION}
+            showsUserLocation={false}
+            showsMyLocationButton={false}
+          >
+            {sortedApartments.map((apartment) => (
+              <CustomMarker
+                key={apartment.id}
+                apartment={apartment}
+                matchScore={apartment.matchScore}
+                onPress={handleMarkerPress}
+              />
+            ))}
+          </MapView>
+          
+          <TouchableOpacity 
+            style={styles.resetButton}
+            onPress={handleResetMap}
+          >
+            <Text style={styles.resetButtonText}>Reset View</Text>
+          </TouchableOpacity>
+        </View>
       ) : (
         <FlatList
           data={sortedApartments}
@@ -244,7 +259,7 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: 20,
     paddingTop: 60,
-    paddingBottom: 20,
+    paddingBottom: 16,
     backgroundColor: '#ffffff',
     borderBottomColor: '#e5e7eb',
     borderBottomWidth: 1,
@@ -253,61 +268,50 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: 'bold',
     color: '#000000',
-    marginBottom: 4,
+    marginBottom: 8,
+  },
+  headerBottom: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   headerSubtitle: {
-    fontSize: 15,
-    color: '#6b7280',
-    marginBottom: 12,
-  },
-  toggleButton: {
-    backgroundColor: '#BF5700',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    alignSelf: 'flex-start',
-  },
-  toggleButtonText: {
-    color: '#ffffff',
     fontSize: 14,
-    fontWeight: '600',
+    color: '#6b7280',
+    fontWeight: '500',
+  },
+  toggle: {
+    transform: [{ scale: 0.9 }],
+  },
+  mapWrapper: {
+    flex: 1,
+    position: 'relative',
   },
   map: {
     flex: 1,
   },
-  markerContainer: {
-    alignItems: 'center',
-  },
-  markerBubble: {
+  resetButton: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
     backgroundColor: '#BF5700',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 2,
-    borderColor: '#ffffff',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 25,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 5,
   },
-  markerPrice: {
+  resetButtonText: {
     color: '#ffffff',
-    fontSize: 13,
-    fontWeight: 'bold',
+    fontSize: 14,
+    fontWeight: '600',
   },
-  markerArrow: {
-    width: 0,
-    height: 0,
-    backgroundColor: 'transparent',
-    borderStyle: 'solid',
-    borderLeftWidth: 6,
-    borderRightWidth: 6,
-    borderTopWidth: 8,
-    borderLeftColor: 'transparent',
-    borderRightColor: 'transparent',
-    borderTopColor: '#BF5700',
-    marginTop: -1,
+  markerContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   listContainer: {
     padding: 16,
