@@ -18,6 +18,35 @@ import EyeOpenOutline from '../../assets/eye-open.svg';
 const { width } = Dimensions.get('window');
 const scale = (size: number) => (width / 375) * size;
 
+const getErrorMessage = (error: any): string => {
+  const errorCode = error.code || '';
+  
+  switch (errorCode) {
+    case 'auth/invalid-email':
+      return 'Invalid email address format';
+    case 'auth/user-disabled':
+      return 'This account has been disabled';
+    case 'auth/user-not-found':
+      return 'No account found with this email';
+    case 'auth/wrong-password':
+      return 'Incorrect password';
+    case 'auth/invalid-credential':
+      return 'Invalid email or password';
+    case 'auth/email-already-in-use':
+      return 'An account with this email already exists';
+    case 'auth/weak-password':
+      return 'Password should be at least 6 characters';
+    case 'auth/too-many-requests':
+      return 'Too many failed attempts. Please try again later';
+    case 'auth/network-request-failed':
+      return 'Network error. Please check your connection';
+    case 'auth/operation-not-allowed':
+      return 'Email/password sign-in is not enabled';
+    default:
+      return error.message || 'Authentication failed. Please try again';
+  }
+};
+
 export default function LoginScreen({ navigation }: any) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -31,8 +60,16 @@ export default function LoginScreen({ navigation }: any) {
       setError(null);
       
       // Validation
+      if (!email.trim()) {
+        Alert.alert('Error', 'Please enter your email address');
+        return;
+      }
       if (!email.includes('@')) {
         Alert.alert('Error', 'Please enter a valid email address');
+        return;
+      }
+      if (!password) {
+        Alert.alert('Error', 'Please enter your password');
         return;
       }
       if (password.length < 6) {
@@ -40,29 +77,34 @@ export default function LoginScreen({ navigation }: any) {
         return;
       }
       
-    if (isSignUp) {
-      await signUpWithEmail(email, password);
-      
-      // Send verification email automatically
-      try {
-        await sendVerificationEmail();
-        Alert.alert(
-          'Account Created!',
-          'A verification email has been sent to ' + email + '. Please check your inbox and verify your email.',
-          [{ text: 'OK' }]
-        );
-      } catch (err) {
-        // Account was still created, just failed to send email
-        Alert.alert('Account Created', 'Account created successfully!');
+      if (isSignUp) {
+        await signUpWithEmail(email, password);
+        
+        // Send verification email automatically
+        try {
+          await sendVerificationEmail();
+          Alert.alert(
+            'Account Created!',
+            'A verification email has been sent to ' + email + '. Please check your inbox and verify your email.',
+            [{ text: 'OK' }]
+          );
+        } catch (err) {
+          // Account was still created, just failed to send email
+          Alert.alert('Account Created', 'Account created successfully!');
+        }
+      } else {
+        await signInWithEmail(email, password);
       }
-    } else {
-      await signInWithEmail(email, password);
-    }
       
       // Navigation happens automatically via AuthContext - no manual navigation needed!
     } catch (err: any) {
       console.error('Auth error:', err);
-      Alert.alert('Error', err.message || 'Authentication failed');
+      const friendlyMessage = getErrorMessage(err);
+      Alert.alert(
+        isSignUp ? 'Sign Up Failed' : 'Login Failed',
+        friendlyMessage,
+        [{ text: 'OK' }]
+      );
     }
   };
 
@@ -93,7 +135,7 @@ export default function LoginScreen({ navigation }: any) {
             placeholder="Password"
             placeholderTextColor="#999"
             style={styles.passwordInput}
-            secureTextEntry={!showPassword}  // ← Toggle based on state
+            secureTextEntry={!showPassword}
             autoCapitalize="none"
             value={password}
             onChangeText={setPassword}
@@ -104,17 +146,12 @@ export default function LoginScreen({ navigation }: any) {
             onPress={() => setShowPassword(!showPassword)}
           >
             {showPassword ? (
-            <EyeOffOutline width={25} height={25} />
+              <EyeOffOutline width={25} height={25} />
             ) : (
-            <EyeOpenOutline width={25} height={25} />
+              <EyeOpenOutline width={25} height={25} />
             )}
           </Pressable>
         </View>
-
-        {/* Error Message */}
-        {error && (
-          <Text style={styles.errorText}>{error}</Text>
-        )}
 
         <Pressable
           style={[styles.button, loading && styles.buttonDisabled]}
@@ -184,13 +221,13 @@ const styles = StyleSheet.create({
     marginBottom: scale(20),
   },
   passwordContainer: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  borderWidth: 1,
-  borderColor: '#ddd',
-  borderRadius: scale(10),
-  backgroundColor: '#fafafa',
-  marginBottom: scale(16),
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: scale(10),
+    backgroundColor: '#fafafa',
+    marginBottom: scale(16),
   },
   passwordInput: {
     flex: 1,
@@ -235,12 +272,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   forgotPasswordButton: {
-     marginTop: scale(12),
-     alignItems: 'center',
-   },
-   forgotPasswordText: {
-     fontSize: scale(14),
-     color: '#6b7280',
-     fontWeight: '500',
-   },
+    marginTop: scale(12),
+    alignItems: 'center',
+  },
+  forgotPasswordText: {
+    fontSize: scale(14),
+    color: '#6b7280',
+    fontWeight: '500',
+  },
 });

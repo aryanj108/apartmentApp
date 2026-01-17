@@ -30,7 +30,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 import ImageCarousel from '../navigation/ImageCarousel';
 
 
-export default function ApartmentListingDetailsScreen({ navigation, route }) {
+export default function ApartmentListingDetailsScreen({ navigation, visible, onClose, route }) {
   const { savedIds, toggleSave } = usePreferences();
   const apartment = route.params?.listing || {
     name: 'Modern Downtown Loft',
@@ -462,4 +462,21 @@ imageGalleryContainer: {
     alignItems: 'center',
     marginBottom: 12,
   },
+  modalContainer: {
+  flex: 1,
+  backgroundColor: '#fff',
+  borderTopLeftRadius: 24,
+  borderTopRightRadius: 24,
+  overflow: 'hidden',
+},
+
+dragHandle: {
+  width: 40,
+  height: 5,
+  backgroundColor: '#d1d5db',
+  borderRadius: 3,
+  alignSelf: 'center',
+  marginVertical: 10,
+},
+
 });
