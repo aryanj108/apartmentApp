@@ -33,7 +33,16 @@ const AUSTIN_REGION = {
 };
 
 // Custom marker component
-function CustomMarker({ apartment, matchScore, onPress }) {
+const CustomMarker = React.memo(({ apartment, matchScore, onPress }) => {
+  const [tracksViewChanges, setTracksViewChanges] = React.useState(true);
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setTracksViewChanges(false);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <Marker
       coordinate={{
@@ -41,13 +50,14 @@ function CustomMarker({ apartment, matchScore, onPress }) {
         longitude: apartment.longitude,
       }}
       onPress={() => onPress(apartment)}
+      tracksViewChanges={tracksViewChanges}
     >
       <View style={styles.markerContainer}>
         <PinIcon width={40} height={40} fill="#BF5700" />
       </View>
     </Marker>
   );
-}
+});
 
 // Vertical Apartment Card Component
 function ApartmentVerticalCard({ apartment, matchScore, onPress, isSaved }) {
@@ -162,7 +172,7 @@ export default function Search({ navigation }) {
 
   const handleResetMap = () => {
     if (mapRef.current) {
-      mapRef.current.animateToRegion(AUSTIN_REGION, 1000);
+      mapRef.current.animateToRegion(AUSTIN_REGION, 750);
     }
   };
 
@@ -258,7 +268,7 @@ const styles = StyleSheet.create({
   },
 header: {
     paddingHorizontal: 20,
-    paddingTop: 60,
+    paddingTop: 50,
     backgroundColor: '#ffffff',
     alignItems: 'center', 
   },
@@ -279,8 +289,8 @@ header: {
     color: '#6b7280',
     fontWeight: '500',
     textAlign: 'center',
-    marginRight: 4, 
-    marginLeft: 15, 
+    marginRight: -5, 
+    marginLeft: 5, 
   },
   toggle: {
     transform: [{ scale: 0.8 }], 
