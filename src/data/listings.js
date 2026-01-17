@@ -1,0 +1,462 @@
+// Each listing is an individual rentable unit within a building
+export const listingsData = [
+  // Campus Edge Flats (buildingId: 1)
+  {
+    id: 1,
+    buildingId: 1,
+    unitNumber: "101",
+    price: 950,
+    bedrooms: 1,
+    bathrooms: 1,
+    sqft: 600,
+    floorPlan: "Studio",
+    available: true,
+    availableDate: "Available now",
+    deposit: 950,
+    leaseTerm: "12-month"
+  },
+  {
+    id: 2,
+    buildingId: 1,
+    unitNumber: "205",
+    price: 1100,
+    bedrooms: 1,
+    bathrooms: 1,
+    sqft: 700,
+    floorPlan: "One Bedroom",
+    available: true,
+    availableDate: "Available now",
+    deposit: 1100,
+    leaseTerm: "12-month"
+  },
+
+  // The Pearl Residences (buildingId: 2)
+  {
+    id: 3,
+    buildingId: 2,
+    unitNumber: "3A",
+    price: 1800,
+    bedrooms: 2,
+    bathrooms: 2,
+    sqft: 1100,
+    floorPlan: "Two Bedroom",
+    available: true,
+    availableDate: "Available August",
+    deposit: 1800,
+    leaseTerm: "12-month"
+  },
+  {
+    id: 4,
+    buildingId: 2,
+    unitNumber: "5B",
+    price: 1950,
+    bedrooms: 2,
+    bathrooms: 2,
+    sqft: 1200,
+    floorPlan: "Two Bedroom Deluxe",
+    available: false,
+    availableDate: "September 1",
+    deposit: 1950,
+    leaseTerm: "12-month"
+  },
+
+  // Skyline Tower (buildingId: 3) - Multiple luxury units
+  {
+    id: 5,
+    buildingId: 3,
+    unitNumber: "12A",
+    price: 4200,
+    bedrooms: 3,
+    bathrooms: 3,
+    sqft: 1800,
+    floorPlan: "Penthouse",
+    available: true,
+    availableDate: "Limited units",
+    deposit: 4200,
+    leaseTerm: "12-month"
+  },
+  {
+    id: 6,
+    buildingId: 3,
+    unitNumber: "15B",
+    price: 3800,
+    bedrooms: 2,
+    bathrooms: 2,
+    sqft: 1400,
+    floorPlan: "Two Bedroom Premium",
+    available: true,
+    availableDate: "Limited units",
+    deposit: 3800,
+    leaseTerm: "12-month"
+  },
+  {
+    id: 7,
+    buildingId: 3,
+    unitNumber: "8C",
+    price: 5000,
+    bedrooms: 3,
+    bathrooms: 3,
+    sqft: 2200,
+    floorPlan: "Presidential Suite",
+    available: true,
+    availableDate: "Limited units",
+    deposit: 5000,
+    leaseTerm: "12-month"
+  },
+
+  // Riverside Commons (buildingId: 4)
+  {
+    id: 8,
+    buildingId: 4,
+    unitNumber: "A1",
+    price: 1300,
+    bedrooms: 1,
+    bathrooms: 1,
+    sqft: 750,
+    floorPlan: "One Bedroom",
+    available: true,
+    availableDate: "Available now",
+    deposit: 1300,
+    leaseTerm: "6 or 12-month"
+  },
+  {
+    id: 9,
+    buildingId: 4,
+    unitNumber: "B4",
+    price: 1450,
+    bedrooms: 1,
+    bathrooms: 1,
+    sqft: 850,
+    floorPlan: "One Bedroom Plus",
+    available: true,
+    availableDate: "Available now",
+    deposit: 1450,
+    leaseTerm: "6 or 12-month"
+  },
+
+  // Hilltop Villas (buildingId: 5)
+  {
+    id: 10,
+    buildingId: 5,
+    unitNumber: "Villa 1",
+    price: 2100,
+    bedrooms: 3,
+    bathrooms: 2,
+    sqft: 1600,
+    floorPlan: "Three Bedroom Villa",
+    available: true,
+    availableDate: "Available now",
+    deposit: 2100,
+    leaseTerm: "12-month"
+  },
+  {
+    id: 11,
+    buildingId: 5,
+    unitNumber: "Villa 5",
+    price: 2400,
+    bedrooms: 4,
+    bathrooms: 3,
+    sqft: 2000,
+    floorPlan: "Four Bedroom Villa",
+    available: true,
+    availableDate: "Available now",
+    deposit: 2400,
+    leaseTerm: "12-month"
+  },
+
+  // West Campus Suites (buildingId: 6)
+  {
+    id: 12,
+    buildingId: 6,
+    unitNumber: "202",
+    price: 1600,
+    bedrooms: 2,
+    bathrooms: 1,
+    sqft: 900,
+    floorPlan: "Two Bedroom",
+    available: true,
+    availableDate: "Fall leasing",
+    deposit: 1600,
+    leaseTerm: "9 or 12-month"
+  },
+  {
+    id: 13,
+    buildingId: 6,
+    unitNumber: "304",
+    price: 1750,
+    bedrooms: 2,
+    bathrooms: 2,
+    sqft: 1000,
+    floorPlan: "Two Bedroom Deluxe",
+    available: true,
+    availableDate: "Fall leasing",
+    deposit: 1750,
+    leaseTerm: "9 or 12-month"
+  },
+
+  // Greenview Apartments (buildingId: 7)
+  {
+    id: 14,
+    buildingId: 7,
+    unitNumber: "G12",
+    price: 1450,
+    bedrooms: 2,
+    bathrooms: 2,
+    sqft: 1050,
+    floorPlan: "Garden View",
+    available: true,
+    availableDate: "Available now",
+    deposit: 1450,
+    leaseTerm: "12-month"
+  },
+  {
+    id: 15,
+    buildingId: 7,
+    unitNumber: "G20",
+    price: 1550,
+    bedrooms: 2,
+    bathrooms: 2,
+    sqft: 1100,
+    floorPlan: "Garden View Plus",
+    available: true,
+    availableDate: "Available now",
+    deposit: 1550,
+    leaseTerm: "12-month"
+  },
+
+  // Urban Core Lofts (buildingId: 8)
+  {
+    id: 16,
+    buildingId: 8,
+    unitNumber: "L5",
+    price: 3800,
+    bedrooms: 2,
+    bathrooms: 2,
+    sqft: 1300,
+    floorPlan: "Downtown Loft",
+    available: true,
+    availableDate: "Limited",
+    deposit: 3800,
+    leaseTerm: "12-month"
+  },
+  {
+    id: 17,
+    buildingId: 8,
+    unitNumber: "L9",
+    price: 4100,
+    bedrooms: 2,
+    bathrooms: 2,
+    sqft: 1500,
+    floorPlan: "Premium Loft",
+    available: true,
+    availableDate: "Limited",
+    deposit: 4100,
+    leaseTerm: "12-month"
+  },
+
+  // Lakeside Retreat (buildingId: 9)
+  {
+    id: 18,
+    buildingId: 9,
+    unitNumber: "Lake 3",
+    price: 2000,
+    bedrooms: 3,
+    bathrooms: 2,
+    sqft: 1400,
+    floorPlan: "Lakeside Three Bedroom",
+    available: true,
+    availableDate: "Available now",
+    deposit: 2000,
+    leaseTerm: "12-month"
+  },
+  {
+    id: 19,
+    buildingId: 9,
+    unitNumber: "Lake 7",
+    price: 2200,
+    bedrooms: 3,
+    bathrooms: 2,
+    sqft: 1500,
+    floorPlan: "Lakeside Premium",
+    available: true,
+    availableDate: "Available now",
+    deposit: 2200,
+    leaseTerm: "12-month"
+  },
+
+  // North Loop Flats (buildingId: 10)
+  {
+    id: 20,
+    buildingId: 10,
+    unitNumber: "N1",
+    price: 1250,
+    bedrooms: 1,
+    bathrooms: 1,
+    sqft: 650,
+    floorPlan: "One Bedroom",
+    available: true,
+    availableDate: "Available now",
+    deposit: 1250,
+    leaseTerm: "6 or 12-month"
+  },
+
+  // Tech Ridge Residences (buildingId: 11)
+  {
+    id: 21,
+    buildingId: 11,
+    unitNumber: "TR4",
+    price: 2700,
+    bedrooms: 4,
+    bathrooms: 3,
+    sqft: 2000,
+    floorPlan: "Four Bedroom",
+    available: true,
+    availableDate: "Available now",
+    deposit: 2700,
+    leaseTerm: "12-month"
+  },
+
+  // Downtown Micro Units (buildingId: 12)
+  {
+    id: 22,
+    buildingId: 12,
+    unitNumber: "M12",
+    price: 700,
+    bedrooms: 1,
+    bathrooms: 1,
+    sqft: 350,
+    floorPlan: "Micro Studio",
+    available: true,
+    availableDate: "Available now",
+    deposit: 700,
+    leaseTerm: "12-month"
+  },
+
+  // Presidential Estates (buildingId: 13)
+  {
+    id: 23,
+    buildingId: 13,
+    unitNumber: "Estate 1",
+    price: 5000,
+    bedrooms: 10,
+    bathrooms: 10,
+    sqft: 8000,
+    floorPlan: "Presidential Estate",
+    available: true,
+    availableDate: "Exclusive",
+    deposit: 5000,
+    leaseTerm: "12-month"
+  },
+
+  // Budget Studios (buildingId: 14)
+  {
+    id: 24,
+    buildingId: 14,
+    unitNumber: "S1",
+    price: 0,
+    bedrooms: 1,
+    bathrooms: 1,
+    sqft: 400,
+    floorPlan: "Studio",
+    available: false,
+    availableDate: "Waitlist",
+    deposit: 0,
+    leaseTerm: "12-month"
+  },
+
+  // South Congress Living (buildingId: 15)
+  {
+    id: 25,
+    buildingId: 15,
+    unitNumber: "SC3",
+    price: 2300,
+    bedrooms: 2,
+    bathrooms: 2,
+    sqft: 1100,
+    floorPlan: "Two Bedroom Modern",
+    available: true,
+    availableDate: "Available now",
+    deposit: 2300,
+    leaseTerm: "12-month"
+  },
+
+  // Oak Hill Homes (buildingId: 16)
+  {
+    id: 26,
+    buildingId: 16,
+    unitNumber: "OH2",
+    price: 1900,
+    bedrooms: 3,
+    bathrooms: 2,
+    sqft: 1600,
+    floorPlan: "Three Bedroom Home",
+    available: true,
+    availableDate: "Available now",
+    deposit: 1900,
+    leaseTerm: "12-month"
+  },
+
+  // Midtown Towers (buildingId: 17)
+  {
+    id: 27,
+    buildingId: 17,
+    unitNumber: "MT15",
+    price: 2600,
+    bedrooms: 3,
+    bathrooms: 3,
+    sqft: 1700,
+    floorPlan: "Three Bedroom Tower",
+    available: true,
+    availableDate: "Available now",
+    deposit: 2600,
+    leaseTerm: "12-month"
+  },
+
+  // Student Hub (buildingId: 18)
+  {
+    id: 28,
+    buildingId: 18,
+    unitNumber: "SH8",
+    price: 1400,
+    bedrooms: 2,
+    bathrooms: 2,
+    sqft: 950,
+    floorPlan: "Student Two Bedroom",
+    available: true,
+    availableDate: "Fall",
+    deposit: 1400,
+    leaseTerm: "9 or 12-month"
+  },
+
+  // Zilker Park Residences (buildingId: 19)
+  {
+    id: 29,
+    buildingId: 19,
+    unitNumber: "ZP6",
+    price: 3100,
+    bedrooms: 3,
+    bathrooms: 2,
+    sqft: 1600,
+    floorPlan: "Parkside Three Bedroom",
+    available: true,
+    availableDate: "Available now",
+    deposit: 3100,
+    leaseTerm: "12-month"
+  },
+
+  // Executive Heights (buildingId: 20)
+  {
+    id: 30,
+    buildingId: 20,
+    unitNumber: "EH10",
+    price: 4500,
+    bedrooms: 5,
+    bathrooms: 4,
+    sqft: 3000,
+    floorPlan: "Executive Five Bedroom",
+    available: true,
+    availableDate: "Available now",
+    deposit: 4500,
+    leaseTerm: "12-month"
+  }
+];

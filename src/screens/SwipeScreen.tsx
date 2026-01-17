@@ -18,10 +18,10 @@ import PoolIcon from '../../assets/poolIcon.svg';
 import ParkingIcon from '../../assets/parkingIcon.svg';
 import FurnishedIcon from '../../assets/furnishedIcon.svg';
 import PetIcon from '../../assets/petIcon.svg';
-import PercentIcon from '../../assets/percentIcon.svg';
 import Stars from '../../assets/stars.svg';
 
-import { apartmentsData } from '../data/apartments';
+import { buildingsData } from '../data/buildings';
+import { listingsData } from '../data/listings';
 import { usePreferences } from '../context/PreferencesContext';
 import {
   calculateMatchScore,
@@ -32,10 +32,10 @@ import SwipeCard from '../navigation/SwipeCard';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-const CARD_HEIGHT = SCREEN_HEIGHT * 0.80;
+const CARD_HEIGHT = SCREEN_HEIGHT * 0.85;
 const CARD_WIDTH = SCREEN_WIDTH * 0.92;
-const IMAGE_HEIGHT = CARD_HEIGHT * 0.55; // Reduced from 0.60 to give more space to info
-const INFO_HEIGHT = CARD_HEIGHT * 0.45; // Increased from 0.40
+const IMAGE_HEIGHT = CARD_HEIGHT * 0.55;
+const INFO_HEIGHT = CARD_HEIGHT * 0.45;
 const AMENITY_WIDTH = (CARD_WIDTH - 32 - 16) / 3;
 
 const allAmenities = [
@@ -47,11 +47,31 @@ const allAmenities = [
   { id: 'petFriendly', label: 'Pet Friendly', icon: PetIcon },
 ];
 
+// Helper function to combine listing with building data
+function getEnrichedListings() {
+  return listingsData.map(listing => {
+    const building = buildingsData.find(b => b.id === listing.buildingId);
+    return {
+      ...listing,
+      name: building?.name || 'Unknown',
+      address: building?.address || 'Unknown Address',
+      distance: building?.distance || 0,
+      amenities: building?.amenities || [],
+      images: building?.images || [],
+      description: building?.description || '',
+      features: building?.features || [],
+      reviews: building?.reviews || [],
+      contact: building?.contact || {},
+      website: building?.website || '',
+    };
+  });
+}
+
 export default function SwipeScreen({ navigation }: any) {
   const { preferences } = usePreferences();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAmenities, setSelectedAmenities] = useState<any[]>([]);
-  const [modalVisible, setModalVisible] = useState(false);
+  const [enrichedListings, setEnrichedListings] = useState<any[]>([]);
 
   useEffect(() => {
     const selected = allAmenities.map(amenity => ({
@@ -62,16 +82,23 @@ export default function SwipeScreen({ navigation }: any) {
   }, [preferences]);
 
   useEffect(() => {
-    if (currentIndex >= apartmentsData.length - 1) {
+    // Get all listings with building data combined
+    const listings = getEnrichedListings();
+    setEnrichedListings(listings);
+  }, []);
+
+  useEffect(() => {
+    if (enrichedListings.length > 0 && currentIndex >= enrichedListings.length - 1) {
+      // Navigate to MainTabs after finishing all listings
       setTimeout(() => {
         navigation.navigate('MainTabs');
       }, 500);
     }
-  }, [currentIndex]);
+  }, [currentIndex, enrichedListings.length]);
 
-  const currentApartment = apartmentsData[currentIndex];
+  const currentListing = enrichedListings[currentIndex];
   
-  if (!currentApartment) {
+  if (!currentListing) {
     return (
       <View style={styles.container}>
         <Text style={{ marginTop: 100, textAlign: 'center' }}>Loading next matches...</Text>
@@ -79,44 +106,44 @@ export default function SwipeScreen({ navigation }: any) {
     );
   }
 
-  const matchScore = calculateMatchScore(currentApartment, preferences, selectedAmenities);
-  const matchColor = getMatchColor(matchScore);
+  const matchScore = calculateMatchScore(currentListing, preferences, selectedAmenities);
+  const matchColor = '#BF5700';
 
   const details = [
     {
       id: 'bath',
-      label: `${currentApartment.bathrooms} Bath${currentApartment.bathrooms !== 1 ? 's' : ''}`,
+      label: `${currentListing.bathrooms} Bath${currentListing.bathrooms !== 1 ? 's' : ''}`,
       icon: BathIcon,
     },
     {
       id: 'bed',
-      label: `${currentApartment.bedrooms} Bed${currentApartment.bedrooms !== 1 ? 's' : ''}`,
+      label: `${currentListing.bedrooms} Bed${currentListing.bedrooms !== 1 ? 's' : ''}`,
       icon: BedIcon,
     },
     {
       id: 'distance',
-      label: `${currentApartment.distance} Mi`,
+      label: `${currentListing.distance} Mi`,
       icon: DistanceIcon,
     },
   ];
 
-  const apartmentAmenities = allAmenities.filter(amenity =>
-    currentApartment.amenities.includes(amenity.id)
+  const listingAmenities = allAmenities.filter(amenity =>
+    currentListing.amenities.includes(amenity.id)
   );
 
   return (
     <View style={styles.container}>
-      {apartmentsData
+      {enrichedListings
         .slice(currentIndex, currentIndex + 2)
         .reverse()
-        .map(apartment => {
-          const score = calculateMatchScore(apartment, preferences, selectedAmenities);
+        .map(listing => {
+          const score = calculateMatchScore(listing, preferences, selectedAmenities);
           const color = '#BF5700';
 
           return (
             <SwipeCard
-              key={apartment.id}
-              apartment={apartment}
+              key={listing.id}
+              apartment={listing}
               navigation={navigation}
               matchScore={score}
               matchColor={color}
@@ -127,7 +154,7 @@ export default function SwipeScreen({ navigation }: any) {
                 {/* Picture Section */}
                 <View style={styles.pictureSection}>
                   <Image
-                    source={apartment.images[0]}
+                    source={listing.images[0]}
                     style={styles.apartmentImage}
                     resizeMode="cover"
                   />
@@ -145,18 +172,22 @@ export default function SwipeScreen({ navigation }: any) {
                   <ScrollView 
                     showsVerticalScrollIndicator={false}
                     contentContainerStyle={styles.scrollContent}
+                    style={{ flex: 1 }}
                   >
                     {/* Title & Price */}
                     <View style={styles.infoHeader}>
                       <View style={styles.leftInfo}>
                         <Text style={styles.apartmentName} numberOfLines={1}>
-                          {currentApartment.name}
+                          {currentListing.name}
+                        </Text>
+                        <Text style={styles.unitNumber}>
+                          Unit {currentListing.unitNumber} • {currentListing.floorPlan}
                         </Text>
                         <Text style={styles.address} numberOfLines={1}>
-                          {currentApartment.address}
+                          {currentListing.address}
                         </Text>
                       </View>
-                      <Text style={styles.price}>${currentApartment.price}/mo</Text>
+                      <Text style={styles.price}>${currentListing.price}/mo</Text>
                     </View>
 
                     {/* Details Chips (Bed, Bath, Distance) */}
@@ -170,9 +201,9 @@ export default function SwipeScreen({ navigation }: any) {
                     </View>
 
                     {/* Amenities */}
-                    {apartmentAmenities.length > 0 && (
+                    {listingAmenities.length > 0 && (
                       <View style={styles.amenitiesContainer}>
-                        {apartmentAmenities.map(amenity => (
+                        {listingAmenities.map(amenity => (
                           <View key={amenity.id} style={styles.amenityChip}>
                             <amenity.icon width={18} height={18} />
                             <Text style={styles.amenityText}>{amenity.label}</Text>
@@ -188,7 +219,7 @@ export default function SwipeScreen({ navigation }: any) {
                       style={styles.detailsButton}
                       onPress={() =>
                         navigation.navigate('ApartmentListingDetails', {
-                          listing: currentApartment,
+                          listing: currentListing,
                           matchScore,
                         })
                       }
@@ -200,7 +231,7 @@ export default function SwipeScreen({ navigation }: any) {
                       style={styles.detailsButton}
                       onPress={() =>
                         navigation.navigate('RoomListingDetailsScreen', {
-                          listing: currentApartment,
+                          listing: currentListing,
                           matchScore,
                         })
                       }
@@ -268,9 +299,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 12,
+    flexDirection: 'column',
   },
   scrollContent: {
-    paddingBottom: 8,
+    paddingBottom: 80,
   },
   infoHeader: {
     flexDirection: 'row',
@@ -286,6 +318,12 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: '#000000',
+    marginBottom: 2,
+  },
+  unitNumber: {
+    fontSize: 13,
+    color: '#BF5700',
+    fontWeight: '600',
     marginBottom: 2,
   },
   address: {
@@ -344,9 +382,13 @@ const styles = StyleSheet.create({
   buttonsContainer: {
     flexDirection: 'row',
     gap: 8,
-    paddingTop: 8,
-    //borderTopWidth: 1,
+    paddingTop: 12,
     borderTopColor: '#f3f4f6',
+    position: 'absolute',
+    bottom: 12,
+    left: 16,
+    right: 16,
+    backgroundColor: '#ffffff',
   },
   detailsButton: {
     flex: 1,

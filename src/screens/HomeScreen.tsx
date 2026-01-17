@@ -12,7 +12,8 @@ import {
   Platform,
   UIManager
 } from 'react-native';
-import { apartmentsData } from '../data/apartments';
+import { buildingsData } from '../data/buildings';
+import { listingsData } from '../data/listings';
 import { usePreferences } from '../context/PreferencesContext';
 import { calculateMatchScore, getMatchColor } from '../data/matchingAlgorithm';
 import FilterIcon from '../../assets/filterIcon.svg';
@@ -32,16 +33,36 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
+// Helper function to combine listing with building data
+function getEnrichedListings() {
+  return listingsData.map(listing => {
+    const building = buildingsData.find(b => b.id === listing.buildingId);
+    return {
+      ...listing,
+      name: building?.name || 'Unknown',
+      address: building?.address || 'Unknown Address',
+      distance: building?.distance || 0,
+      amenities: building?.amenities || [],
+      images: building?.images || [],
+      description: building?.description || '',
+      features: building?.features || [],
+      reviews: building?.reviews || [],
+      contact: building?.contact || {},
+      website: building?.website || '',
+    };
+  });
+}
+
 // Apartment Card Component
-function ApartmentCard({ apartment, matchScore, onPress, isSaved, onSavePress }) {
-  const hasImages = apartment.images && apartment.images.length > 0;
+function ApartmentCard({ listing, matchScore, onPress, isSaved, onSavePress }) {
+  const hasImages = listing.images && listing.images.length > 0;
 
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.9}>
       <View style={styles.cardInner}>
         <View style={styles.cardImageContainer}>
           {hasImages ? (
-            <Image source={apartment.images[0]} style={styles.cardImage} resizeMode="cover" />
+            <Image source={listing.images[0]} style={styles.cardImage} resizeMode="cover" />
           ) : (
             <View style={[styles.cardImage, styles.placeholderImage]}>
               <Text style={styles.placeholderText}>No Image</Text>
@@ -68,23 +89,26 @@ function ApartmentCard({ apartment, matchScore, onPress, isSaved, onSavePress })
         {/* Card Content */}
         <View style={styles.cardContent}>
           <Text style={styles.cardTitle} numberOfLines={1}>
-            {apartment.name}
+            {listing.name}
+          </Text>
+          <Text style={styles.unitNumber}>
+            Unit {listing.unitNumber} • {listing.floorPlan}
           </Text>
           <Text style={styles.cardAddress} numberOfLines={1}>
-            {apartment.address}
+            {listing.address}
           </Text>
           <View style={styles.cardDetailsRow}>
             <View style={styles.leftDetails}>
               <View style={styles.cardDetailItem}>
                 <BedIcon width={16} height={16} />
-                <Text style={styles.cardDetailText}>{apartment.bedrooms} Bed</Text>
+                <Text style={styles.cardDetailText}>{listing.bedrooms} Bed</Text>
               </View>
               <View style={styles.cardDetailItem}>
                 <BathIcon width={16} height={16} />
-                <Text style={styles.cardDetailText}>{apartment.bathrooms} Bath</Text>
+                <Text style={styles.cardDetailText}>{listing.bathrooms} Bath</Text>
               </View>
             </View>
-            <Text style={styles.cardPrice}>${apartment.price}</Text>
+            <Text style={styles.cardPrice}>${listing.price}</Text>
           </View>
         </View>
       </View>
@@ -94,13 +118,13 @@ function ApartmentCard({ apartment, matchScore, onPress, isSaved, onSavePress })
 
 export default function Home({ navigation }) {
   const handleToggleSave = (id) => {
-    // This line tells React: "Animate the next change that happens to the UI"
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     toggleSave(id);
   };
 
   const { preferences, savedIds, toggleSave } = usePreferences();
 
+  const [enrichedListings, setEnrichedListings] = useState([]);
   const [recentlyViewed, setRecentlyViewed] = useState([]);
   const [savedListings, setSavedListings] = useState([]);
   const [budgetFriendly, setBudgetFriendly] = useState([]);
@@ -123,11 +147,17 @@ export default function Home({ navigation }) {
   const allAmenities = ['wifi', 'gym', 'pool', 'parking', 'furnished', 'petFriendly'];
   const selectedAmenities = allAmenities.filter((amenity) => preferences?.[amenity]);
 
+  // Load enriched listings on mount
   useEffect(() => {
-    if (!preferences || !savedIds) return;
+    const listings = getEnrichedListings();
+    setEnrichedListings(listings);
+  }, []);
 
-    const sortByScore = (apartments) => {
-      return [...apartments].sort((a, b) => {
+  useEffect(() => {
+    if (!preferences || !savedIds || enrichedListings.length === 0) return;
+
+    const sortByScore = (listings) => {
+      return [...listings].sort((a, b) => {
         try {
           if (!a || !b) return 0;
           const scoreA = calculateMatchScore(
@@ -147,43 +177,41 @@ export default function Home({ navigation }) {
       });
     };
 
-    if (!apartmentsData || apartmentsData.length === 0) return;
-
     const userBudget = preferences?.maxPrice || 2000;
     const maxDistance = 2;
 
-    setRecentlyViewed(sortByScore(apartmentsData.slice(0, 5)));
-    const saved = apartmentsData.filter((apt) => savedIds.includes(apt.id));
+    setRecentlyViewed(sortByScore(enrichedListings.slice(0, 5)));
+    const saved = enrichedListings.filter((listing) => savedIds.includes(listing.id));
     setSavedListings(sortByScore(saved));
-    const budget = apartmentsData.filter(
-      (apt) => apt && apt.price !== undefined && apt.price <= userBudget
+    const budget = enrichedListings.filter(
+      (listing) => listing && listing.price !== undefined && listing.price <= userBudget
     );
     setBudgetFriendly(sortByScore(budget));
-    const nearby = apartmentsData.filter(
-      (apt) => apt && apt.distance !== undefined && apt.distance <= maxDistance
+    const nearby = enrichedListings.filter(
+      (listing) => listing && listing.distance !== undefined && listing.distance <= maxDistance
     );
     setCloseToYou(sortByScore(nearby));
-    setLonghornFavorites(sortByScore(apartmentsData.slice(0, 6)));
+    setLonghornFavorites(sortByScore(enrichedListings.slice(0, 6)));
 
     if (selectedAmenities.length > 0) {
-      const withAmenities = apartmentsData.filter(
-        (apt) =>
-          apt &&
-          apt.amenities &&
-          selectedAmenities.every((amenity) => apt.amenities.includes(amenity))
+      const withAmenities = enrichedListings.filter(
+        (listing) =>
+          listing &&
+          listing.amenities &&
+          selectedAmenities.every((amenity) => listing.amenities.includes(amenity))
       );
       setHasAllAmenities(sortByScore(withAmenities));
     }
-  }, [preferences, savedIds]);
+  }, [preferences, savedIds, enrichedListings]);
 
-  const handleCardPress = (apartment) => {
+  const handleCardPress = (listing) => {
     const score = calculateMatchScore(
-      apartment,
+      listing,
       preferences,
       selectedAmenities.map((id) => ({ id, selected: true }))
     );
     navigation.navigate('RoomListingDetailsScreen_SearchVersion', {
-      listing: apartment,
+      listing: listing,
       matchScore: score,
     });
   };
@@ -195,7 +223,6 @@ export default function Home({ navigation }) {
   const renderSection = (title, data, sectionKey) => {
     if (data.length === 0 || !visibleSections[sectionKey]) {
       if (sectionKey === 'savedListings') {
-        // Optional: return a "No saved items" view here
         return null;
       }
       return null;
@@ -209,20 +236,20 @@ export default function Home({ navigation }) {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.carouselContainer}
         >
-          {data.map((apartment) => {
+          {data.map((listing) => {
             const score = calculateMatchScore(
-              apartment,
+              listing,
               preferences,
               selectedAmenities.map((id) => ({ id, selected: true }))
             );
             return (
               <ApartmentCard
-                key={apartment.id}
-                apartment={apartment}
+                key={listing.id}
+                listing={listing}
                 matchScore={score}
-                onPress={() => handleCardPress(apartment)}
-                isSaved={savedIds.includes(apartment.id)}
-                onSavePress={() => handleToggleSave(apartment.id)}
+                onPress={() => handleCardPress(listing)}
+                isSaved={savedIds.includes(listing.id)}
+                onSavePress={() => handleToggleSave(listing.id)}
               />
             );
           })}
@@ -427,6 +454,12 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: '#000000',
+    marginBottom: 2,
+  },
+  unitNumber: {
+    fontSize: 12,
+    color: '#BF5700',
+    fontWeight: '600',
     marginBottom: 4,
   },
   cardAddress: {

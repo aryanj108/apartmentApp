@@ -12,7 +12,8 @@ import {
 } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 
-import { apartmentsData } from '../data/apartments';
+import { buildingsData } from '../data/buildings';
+import { listingsData } from '../data/listings';
 import { usePreferences } from '../context/PreferencesContext';
 import { calculateMatchScore } from '../data/matchingAlgorithm';
 import BedIcon from '../../assets/bedIcon.svg';
@@ -32,8 +33,30 @@ const AUSTIN_REGION = {
   longitudeDelta: 0.15,
 };
 
-// Custom marker component
-const CustomMarker = React.memo(({ apartment, matchScore, onPress }) => {
+// Helper function to combine listing with building data
+function getEnrichedListings() {
+  return listingsData.map(listing => {
+    const building = buildingsData.find(b => b.id === listing.buildingId);
+    return {
+      ...listing,
+      name: building?.name || 'Unknown',
+      address: building?.address || 'Unknown Address',
+      distance: building?.distance || 0,
+      amenities: building?.amenities || [],
+      images: building?.images || [],
+      description: building?.description || '',
+      features: building?.features || [],
+      reviews: building?.reviews || [],
+      contact: building?.contact || {},
+      website: building?.website || '',
+      latitude: building?.latitude,
+      longitude: building?.longitude,
+    };
+  });
+}
+
+// Custom marker component - shows building pins
+const CustomMarker = React.memo(({ building, onPress }) => {
   const [tracksViewChanges, setTracksViewChanges] = React.useState(true);
 
   React.useEffect(() => {
@@ -46,10 +69,10 @@ const CustomMarker = React.memo(({ apartment, matchScore, onPress }) => {
   return (
     <Marker
       coordinate={{
-        latitude: apartment.latitude,
-        longitude: apartment.longitude,
+        latitude: building.latitude,
+        longitude: building.longitude,
       }}
-      onPress={() => onPress(apartment)}
+      onPress={() => onPress(building)}
       tracksViewChanges={tracksViewChanges}
     >
       <View style={styles.markerContainer}>
@@ -59,9 +82,9 @@ const CustomMarker = React.memo(({ apartment, matchScore, onPress }) => {
   );
 });
 
-// Vertical Apartment Card Component
-function ApartmentVerticalCard({ apartment, matchScore, onPress, isSaved }) {
-  const hasImages = apartment.images && apartment.images.length > 0;
+// Vertical Listing Card Component
+function ListingVerticalCard({ listing, matchScore, onPress, isSaved }) {
+  const hasImages = listing.images && listing.images.length > 0;
   
   return (
     <TouchableOpacity
@@ -72,7 +95,7 @@ function ApartmentVerticalCard({ apartment, matchScore, onPress, isSaved }) {
       <View style={styles.cardImageContainer}>
         {hasImages ? (
           <Image
-            source={apartment.images[0]}
+            source={listing.images[0]}
             style={styles.cardImage}
             resizeMode="cover"
           />
@@ -100,28 +123,31 @@ function ApartmentVerticalCard({ apartment, matchScore, onPress, isSaved }) {
       
       <View style={styles.cardContent}>
         <Text style={styles.cardTitle} numberOfLines={1}>
-          {apartment.name}
+          {listing.name}
+        </Text>
+        <Text style={styles.unitNumber}>
+          Unit {listing.unitNumber} • {listing.floorPlan}
         </Text>
         <Text style={styles.cardAddress} numberOfLines={1}>
-          {apartment.address}
+          {listing.address}
         </Text>
 
         <View style={styles.cardDetailsRow}>
           <View style={styles.leftDetails}>
             <View style={styles.cardDetailItem}>
               <BedIcon width={16} height={16} />
-              <Text style={styles.cardDetailText}>{apartment.bedrooms} Bed</Text>
+              <Text style={styles.cardDetailText}>{listing.bedrooms} Bed</Text>
             </View>
             <View style={styles.cardDetailItem}>
               <BathIcon width={16} height={16} />
-              <Text style={styles.cardDetailText}>{apartment.bathrooms} Bath</Text>
+              <Text style={styles.cardDetailText}>{listing.bathrooms} Bath</Text>
             </View>
             <View style={styles.cardDetailItem}>
               <DistanceIcon width={16} height={16} />
-              <Text style={styles.cardDetailText}>{apartment.distance} mi</Text>
+              <Text style={styles.cardDetailText}>{listing.distance} mi</Text>
             </View>
           </View>
-          <Text style={styles.cardPrice}>${apartment.price}/mo</Text>
+          <Text style={styles.cardPrice}>${listing.price}/mo</Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -130,9 +156,10 @@ function ApartmentVerticalCard({ apartment, matchScore, onPress, isSaved }) {
 
 export default function Search({ navigation }) {
   const { preferences, savedIds, toggleSave, loading: prefsLoading } = usePreferences();
-  const [sortedApartments, setSortedApartments] = useState([]);
+  const [sortedListings, setSortedListings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showMap, setShowMap] = useState(true);
+  const [initialMapRegion] = useState(AUSTIN_REGION);
   const mapRef = useRef(null);
 
   const allAmenities = ['wifi', 'gym', 'pool', 'parking', 'furnished', 'petFriendly'];
@@ -143,36 +170,44 @@ export default function Search({ navigation }) {
     
     setLoading(true);
     
-    const apartmentsWithScores = apartmentsData.map(apartment => {
+    // Get enriched listings
+    const enrichedListings = getEnrichedListings();
+    
+    // Calculate match scores and sort
+    const listingsWithScores = enrichedListings.map(listing => {
       const score = calculateMatchScore(
-        apartment,
+        listing,
         preferences,
         selectedAmenities.map(id => ({ id, selected: true }))
       );
-      return { ...apartment, matchScore: score };
+      return { ...listing, matchScore: score };
     });
 
-    const sorted = apartmentsWithScores.sort((a, b) => b.matchScore - a.matchScore);
+    const sorted = listingsWithScores.sort((a, b) => b.matchScore - a.matchScore);
     
-    setSortedApartments(sorted);
+    setSortedListings(sorted);
     setLoading(false);
   }, [preferences, prefsLoading]);
 
-  const handleCardPress = (apartment) => {
+  const handleCardPress = (listing) => {
     navigation.navigate('RoomListingDetailsScreen_SearchVersion', {
-      listing: apartment,
-      matchScore: apartment.matchScore,
+      listing: listing,
+      matchScore: listing.matchScore,
     });
   };
 
-  const handleMarkerPress = (apartment) => {
-    const apartmentWithScore = sortedApartments.find(apt => apt.id === apartment.id);
-    handleCardPress(apartmentWithScore);
+  const handleMarkerPress = (building) => {
+    // When a building pin is clicked, navigate to building detail
+    // For now, we'll just navigate to the first listing in that building
+    const buildingListings = sortedListings.filter(l => l.buildingId === building.id);
+    if (buildingListings.length > 0) {
+      handleCardPress(buildingListings[0]);
+    }
   };
 
   const handleResetMap = () => {
     if (mapRef.current) {
-      mapRef.current.animateToRegion(AUSTIN_REGION, 750);
+      mapRef.current.animateToRegion(initialMapRegion, 750);
     }
   };
 
@@ -187,37 +222,36 @@ export default function Search({ navigation }) {
 
   return (
     <View style={styles.container}>
-    <View style={styles.header}>
-      <Text style={styles.headerTitle}>Browse Listings</Text>
-      <View style={styles.headerBottom}>
-        <Text style={styles.headerSubtitle}>
-          {sortedApartments.length} Listings • {showMap ? 'Map View' : 'List View'}
-        </Text>
-        <Switch
-          value={showMap}
-          onValueChange={setShowMap}
-          trackColor={{ false: '#d1d5db', true: '#FDB863' }}
-          thumbColor={showMap ? '#BF5700' : '#f3f4f6'}
-          ios_backgroundColor="#d1d5db"
-          style={styles.toggle}
-        />
-  </View>
-</View>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Browse Listings</Text>
+        <View style={styles.headerBottom}>
+          <Text style={styles.headerSubtitle}>
+            {sortedListings.length} Listings • {showMap ? 'Map View' : 'List View'}
+          </Text>
+          <Switch
+            value={showMap}
+            onValueChange={setShowMap}
+            trackColor={{ false: '#d1d5db', true: '#FDB863' }}
+            thumbColor={showMap ? '#BF5700' : '#f3f4f6'}
+            ios_backgroundColor="#d1d5db"
+            style={styles.toggle}
+          />
+        </View>
+      </View>
 
       {showMap ? (
         <View style={styles.mapWrapper}>
           <MapView
             ref={mapRef}
             style={styles.map}
-            initialRegion={AUSTIN_REGION}
+            initialRegion={initialMapRegion}
             showsUserLocation={false}
             showsMyLocationButton={false}
           >
-            {sortedApartments.map((apartment) => (
+            {buildingsData.map((building) => (
               <CustomMarker
-                key={apartment.id}
-                apartment={apartment}
-                matchScore={apartment.matchScore}
+                key={building.id}
+                building={building}
                 onPress={handleMarkerPress}
               />
             ))}
@@ -232,11 +266,11 @@ export default function Search({ navigation }) {
         </View>
       ) : (
         <FlatList
-          data={sortedApartments}
+          data={sortedListings}
           keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) => (
-            <ApartmentVerticalCard
-              apartment={item}
+            <ListingVerticalCard
+              listing={item}
               matchScore={item.matchScore}
               onPress={() => handleCardPress(item)}
               isSaved={savedIds.includes(item.id)}
@@ -266,11 +300,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#6b7280',
   },
-header: {
+  header: {
     paddingHorizontal: 20,
     paddingTop: 50,
+    paddingBottom: 12,
     backgroundColor: '#ffffff',
-    alignItems: 'center', 
+    alignItems: 'center',
   },
   headerTitle: {
     fontSize: 17,
@@ -282,19 +317,19 @@ header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    height: 25, 
+    height: 25,
   },
   headerSubtitle: {
     fontSize: 12,
     color: '#6b7280',
     fontWeight: '500',
     textAlign: 'center',
-    marginRight: -5, 
-    marginLeft: 5, 
+    marginRight: -5,
+    marginLeft: 5,
   },
   toggle: {
-    transform: [{ scale: 0.8 }], 
-  },  
+    transform: [{ scale: 0.8 }],
+  },
   mapWrapper: {
     flex: 1,
     position: 'relative',
@@ -389,6 +424,12 @@ header: {
     fontSize: 23,
     fontWeight: 'bold',
     color: '#000000',
+    marginBottom: 2,
+  },
+  unitNumber: {
+    fontSize: 12,
+    color: '#BF5700',
+    fontWeight: '600',
     marginBottom: 4,
   },
   cardAddress: {
