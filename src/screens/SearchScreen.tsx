@@ -177,22 +177,22 @@ export default function Search({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Browse Listings</Text>
-        <View style={styles.headerBottom}>
-          <Text style={styles.headerSubtitle}>
-            {sortedApartments.length} Listings • {showMap ? 'Map View' : 'List View'}
-          </Text>
-          <Switch
-            value={showMap}
-            onValueChange={setShowMap}
-            trackColor={{ false: '#d1d5db', true: '#FDB863' }}
-            thumbColor={showMap ? '#BF5700' : '#f3f4f6'}
-            ios_backgroundColor="#d1d5db"
-            style={styles.toggle}
-          />
-        </View>
-      </View>
+    <View style={styles.header}>
+      <Text style={styles.headerTitle}>Browse Listings</Text>
+      <View style={styles.headerBottom}>
+        <Text style={styles.headerSubtitle}>
+          {sortedApartments.length} Listings • {showMap ? 'Map View' : 'List View'}
+        </Text>
+        <Switch
+          value={showMap}
+          onValueChange={setShowMap}
+          trackColor={{ false: '#d1d5db', true: '#FDB863' }}
+          thumbColor={showMap ? '#BF5700' : '#f3f4f6'}
+          ios_backgroundColor="#d1d5db"
+          style={styles.toggle}
+        />
+  </View>
+</View>
 
       {showMap ? (
         <View style={styles.mapWrapper}>
@@ -217,7 +217,7 @@ export default function Search({ navigation }) {
             style={styles.resetButton}
             onPress={handleResetMap}
           >
-            <Text style={styles.resetButtonText}>Reset View</Text>
+            <Text style={styles.resetButtonText}>⟲ Reset View</Text>
           </TouchableOpacity>
         </View>
       ) : (
@@ -256,33 +256,35 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#6b7280',
   },
-  header: {
+header: {
     paddingHorizontal: 20,
     paddingTop: 60,
-    paddingBottom: 16,
     backgroundColor: '#ffffff',
-    borderBottomColor: '#e5e7eb',
-    borderBottomWidth: 1,
+    alignItems: 'center', 
   },
   headerTitle: {
-    fontSize: 28,
+    fontSize: 17,
     fontWeight: 'bold',
     color: '#000000',
-    marginBottom: 8,
+    textAlign: 'center',
   },
   headerBottom: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
+    height: 25, 
   },
   headerSubtitle: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#6b7280',
     fontWeight: '500',
+    textAlign: 'center',
+    marginRight: 4, 
+    marginLeft: 15, 
   },
   toggle: {
-    transform: [{ scale: 0.9 }],
-  },
+    transform: [{ scale: 0.8 }], 
+  },  
   mapWrapper: {
     flex: 1,
     position: 'relative',
