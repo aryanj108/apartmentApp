@@ -107,7 +107,6 @@ const cardStyle = {
 
 const styles = StyleSheet.create({
   screenWrapper: {
-    // This centers the card in the middle of the screen
     position: 'absolute',
     top: 0,
     left: 0,
@@ -115,11 +114,11 @@ const styles = StyleSheet.create({
     bottom: 0,
     justifyContent: 'center',
     alignItems: 'center',
-    pointerEvents: 'box-none', // Allows touches to pass through to cards below if needed
+    pointerEvents: 'box-none', 
   },
   actualCard: {
     borderRadius: 20,
-    backgroundColor: 'white', // Ensures overlay doesn't leak through
+    backgroundColor: 'white', 
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,

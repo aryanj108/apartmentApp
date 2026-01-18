@@ -194,9 +194,10 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
         {/* Description */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
+            {/*
             <View style={styles.iconContainerDistance}>
               <DescriptionIcon width={30} height={30} style={styles.icon} />
-            </View>
+            </View>*/}
             <Text style={styles.sectionTitle}>Room Desc</Text>
           </View>
           <Text style={styles.description}>
@@ -208,9 +209,10 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
         {apartment.reviews && apartment.reviews.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
+              {/*
               <View style={styles.iconContainerDistance}>
                 <ReviewIcon width={30} height={30} style={styles.icon} />
-              </View>
+              </View>*/}
               <Text style={styles.sectionTitle}>What Longhorns are Saying</Text>
             </View>
             {apartment.reviews.map((review, index) => (
@@ -223,9 +225,10 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
         {apartment.features && apartment.features.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
+              {/*
               <View style={styles.iconContainerDistance}>
                 <FeaturesIcon width={30} height={30} style={styles.icon} />
-              </View>
+              </View>*/}
               <Text style={styles.sectionTitle}>Features</Text>
             </View>
             {apartment.features.map((feature, index) => (
@@ -237,9 +240,10 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
         {/* Contact */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
+            {/*
             <View style={styles.iconContainerDistance}>
               <ContactIcon width={30} height={30} style={styles.icon} />
-            </View>
+            </View>*/}
             <Text style={styles.sectionTitle}>Contact</Text>
           </View>
           {apartment.contact?.phone && (
@@ -259,9 +263,10 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
         {/* Lease Details */}
         <View style={[styles.section, { borderBottomWidth: 0 }]}>
           <View style={styles.sectionHeader}>
+            {/*
             <View style={styles.iconContainerDistance}>
               <LeaseIcon width={33} height={33} style={styles.icon} />
-            </View>
+            </View>*/}
             <Text style={styles.sectionTitle}>Lease Details</Text>
           </View>
           {apartment.leaseDetails?.term && (

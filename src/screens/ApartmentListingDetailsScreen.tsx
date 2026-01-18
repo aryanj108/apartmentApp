@@ -9,8 +9,8 @@ import {
   Alert
 } from 'react-native';
 import { useState, useEffect } from 'react';
-import Stars from '../../assets/stars.svg';
 
+import Stars from '../../assets/stars.svg';
 import { buildingsData } from '../data/buildings';
 import { listingsData } from '../data/listings';
 import { calculateMatchScore } from '../data/matchingAlgorithm';
@@ -59,9 +59,9 @@ function UnitCard({ listing, matchScore, onPress }) {
         </View>
 
         <View style={styles.unitCardRight}>
-          {matchScore !== undefined && (
+          {matchScore !== undefined &&  (
             <View style={styles.unitMatchBadge}>
-              <Stars width={12} height={12} />
+              <Stars width={12} height={12} fill={'#ffffff'}/>
               <Text style={styles.unitMatchText}> {matchScore}%</Text>
             </View>
           )}
@@ -81,26 +81,50 @@ const [building, setBuilding] = useState(null);
 const [availableUnits, setAvailableUnits] = useState([]);
 
 useEffect(() => {
+  console.log('passedListing:', apartment);
+  console.log('preferences:', preferences);
+  
   if (!apartment?.id) return;
 
   const foundBuilding =
     buildingsData.find(b => b.id === apartment.buildingId || b.id === apartment.id) ||
     apartment;
 
+  console.log('foundBuilding:', foundBuilding);
   setBuilding(foundBuilding);
 
   const buildingId = apartment.buildingId || apartment.id;
   const units = listingsData.filter(l => l.buildingId === buildingId);
+  
+  console.log('units found:', units.length);
 
+  // Use the SAME logic as SwipeScreen
   const allAmenities = ['wifi', 'gym', 'pool', 'parking', 'furnished', 'petFriendly'];
-  const selectedAmenities = allAmenities.filter(a => preferences?.[a]);
+  
+  // Create selectedAmenities array in the SAME format as SwipeScreen
+  const selectedAmenities = allAmenities.map(amenity => ({
+    id: amenity,
+    selected: preferences?.[amenity] || false,
+  }));
+
+  console.log('selectedAmenities:', selectedAmenities);
 
   const scoredUnits = units.map(unit => {
+    // Enrich the unit with building amenities (SAME as SwipeScreen)
+    const enrichedUnit = { 
+      ...unit, 
+      amenities: foundBuilding.amenities || [],
+      distance: foundBuilding.distance || 0,
+    };
+    
+    // Use calculateMatchScore with the SAME parameters as SwipeScreen
     const score = calculateMatchScore(
-      { ...unit, amenities: foundBuilding.amenities || [] },
+      enrichedUnit,
       preferences,
-      selectedAmenities.map(id => ({ id, selected: true }))
+      selectedAmenities
     );
+    
+    console.log('Unit:', unit.unitNumber, 'Score:', score);
     return { ...unit, matchScore: score };
   });
 
@@ -156,7 +180,8 @@ useEffect(() => {
               </View>
             </View>
           </TouchableOpacity>
-
+        
+        {/*
         <TouchableOpacity
           activeOpacity={0.7} // optional: makes it fade slightly when pressed
           onPress={() => {
@@ -201,7 +226,7 @@ useEffect(() => {
               {isSaved ? 'Saved' : 'Save Listing'}
             </Text>
           </View>
-        </TouchableOpacity>
+        </TouchableOpacity>*/}
 
           <ImageCarousel images={apartment.images || []} />
         </View>
