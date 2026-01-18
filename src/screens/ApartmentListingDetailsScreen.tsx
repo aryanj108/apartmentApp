@@ -322,10 +322,10 @@ useEffect(() => {
 
         {/* Available Units */}
         {availableUnits.length > 0 && (
-          <View style={styles.unitsSection}>
+          <View style={styles.section}>
             <View style={styles.unitsSectionHeader}>
               <Text style={styles.unitsSectionTitle}>
-                Available Units ({availableUnits.length})
+                Available Units {/*({availableUnits.length})*/}
               </Text>
               <Text style={styles.unitsSectionSubtitle}>
                 Tap a unit to view details

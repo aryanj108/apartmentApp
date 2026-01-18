@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -6,7 +6,8 @@ import {
   Dimensions,
   ScrollView,
   TouchableOpacity,
-  Alert
+  Alert,
+  Animated
 } from 'react-native';
 
 import BedIcon from '../../assets/bedIcon.svg';
@@ -23,6 +24,8 @@ import SaveOutlineIcon from '../../assets/saveIcon.svg';
 import SaveFilledIcon from '../../assets/filledInSaveIcon.svg';
 import SaveOutlineIconHeart from '../../assets/heartOutline.svg';
 import SaveFilledIconHeart from '../../assets/heart.svg';
+import StarIcon from '../../assets/stars.svg';
+
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -33,6 +36,25 @@ import ImageCarousel from '../navigation/ImageCarousel';
 export default function RoomListingDetailsScreen({ navigation, route }) {
   const { savedIds, toggleSave } = usePreferences();
   const { listing, matchScore } = route.params;
+  const scoreValue = matchScore || 0;
+
+  const animatedWidth = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    // 2. Start animation when screen loads
+    Animated.timing(animatedWidth, {
+      toValue: scoreValue, // Animates to the actual score
+      duration: 1000,      // 1 second duration
+      useNativeDriver: false, // Width animation requires false
+    }).start();
+  }, [scoreValue]);
+
+  // Interpolate the number into a percentage string
+  const widthInterpolate = animatedWidth.interpolate({
+    inputRange: [0, 100],
+    outputRange: ['0%', '100%'],
+  });
+  
   const apartment = route.params?.listing || {
     name: 'Modern Downtown Loft',
     address: '123 Main St, Downtown',
@@ -169,6 +191,32 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
               <Text style={styles.price}>${apartment.price}/mo</Text>
             </View>
           </View>
+
+        {/* AI Match Score Bar */}
+        <View style={styles.matchScoreSection}>
+          <View style={styles.matchRow}>
+            
+            {/* Left Side: Icon + Label */}
+          <View style={styles.matchLabelGroup}>
+          <StarIcon width={14} height={14} fill="#BF5700" />
+          <Text style={styles.matchScoreTitle}>AI Match Score: </Text>
+          </View>
+
+        {/* Center: The Bar (Stretched via flex: 1) */}
+        <View style={styles.progressBarTrack}>
+          <Animated.View 
+            style={[
+              styles.progressBarFill, 
+              { width: widthInterpolate } // Use the animated value
+            ]} 
+          />
+        </View>
+
+        {/* Right Side: Percentage */}
+        <Text style={styles.matchScorePercent}>{scoreValue}%</Text>
+        
+        </View>
+        </View>
         </View>
 
         <View style={styles.chipsContainer}>
@@ -496,5 +544,48 @@ imageGalleryContainer: {
     color: '#ffffff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+matchScoreSection: {
+    marginTop: 15,
+    paddingBottom: 30,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb', // Border right under the section
+  },
+  matchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    justifyContent: 'space-between',
+  },
+  matchLabelGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 4, // Gap between text and bar
+  },
+  matchScoreTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#000000',
+    marginLeft: 6,
+  },
+  progressBarTrack: {
+    flex: 1, 
+    height: 10,
+    backgroundColor: '#f3f4f6',
+    borderRadius: 6,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    backgroundColor: '#BF5700',
+    borderRadius: 5,
+  },
+  matchScorePercent: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#BF5700',
+    minWidth: 35,  
+    marginLeft: 4,
+    textAlign: 'right',
   },
 });
