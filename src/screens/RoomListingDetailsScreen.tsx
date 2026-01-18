@@ -198,7 +198,7 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
             
             {/* Left Side: Icon + Label */}
           <View style={styles.matchLabelGroup}>
-          <StarIcon width={14} height={14} fill="#BF5700" />
+          <StarIcon width={18} height={18} fill="#BF5700" />
           <Text style={styles.matchScoreTitle}>AI Match Score: </Text>
           </View>
 
@@ -331,7 +331,6 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
           )}
         </View>
 
-        {/* Website Button - Only show if website exists */}
       </ScrollView>
     </View>
   );
@@ -545,11 +544,11 @@ imageGalleryContainer: {
     fontSize: 16,
     fontWeight: 'bold',
   },
-matchScoreSection: {
+  matchScoreSection: {
     marginTop: 15,
     paddingBottom: 30,
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb', // Border right under the section
+    borderBottomColor: '#e5e7eb', 
   },
   matchRow: {
     flexDirection: 'row',
@@ -560,7 +559,7 @@ matchScoreSection: {
   matchLabelGroup: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginRight: 4, // Gap between text and bar
+    marginRight: 4, 
   },
   matchScoreTitle: {
     fontSize: 14,
