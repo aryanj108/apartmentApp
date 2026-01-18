@@ -210,6 +210,7 @@ export default function Home({ navigation }) {
       preferences,
       selectedAmenities.map((id) => ({ id, selected: true }))
     );
+    // Home screen: go to individual unit details first
     navigation.navigate('RoomListingDetailsScreen_SearchVersion', {
       listing: listing,
       matchScore: score,

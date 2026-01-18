@@ -8,7 +8,12 @@ import {
   TouchableOpacity,
   Alert
 } from 'react-native';
+import { useState, useEffect } from 'react';
+import Stars from '../../assets/stars.svg';
 
+import { buildingsData } from '../data/buildings';
+import { listingsData } from '../data/listings';
+import { calculateMatchScore } from '../data/matchingAlgorithm';
 import BedIcon from '../../assets/bedIcon.svg';
 import DistanceIcon from '../../assets/distanceIcon(2).svg';
 import BathIcon from '../../assets/bathIcon.svg';
@@ -29,9 +34,81 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 import ImageCarousel from '../navigation/ImageCarousel';
 
+function UnitCard({ listing, matchScore, onPress }) {
+  return (
+    <TouchableOpacity
+      style={styles.unitCard}
+      onPress={onPress}
+      activeOpacity={0.9}
+    >
+      <View style={styles.unitCardContent}>
+        <View style={styles.unitCardLeft}>
+          <Text style={styles.unitNumber}>Unit {listing.unitNumber}</Text>
+          <Text style={styles.floorPlan}>{listing.floorPlan}</Text>
+
+          <View style={styles.unitDetails}>
+            <View style={styles.unitDetailItem}>
+              <BedIcon width={14} height={14} />
+              <Text style={styles.unitDetailText}>{listing.bedrooms} Bed</Text>
+            </View>
+            <View style={styles.unitDetailItem}>
+              <BathIcon width={14} height={14} />
+              <Text style={styles.unitDetailText}>{listing.bathrooms} Bath</Text>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.unitCardRight}>
+          {matchScore !== undefined && (
+            <View style={styles.unitMatchBadge}>
+              <Stars width={12} height={12} />
+              <Text style={styles.unitMatchText}> {matchScore}%</Text>
+            </View>
+          )}
+          <Text style={styles.unitPrice}>${listing.price}/mo</Text>
+          <Text style={styles.viewDetailsText}>View Details →</Text>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+}
 
 export default function ApartmentListingDetailsScreen({ navigation, visible, onClose, route }) {
-  const { savedIds, toggleSave } = usePreferences();
+
+const { savedIds, toggleSave, preferences } = usePreferences();
+
+const [building, setBuilding] = useState(null);
+const [availableUnits, setAvailableUnits] = useState([]);
+
+useEffect(() => {
+  if (!apartment?.id) return;
+
+  const foundBuilding =
+    buildingsData.find(b => b.id === apartment.buildingId || b.id === apartment.id) ||
+    apartment;
+
+  setBuilding(foundBuilding);
+
+  const buildingId = apartment.buildingId || apartment.id;
+  const units = listingsData.filter(l => l.buildingId === buildingId);
+
+  const allAmenities = ['wifi', 'gym', 'pool', 'parking', 'furnished', 'petFriendly'];
+  const selectedAmenities = allAmenities.filter(a => preferences?.[a]);
+
+  const scoredUnits = units.map(unit => {
+    const score = calculateMatchScore(
+      { ...unit, amenities: foundBuilding.amenities || [] },
+      preferences,
+      selectedAmenities.map(id => ({ id, selected: true }))
+    );
+    return { ...unit, matchScore: score };
+  });
+
+  scoredUnits.sort((a, b) => b.matchScore - a.matchScore);
+  setAvailableUnits(scoredUnits);
+}, [apartment, preferences]);
+
+
   const apartment = route.params?.listing || {
     name: 'Modern Downtown Loft',
     address: '123 Main St, Downtown',
@@ -58,23 +135,7 @@ export default function ApartmentListingDetailsScreen({ navigation, visible, onC
 
 
   // Create details array based on apartment data
-  const details = [
-    { 
-      id: 'bath', 
-      label: `${apartment.bathrooms} Bath${apartment.bathrooms !== 1 ? 's' : ''}`, 
-      icon: BathIcon 
-    },
-    { 
-      id: 'bed', 
-      label: `${apartment.bedrooms} Bed${apartment.bedrooms !== 1 ? 's' : ''}`, 
-      icon: BedIcon 
-    },
-    { 
-      id: 'distance', 
-      label: `${apartment.distance} Mile${apartment.distance !== 1 ? 's' : ''}`, 
-      icon: DistanceIcon 
-    },
-  ];
+
 
   return (
 <View style={styles.container}>
@@ -158,38 +219,13 @@ export default function ApartmentListingDetailsScreen({ navigation, visible, onC
             </View>
 
             {/* Right side: Price */}
-            <View style={styles.rightInfo}>
-              <Text style={styles.price}>${apartment.price}/mo</Text>
-            </View>
           </View>
         </View>
 
-        <View style={styles.chipsContainer}>
-          {details.map((detail) => (
-            <View 
-              key={detail.id}
-              style={[styles.chip]}
-            >
-              <View style={styles.chipContent}>
-                <detail.icon 
-                  width={24} 
-                  height={24} 
-                  style={styles.chipIconLeft}
-                />
-                <Text style={[styles.chipText]}>
-                  {detail.label}
-                </Text>
-              </View>
-            </View>
-          ))}
-        </View>
       
         {/* Description */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <View style={styles.iconContainerDistance}>
-              <DescriptionIcon width={30} height={30} style={styles.icon} />
-            </View>
             <Text style={styles.sectionTitle}>Description</Text>
           </View>
           <Text style={styles.description}>
@@ -201,9 +237,6 @@ export default function ApartmentListingDetailsScreen({ navigation, visible, onC
         {apartment.reviews && apartment.reviews.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <View style={styles.iconContainerDistance}>
-                <ReviewIcon width={30} height={30} style={styles.icon} />
-              </View>
               <Text style={styles.sectionTitle}>What Longhorns are Saying</Text>
             </View>
             {apartment.reviews.map((review, index) => (
@@ -216,9 +249,6 @@ export default function ApartmentListingDetailsScreen({ navigation, visible, onC
         {apartment.features && apartment.features.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <View style={styles.iconContainerDistance}>
-                <FeaturesIcon width={30} height={30} style={styles.icon} />
-              </View>
               <Text style={styles.sectionTitle}>Features</Text>
             </View>
             {apartment.features.map((feature, index) => (
@@ -230,9 +260,6 @@ export default function ApartmentListingDetailsScreen({ navigation, visible, onC
         {/* Contact */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <View style={styles.iconContainerDistance}>
-              <ContactIcon width={30} height={30} style={styles.icon} />
-            </View>
             <Text style={styles.sectionTitle}>Contact</Text>
           </View>
           {apartment.contact?.phone && (
@@ -250,11 +277,8 @@ export default function ApartmentListingDetailsScreen({ navigation, visible, onC
         </View>
 
         {/* Lease Details */}
-        <View style={[styles.section, { borderBottomWidth: 0 }]}>
+        <View style={[styles.section, { borderBottomWidth: 1 }]}>
           <View style={styles.sectionHeader}>
-            <View style={styles.iconContainerDistance}>
-              <LeaseIcon width={33} height={33} style={styles.icon} />
-            </View>
             <Text style={styles.sectionTitle}>Lease Details</Text>
           </View>
           {apartment.leaseDetails?.term && (
@@ -270,6 +294,43 @@ export default function ApartmentListingDetailsScreen({ navigation, visible, onC
             <Text style={styles.featureItem}>• Lease details not available</Text>
           )}
         </View>
+
+        {/* Available Units */}
+        {availableUnits.length > 0 && (
+          <View style={styles.unitsSection}>
+            <View style={styles.unitsSectionHeader}>
+              <Text style={styles.unitsSectionTitle}>
+                Available Units ({availableUnits.length})
+              </Text>
+              <Text style={styles.unitsSectionSubtitle}>
+                Tap a unit to view details
+              </Text>
+            </View>
+
+            {availableUnits.map(unit => (
+              <UnitCard
+                key={unit.id}
+                listing={unit}
+                matchScore={unit.matchScore}
+                onPress={() =>
+                  navigation.navigate('RoomListingDetailsScreen', {
+                    listing: {
+                      ...unit,
+                      name: apartment.name,
+                      address: apartment.address,
+                      distance: apartment.distance,
+                      images: apartment.images,
+                      description: apartment.description,
+                      contact: apartment.contact,
+                      website: apartment.website,
+                    },
+                    matchScore: unit.matchScore,
+                  })
+                }
+              />
+            ))}
+          </View>
+        )}
 
         {/* Website Button - Only show if website exists */}
         {apartment.website && (
@@ -477,6 +538,90 @@ dragHandle: {
   borderRadius: 3,
   alignSelf: 'center',
   marginVertical: 10,
+},
+// Units Section
+unitsSection: {
+  padding: 20,
+  borderBottomWidth: 1,
+  borderBottomColor: '#e5e7eb',
+},
+unitsSectionHeader: {
+  marginBottom: 16,
+},
+unitsSectionTitle: {
+  fontSize: 22,
+  fontWeight: 'bold',
+  color: '#000',
+},
+unitsSectionSubtitle: {
+  fontSize: 14,
+  color: '#6b7280',
+},
+
+unitCard: {
+  backgroundColor: '#fff',
+  borderRadius: 12,
+  marginBottom: 12,
+  borderWidth: 1,
+  borderColor: '#e5e7eb',
+  elevation: 3,
+},
+unitCardContent: {
+  flexDirection: 'row',
+  padding: 16,
+  justifyContent: 'space-between',
+},
+unitCardLeft: {
+  flex: 1,
+},
+unitNumber: {
+  fontSize: 18,
+  fontWeight: 'bold',
+},
+floorPlan: {
+  fontSize: 14,
+  color: '#BF5700',
+  fontWeight: '600',
+  marginBottom: 8,
+},
+unitDetails: {
+  flexDirection: 'row',
+},
+unitDetailItem: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  marginRight: 16,
+},
+unitDetailText: {
+  fontSize: 12,
+  marginLeft: 4,
+},
+unitCardRight: {
+  alignItems: 'flex-end',
+},
+unitMatchBadge: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  backgroundColor: '#BF5700',
+  paddingHorizontal: 8,
+  paddingVertical: 4,
+  borderRadius: 12,
+  marginBottom: 8,
+},
+unitMatchText: {
+  color: '#fff',
+  fontSize: 12,
+  fontWeight: 'bold',
+},
+unitPrice: {
+  fontSize: 18,
+  fontWeight: 'bold',
+  color: '#BF5700',
+},
+viewDetailsText: {
+  fontSize: 12,
+  color: '#6b7280',
+  fontWeight: '600',
 },
 
 });

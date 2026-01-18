@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   Alert
 } from 'react-native';
-
+import { CommonActions } from '@react-navigation/native';
 import BedIcon from '../../assets/bedIcon.svg';
 import DistanceIcon from '../../assets/distanceIcon(2).svg';
 import BathIcon from '../../assets/bathIcon.svg';

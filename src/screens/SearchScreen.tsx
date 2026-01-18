@@ -190,6 +190,7 @@ export default function Search({ navigation }) {
   }, [preferences, prefsLoading]);
 
   const handleCardPress = (listing) => {
+    // List view: go to individual unit details first
     navigation.navigate('RoomListingDetailsScreen_SearchVersion', {
       listing: listing,
       matchScore: listing.matchScore,
@@ -197,12 +198,10 @@ export default function Search({ navigation }) {
   };
 
   const handleMarkerPress = (building) => {
-    // When a building pin is clicked, navigate to building detail
-    // For now, we'll just navigate to the first listing in that building
-    const buildingListings = sortedListings.filter(l => l.buildingId === building.id);
-    if (buildingListings.length > 0) {
-      handleCardPress(buildingListings[0]);
-    }
+    // Map view: go directly to building with all units
+    navigation.navigate('ApartmentListingDetails', {
+      listing: building,
+    });
   };
 
   const handleResetMap = () => {
