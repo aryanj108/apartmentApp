@@ -9,6 +9,7 @@ import {
   Alert
 } from 'react-native';
 import { useState, useEffect } from 'react';
+import { LinearGradient } from 'expo-linear-gradient';
 
 import Stars from '../../assets/stars.svg';
 import { buildingsData } from '../data/buildings';
@@ -301,14 +302,21 @@ useEffect(() => {
           </View>
         )}
 
-        {/* Website Button - Only show if website exists */}
-        {apartment.website && (
-          <View style={styles.websiteButtonContainer}>
-            <TouchableOpacity style={styles.contactButton}>
+      {/* Website Button - Only show if website exists */}
+      {apartment.website && (
+        <View style={styles.websiteButtonContainer}>
+          <TouchableOpacity onPress={() => {/* Add website link logic here */}}>
+            <LinearGradient
+              colors={['#FF8C42', '#BF5700', '#994400']} 
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.contactButton}
+            >
               <Text style={styles.contactButtonText}>Visit Website</Text>
-            </TouchableOpacity>
-          </View>
-        )}
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
+      )}
       </ScrollView>
     </View>
   );
@@ -401,7 +409,6 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   contactButton: {
-    backgroundColor: '#000000',
     paddingVertical: 16,
     paddingHorizontal: 32,
     borderRadius: 12,

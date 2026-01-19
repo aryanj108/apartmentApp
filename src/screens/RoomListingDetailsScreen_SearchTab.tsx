@@ -9,6 +9,7 @@ import {
   Alert,
   Animated
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 
 import BedIcon from '../../assets/bedIcon.svg';
 import DistanceIcon from '../../assets/distanceIcon(2).svg';
@@ -203,10 +204,16 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
               <View style={styles.progressBarTrack}>
                 <Animated.View 
                   style={[
-                    styles.progressBarFill, 
-                    { width: widthInterpolate }
+                    { width: widthInterpolate, height: '100%' }
                   ]} 
-                />
+                >
+                  <LinearGradient
+                    colors={['#FF8C00', '#BF5700', '#8B4000']} 
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={styles.progressBarFill}
+                  />
+                </Animated.View>
               </View>
 
               {/* Right Side: Percentage */}
@@ -301,14 +308,20 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
         </View>
 
         {/* View Apartment Details Button */}
+        {apartment.website && (
         <View style={styles.buttonContainer}>
-          <TouchableOpacity 
-            style={styles.apartmentButton}
-            onPress={handleViewApartmentDetails}
-          >
+        <TouchableOpacity onPress={() => {/* Add website link logic here */}}>
+            <LinearGradient
+              colors={['#FF8C42', '#BF5700', '#994400']} 
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.apartmentButton}
+            >
             <Text style={styles.apartmentButtonText}>View Apartment Details</Text>
-          </TouchableOpacity>
-        </View>
+             </LinearGradient>
+         </TouchableOpacity>
+         </View>
+        )}
       </ScrollView>
     </View>
   );

@@ -9,6 +9,7 @@ import {
   Alert,
   Animated
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 
 import BedIcon from '../../assets/bedIcon.svg';
 import DistanceIcon from '../../assets/distanceIcon(2).svg';
@@ -200,14 +201,20 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
               </View>
 
               {/* Center: The Bar (Stretched via flex: 1) */}
-              <View style={styles.progressBarTrack}>
-                <Animated.View 
-                  style={[
-                    styles.progressBarFill, 
-                    { width: widthInterpolate }
-                  ]} 
+            <View style={styles.progressBarTrack}>
+              <Animated.View 
+                style={[
+                  { width: widthInterpolate, height: '100%' }
+                ]} 
+              >
+                <LinearGradient
+                  colors={['#FF8C00', '#BF5700', '#8B4000']} // Orange gradient
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.progressBarFill}
                 />
-              </View>
+              </Animated.View>
+            </View>
 
               {/* Right Side: Percentage */}
               <Text style={styles.matchScorePercent}>{scoreValue}%</Text>
