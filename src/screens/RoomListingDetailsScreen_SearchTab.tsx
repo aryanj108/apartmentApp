@@ -106,7 +106,7 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
   ];
 
   return (
-<View style={styles.container}>
+    <View style={styles.container}>
       {/* Scrollable Content */}
       <ScrollView style={styles.content}>
         
@@ -125,59 +125,56 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
             </View>
           </TouchableOpacity>
 
-        <TouchableOpacity
-          activeOpacity={0.7} // optional: makes it fade slightly when pressed
-          onPress={() => {
-            const wasSaved = isSaved;
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => {
+              const wasSaved = isSaved;
 
-            Alert.alert(
-            wasSaved ? 'Listing Unsaved' : 'Listing Saved',
-            wasSaved
-              ? 'This listing has been removed from your saved listings.'
-              : 'This listing has been added to your saved listings.'
-          );
+              Alert.alert(
+                wasSaved ? 'Listing Unsaved' : 'Listing Saved',
+                wasSaved
+                  ? 'This listing has been removed from your saved listings.'
+                  : 'This listing has been added to your saved listings.'
+              );
               toggleSave(apartment.id)
-          }}
-          style={{
-            position: 'absolute',
-            top: 50,
-            right: 20,
-            zIndex: 100,
-          }}
-        >
-          <View
+            }}
             style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              paddingHorizontal: 16,
-              paddingVertical: 10,
-              borderRadius: 20,
-              backgroundColor: '#f3f4f6',
-              shadowColor: '#000',
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.25,
-              shadowRadius: 4,
-              elevation: 5,
+              position: 'absolute',
+              top: 50,
+              right: 20,
+              zIndex: 100,
             }}
           >
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                paddingHorizontal: 16,
+                paddingVertical: 10,
+                borderRadius: 20,
+                backgroundColor: '#f3f4f6',
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.25,
+                shadowRadius: 4,
+                elevation: 5,
+              }}
+            >
               {isSaved ? (
                 <SaveFilledIconHeart width={16} height={16} />
               ) : (
                 <SaveOutlineIconHeart width={16} height={16} />
               )}
-            <Text style={{ fontSize: 14, fontWeight: 'bold', marginLeft: 6 }}>
-              {isSaved ? 'Saved' : 'Save Listing'}
-            </Text>
-          </View>
-        </TouchableOpacity>
+              <Text style={{ fontSize: 14, fontWeight: 'bold', marginLeft: 6 }}>
+                {isSaved ? 'Saved' : 'Save Listing'}
+              </Text>
+            </View>
+          </TouchableOpacity>
 
           <ImageCarousel images={apartment.images || []} />
         </View>
 
         {/* Basic Info */}
-        <View style={styles.infoSection}>
-           {/* ... rest of your existing content ... */}
-        </View>
         <View style={styles.infoSection}>
           <View style={styles.infoContent}>
             {/* Left side: Name and Address */}
@@ -192,31 +189,31 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
             </View>
           </View>
 
-        {/* AI Match Score Bar */}
-        <View style={styles.matchScoreSection}>
-          <View style={styles.matchRow}>
-            
-            {/* Left Side: Icon + Label */}
-          <View style={styles.matchLabelGroup}>
-          <StarIcon width={18} height={18} fill="#BF5700" />
-          <Text style={styles.matchScoreTitle}>AI Match Score: </Text>
+          {/* AI Match Score Bar */}
+          <View style={styles.matchScoreSection}>
+            <View style={styles.matchRow}>
+              
+              {/* Left Side: Icon + Label */}
+              <View style={styles.matchLabelGroup}>
+                <StarIcon width={18} height={18} fill="#BF5700" />
+                <Text style={styles.matchScoreTitle}>AI Match Score: </Text>
+              </View>
+
+              {/* Center: The Bar (Stretched via flex: 1) */}
+              <View style={styles.progressBarTrack}>
+                <Animated.View 
+                  style={[
+                    styles.progressBarFill, 
+                    { width: widthInterpolate }
+                  ]} 
+                />
+              </View>
+
+              {/* Right Side: Percentage */}
+              <Text style={styles.matchScorePercent}>{scoreValue}%</Text>
+              
+            </View>
           </View>
-
-        {/* Center: The Bar (Stretched via flex: 1) */}
-        <View style={styles.progressBarTrack}>
-          <Animated.View 
-            style={[
-              styles.progressBarFill, 
-              { width: widthInterpolate } // Use the animated value
-            ]} 
-          />
-        </View>
-
-        {/* Right Side: Percentage */}
-        <Text style={styles.matchScorePercent}>{scoreValue}%</Text>
-        
-        </View>
-        </View>
         </View>
 
         <View style={styles.chipsContainer}>
@@ -242,42 +239,19 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
         {/* Description */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            {/*
-            <View style={styles.iconContainerDistance}>
-              <DescriptionIcon width={30} height={30} style={styles.icon} />
-            </View>*/}
-            <Text style={styles.sectionTitle}>Room Desc</Text>
+            <DescriptionIcon width={24} height={24} style={styles.sectionIcon} />
+            <Text style={styles.sectionTitle}>Room Description</Text>
           </View>
           <Text style={styles.description}>
             {apartment.description || 'No description available.'}
           </Text>
         </View>
 
-        {/* Reviews - Only show if there are reviews 
-        {apartment.reviews && apartment.reviews.length > 0 && (
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              
-              <View style={styles.iconContainerDistance}>
-                <ReviewIcon width={30} height={30} style={styles.icon} />
-              </View>
-              <Text style={styles.sectionTitle}>What Longhorns are Saying</Text>
-            </View>
-            {apartment.reviews.map((review, index) => (
-              <Text key={index} style={styles.featureItem}>• {review}</Text>
-            ))}
-            
-          </View>
-        )}*/}
-        
         {/* Features - Only show if there are features */}
         {apartment.features && apartment.features.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              {/*
-              <View style={styles.iconContainerDistance}>
-                <FeaturesIcon width={30} height={30} style={styles.icon} />
-              </View>*/}
+              <FeaturesIcon width={24} height={24} style={styles.sectionIcon} />
               <Text style={styles.sectionTitle}>Features</Text>
             </View>
             {apartment.features.map((feature, index) => (
@@ -289,10 +263,7 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
         {/* Contact */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            {/*
-            <View style={styles.iconContainerDistance}>
-              <ContactIcon width={30} height={30} style={styles.icon} />
-            </View>*/}
+            <ContactIcon width={24} height={24} style={styles.sectionIcon} />
             <Text style={styles.sectionTitle}>Contact</Text>
           </View>
           {apartment.contact?.phone && (
@@ -310,12 +281,9 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
         </View>
 
         {/* Lease Details */}
-        <View style={[styles.section, { borderBottomWidth: 0 }]}>
+        <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            {/*
-            <View style={styles.iconContainerDistance}>
-              <LeaseIcon width={33} height={33} style={styles.icon} />
-            </View>*/}
+            <LeaseIcon width={24} height={24} style={styles.sectionIcon} />
             <Text style={styles.sectionTitle}>Lease Details</Text>
           </View>
           {apartment.leaseDetails?.term && (
@@ -332,8 +300,8 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
           )}
         </View>
 
-<View style={styles.apartmentLinkSection}>
-          <Text style={styles.subHeaderText}>Interested in the building?</Text>
+        {/* View Apartment Details Button */}
+        <View style={styles.buttonContainer}>
           <TouchableOpacity 
             style={styles.apartmentButton}
             onPress={handleViewApartmentDetails}
@@ -375,14 +343,14 @@ const styles = StyleSheet.create({
   placeholder: {
     width: 60,
   },
-imageGalleryContainer: {
-  position: 'relative',  // Allows absolute positioning of back button
-  height: 400,  // Match the carousel height
-},
+  imageGalleryContainer: {
+    position: 'relative',
+    height: 400,
+  },
   backButtonOverlay: {
     position: 'absolute',
-    top: 40, // Distance from top of the image section
-    left: 20, // Distance from left of the image section
+    top: 40,
+    left: 20,
     zIndex: 10,
   },
   saveBadge: {
@@ -408,16 +376,18 @@ imageGalleryContainer: {
     fontWeight: '600',
   },
   section: {
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
-    marginHorizontal: 20,  // Pulls the border to the screen edges
-    paddingHorizontal: -20,
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
   },
   sectionTitle: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#000000',
+  },
+  sectionIcon: {
+    marginRight: 8,
   },
   description: {
     fontSize: 16,
@@ -448,11 +418,10 @@ imageGalleryContainer: {
     fontWeight: '500',
   },
   infoSection: {
-    flex: 1,
     backgroundColor: '#ffffff',
-    paddingTop: 0,
-      paddingHorizontal: 20,  // Keep left/right padding
-  paddingBottom: 20,      // Keep bottom padding
+    paddingTop: 20,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
   },
   infoContent: {
     flexDirection: 'row',
@@ -486,10 +455,10 @@ imageGalleryContainer: {
     marginTop: 5,
     marginBottom: 10,
     gap: 13,
-    paddingBottom: 20,              
-    marginHorizontal: 20,             
-    borderBottomWidth: 1,            
-    borderBottomColor: '#e5e7eb',
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
   },
   chip: {
     width: '31%',
@@ -497,7 +466,7 @@ imageGalleryContainer: {
     paddingHorizontal: 0,
     borderRadius: 8,
     alignItems: 'center',
-    backgroundColor: '#f3f4f6',      
+    backgroundColor: '#f3f4f6',
   },
   chipText: {
     fontSize: 12,
@@ -533,39 +502,30 @@ imageGalleryContainer: {
     alignItems: 'center',
     marginBottom: 12,
   },
-  apartmentLinkSection: {
-    padding: 20,
-    backgroundColor: '#f9fafb',
-    marginHorizontal: 20,
-    borderRadius: 12,
-    marginTop: 10,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-  },
-  subHeaderText: {
-    fontSize: 14,
-    color: '#6b7280',
-    marginBottom: 8,
+  buttonContainer: {
+    paddingHorizontal: 20,
+    paddingVertical: 24,
   },
   apartmentButton: {
-    backgroundColor: '#BF5700', // Burnt Orange
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 25,
-    width: '100%',
+    backgroundColor: '#BF5700',
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    borderRadius: 12,
     alignItems: 'center',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   apartmentButtonText: {
     color: '#ffffff',
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: 18,
+    fontWeight: '600',
   },
   matchScoreSection: {
     marginTop: 15,
-    paddingBottom: 30,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb', 
+    paddingBottom: 0,
   },
   matchRow: {
     flexDirection: 'row',
@@ -576,7 +536,7 @@ imageGalleryContainer: {
   matchLabelGroup: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginRight: 4, 
+    marginRight: 4,
   },
   matchScoreTitle: {
     fontSize: 14,
@@ -585,7 +545,7 @@ imageGalleryContainer: {
     marginLeft: 6,
   },
   progressBarTrack: {
-    flex: 1, 
+    flex: 1,
     height: 10,
     backgroundColor: '#f3f4f6',
     borderRadius: 6,
@@ -600,7 +560,7 @@ imageGalleryContainer: {
     fontSize: 14,
     fontWeight: 'bold',
     color: '#BF5700',
-    minWidth: 35,  
+    minWidth: 35,
     marginLeft: 4,
     textAlign: 'right',
   },

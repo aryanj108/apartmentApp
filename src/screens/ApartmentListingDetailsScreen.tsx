@@ -31,7 +31,6 @@ import SaveFilledIconHeart from '../../assets/heart.svg';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-
 import ImageCarousel from '../navigation/ImageCarousel';
 
 function UnitCard({ listing, matchScore, onPress }) {
@@ -98,10 +97,8 @@ useEffect(() => {
   
   console.log('units found:', units.length);
 
-  // Use the SAME logic as SwipeScreen
   const allAmenities = ['wifi', 'gym', 'pool', 'parking', 'furnished', 'petFriendly'];
   
-  // Create selectedAmenities array in the SAME format as SwipeScreen
   const selectedAmenities = allAmenities.map(amenity => ({
     id: amenity,
     selected: preferences?.[amenity] || false,
@@ -110,14 +107,12 @@ useEffect(() => {
   console.log('selectedAmenities:', selectedAmenities);
 
   const scoredUnits = units.map(unit => {
-    // Enrich the unit with building amenities (SAME as SwipeScreen)
     const enrichedUnit = { 
       ...unit, 
       amenities: foundBuilding.amenities || [],
       distance: foundBuilding.distance || 0,
     };
     
-    // Use calculateMatchScore with the SAME parameters as SwipeScreen
     const score = calculateMatchScore(
       enrichedUnit,
       preferences,
@@ -131,7 +126,6 @@ useEffect(() => {
   scoredUnits.sort((a, b) => b.matchScore - a.matchScore);
   setAvailableUnits(scoredUnits);
 }, [apartment, preferences]);
-
 
   const apartment = route.params?.listing || {
     name: 'Modern Downtown Loft',
@@ -157,13 +151,8 @@ useEffect(() => {
   };
   const isSaved = savedIds.includes(apartment.id);
 
-
-  // Create details array based on apartment data
-
-
   return (
-<View style={styles.container}>
-      {/* Scrollable Content */}
+    <View style={styles.container}>
       <ScrollView style={styles.content}>
         
         {/* Image Gallery Section */}
@@ -180,61 +169,11 @@ useEffect(() => {
               </View>
             </View>
           </TouchableOpacity>
-        
-        {/*
-        <TouchableOpacity
-          activeOpacity={0.7} // optional: makes it fade slightly when pressed
-          onPress={() => {
-            const wasSaved = isSaved;
-
-            Alert.alert(
-            wasSaved ? 'Listing Unsaved' : 'Listing Saved',
-            wasSaved
-              ? 'This listing has been removed from your saved listings.'
-              : 'This listing has been added to your saved listings.'
-          );
-              toggleSave(apartment.id)
-          }}
-          style={{
-            position: 'absolute',
-            top: 50,
-            right: 20,
-            zIndex: 100,
-          }}
-        >
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              paddingHorizontal: 16,
-              paddingVertical: 10,
-              borderRadius: 20,
-              backgroundColor: '#f3f4f6',
-              shadowColor: '#000',
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.25,
-              shadowRadius: 4,
-              elevation: 5,
-            }}
-          >
-              {isSaved ? (
-                <SaveFilledIconHeart width={16} height={16} />
-              ) : (
-                <SaveOutlineIconHeart width={16} height={16} />
-              )}
-            <Text style={{ fontSize: 14, fontWeight: 'bold', marginLeft: 6 }}>
-              {isSaved ? 'Saved' : 'Save Listing'}
-            </Text>
-          </View>
-        </TouchableOpacity>*/}
 
           <ImageCarousel images={apartment.images || []} />
         </View>
 
         {/* Basic Info */}
-        <View style={styles.infoSection}>
-           {/* ... rest of your existing content ... */}
-        </View>
         <View style={styles.infoSection}>
           <View style={styles.infoContent}>
             {/* Left side: Name and Address */}
@@ -242,15 +181,13 @@ useEffect(() => {
               <Text style={styles.apartmentName}>{apartment.name}</Text>
               <Text style={styles.address}>{apartment.address}</Text>
             </View>
-
-            {/* Right side: Price */}
           </View>
         </View>
 
-      
         {/* Description */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
+            <DescriptionIcon width={24} height={24} style={styles.sectionIcon} />
             <Text style={styles.sectionTitle}>Description</Text>
           </View>
           <Text style={styles.description}>
@@ -262,6 +199,7 @@ useEffect(() => {
         {apartment.reviews && apartment.reviews.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
+              <ReviewIcon width={24} height={24} style={styles.sectionIcon} />
               <Text style={styles.sectionTitle}>What Longhorns are Saying</Text>
             </View>
             {apartment.reviews.map((review, index) => (
@@ -274,6 +212,7 @@ useEffect(() => {
         {apartment.features && apartment.features.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
+              <FeaturesIcon width={24} height={24} style={styles.sectionIcon} />
               <Text style={styles.sectionTitle}>Features</Text>
             </View>
             {apartment.features.map((feature, index) => (
@@ -285,6 +224,7 @@ useEffect(() => {
         {/* Contact */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
+            <ContactIcon width={24} height={24} style={styles.sectionIcon} />
             <Text style={styles.sectionTitle}>Contact</Text>
           </View>
           {apartment.contact?.phone && (
@@ -302,8 +242,9 @@ useEffect(() => {
         </View>
 
         {/* Lease Details */}
-        <View style={[styles.section, { borderBottomWidth: 1 }]}>
+        <View style={styles.section}>
           <View style={styles.sectionHeader}>
+            <LeaseIcon width={24} height={24} style={styles.sectionIcon} />
             <Text style={styles.sectionTitle}>Lease Details</Text>
           </View>
           {apartment.leaseDetails?.term && (
@@ -321,53 +262,52 @@ useEffect(() => {
         </View>
 
         {/* Available Units */}
-// In ApartmentListingDetailsScreen.js
-// Replace the Available Units section with this:
+        {availableUnits.length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.unitsSectionHeader}>
+              <Text style={styles.unitsSectionTitle}>
+                Available Units
+              </Text>
+              <Text style={styles.unitsSectionSubtitle}>
+                Tap a unit to view details
+              </Text>
+            </View>
 
-{availableUnits.length > 0 && (
-  <View style={styles.section}>
-    <View style={styles.unitsSectionHeader}>
-      <Text style={styles.unitsSectionTitle}>
-        Available Units
-      </Text>
-      <Text style={styles.unitsSectionSubtitle}>
-        Tap a unit to view details
-      </Text>
-    </View>
-
-    {availableUnits.map(unit => (
-      <UnitCard
-        key={unit.id}
-        listing={unit}
-        matchScore={unit.matchScore}
-        onPress={() =>
-          navigation.navigate('RoomListingDetailsScreen', {
-            listing: {
-              ...unit,
-              name: apartment.name,
-              address: apartment.address,
-              distance: apartment.distance,
-              images: apartment.images,
-              description: apartment.description,
-              reviews: apartment.reviews,          
-              features: apartment.features,         
-              contact: apartment.contact,
-              leaseDetails: apartment.leaseDetails, 
-              website: apartment.website,
-            },
-            matchScore: unit.matchScore,
-          })
-        }
-      />
-    ))}
-  </View>
-)}
+            {availableUnits.map(unit => (
+              <UnitCard
+                key={unit.id}
+                listing={unit}
+                matchScore={unit.matchScore}
+                onPress={() =>
+                  navigation.navigate('RoomListingDetailsScreen', {
+                    listing: {
+                      ...unit,
+                      name: apartment.name,
+                      address: apartment.address,
+                      distance: apartment.distance,
+                      images: apartment.images,
+                      description: apartment.description,
+                      reviews: apartment.reviews,          
+                      features: apartment.features,         
+                      contact: apartment.contact,
+                      leaseDetails: apartment.leaseDetails, 
+                      website: apartment.website,
+                    },
+                    matchScore: unit.matchScore,
+                  })
+                }
+              />
+            ))}
+          </View>
+        )}
 
         {/* Website Button - Only show if website exists */}
         {apartment.website && (
-          <TouchableOpacity style={styles.contactButton}>
-            <Text style={styles.contactButtonText}>Visit Website</Text>
-          </TouchableOpacity>
+          <View style={styles.websiteButtonContainer}>
+            <TouchableOpacity style={styles.contactButton}>
+              <Text style={styles.contactButtonText}>Visit Website</Text>
+            </TouchableOpacity>
+          </View>
         )}
       </ScrollView>
     </View>
@@ -403,14 +343,14 @@ const styles = StyleSheet.create({
   placeholder: {
     width: 60,
   },
-imageGalleryContainer: {
-  position: 'relative',  // Allows absolute positioning of back button
-  height: 400,  // Match the carousel height
-},
+  imageGalleryContainer: {
+    position: 'relative',
+    height: 400,
+  },
   backButtonOverlay: {
     position: 'absolute',
-    top: 40, // Distance from top of the image section
-    left: 20, // Distance from left of the image section
+    top: 40,
+    left: 20,
     zIndex: 10,
   },
   saveBadge: {
@@ -436,16 +376,18 @@ imageGalleryContainer: {
     fontWeight: '600',
   },
   section: {
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
-    marginHorizontal: 20,  // Pulls the border to the screen edges
-    paddingHorizontal: -20,
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
   },
   sectionTitle: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#000000',
+  },
+  sectionIcon: {
+    marginRight: 8,
   },
   description: {
     fontSize: 16,
@@ -459,28 +401,31 @@ imageGalleryContainer: {
     lineHeight: 24,
   },
   contactButton: {
-    backgroundColor: '#f3f4f6',
-    width: '95%',
-    paddingVertical: 10,
+    backgroundColor: '#000000',
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    borderRadius: 12,
     alignItems: 'center',
-    alignSelf: 'center',
-    padding: 24,
-    marginBottom: 30,
-    marginTop: 5,
-    borderRadius: 16,
     elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   contactButtonText: {
-    color: '#000000ff',
-    fontSize: 23,
-    fontWeight: '500',
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  websiteButtonContainer: {
+    paddingHorizontal: 20,
+    paddingVertical: 24,
   },
   infoSection: {
-    flex: 1,
     backgroundColor: '#ffffff',
-    paddingTop: 0,
-      paddingHorizontal: 20,  
-  paddingBottom: 20,      
+    paddingTop: 20,
+    paddingHorizontal: 20,  
+    paddingBottom: 20,      
   },
   infoContent: {
     flexDirection: 'row',
@@ -557,104 +502,100 @@ imageGalleryContainer: {
     marginBottom: 12,
   },
   modalContainer: {
-  flex: 1,
-  backgroundColor: '#fff',
-  borderTopLeftRadius: 24,
-  borderTopRightRadius: 24,
-  overflow: 'hidden',
-},
-
-dragHandle: {
-  width: 40,
-  height: 5,
-  backgroundColor: '#d1d5db',
-  borderRadius: 3,
-  alignSelf: 'center',
-  marginVertical: 10,
-},
-// Units Section
-unitsSection: {
-  padding: 20,
-  borderBottomWidth: 1,
-  borderBottomColor: '#e5e7eb',
-},
-unitsSectionHeader: {
-  marginBottom: 16,
-},
-unitsSectionTitle: {
-  fontSize: 22,
-  fontWeight: 'bold',
-  color: '#000',
-},
-unitsSectionSubtitle: {
-  fontSize: 14,
-  color: '#6b7280',
-},
-
-unitCard: {
-  backgroundColor: '#fff',
-  borderRadius: 12,
-  marginBottom: 12,
-  borderWidth: 1,
-  borderColor: '#e5e7eb',
-  elevation: 3,
-},
-unitCardContent: {
-  flexDirection: 'row',
-  padding: 16,
-  justifyContent: 'space-between',
-},
-unitCardLeft: {
-  flex: 1,
-},
-unitNumber: {
-  fontSize: 18,
-  fontWeight: 'bold',
-},
-floorPlan: {
-  fontSize: 14,
-  color: '#BF5700',
-  fontWeight: '600',
-  marginBottom: 8,
-},
-unitDetails: {
-  flexDirection: 'row',
-},
-unitDetailItem: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  marginRight: 16,
-},
-unitDetailText: {
-  fontSize: 12,
-  marginLeft: 4,
-},
-unitCardRight: {
-  alignItems: 'flex-end',
-},
-unitMatchBadge: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  backgroundColor: '#BF5700',
-  paddingHorizontal: 8,
-  paddingVertical: 4,
-  borderRadius: 12,
-  marginBottom: 8,
-},
-unitMatchText: {
-  color: '#fff',
-  fontSize: 12,
-  fontWeight: 'bold',
-},
-unitPrice: {
-  fontSize: 18,
-  fontWeight: 'bold',
-  color: '#BF5700',
-},
-viewDetailsText: {
-  fontSize: 12,
-  color: '#6b7280',
-  fontWeight: '600',
-},
-
+    flex: 1,
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    overflow: 'hidden',
+  },
+  dragHandle: {
+    width: 40,
+    height: 5,
+    backgroundColor: '#d1d5db',
+    borderRadius: 3,
+    alignSelf: 'center',
+    marginVertical: 10,
+  },
+  unitsSection: {
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+  },
+  unitsSectionHeader: {
+    marginBottom: 16,
+  },
+  unitsSectionTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#000',
+  },
+  unitsSectionSubtitle: {
+    fontSize: 14,
+    color: '#6b7280',
+  },
+  unitCard: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    elevation: 3,
+  },
+  unitCardContent: {
+    flexDirection: 'row',
+    padding: 16,
+    justifyContent: 'space-between',
+  },
+  unitCardLeft: {
+    flex: 1,
+  },
+  unitNumber: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  floorPlan: {
+    fontSize: 14,
+    color: '#BF5700',
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  unitDetails: {
+    flexDirection: 'row',
+  },
+  unitDetailItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  unitDetailText: {
+    fontSize: 12,
+    marginLeft: 4,
+  },
+  unitCardRight: {
+    alignItems: 'flex-end',
+  },
+  unitMatchBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#BF5700',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginBottom: 8,
+  },
+  unitMatchText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  unitPrice: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#BF5700',
+  },
+  viewDetailsText: {
+    fontSize: 12,
+    color: '#6b7280',
+    fontWeight: '600',
+  },
 });
