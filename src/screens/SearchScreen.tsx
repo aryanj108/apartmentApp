@@ -51,6 +51,7 @@ function getEnrichedListings() {
       website: building?.website || '',
       latitude: building?.latitude,
       longitude: building?.longitude,
+      
     };
   });
 }

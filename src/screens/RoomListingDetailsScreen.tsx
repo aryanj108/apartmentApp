@@ -253,21 +253,21 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
           </Text>
         </View>
 
-        {/* Reviews - Only show if there are reviews */}
+        {/* Reviews - Only show if there are reviews 
         {apartment.reviews && apartment.reviews.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              {/*
+      
               <View style={styles.iconContainerDistance}>
                 <ReviewIcon width={30} height={30} style={styles.icon} />
-              </View>*/}
+              </View>
               <Text style={styles.sectionTitle}>What Longhorns are Saying</Text>
             </View>
             {apartment.reviews.map((review, index) => (
               <Text key={index} style={styles.featureItem}>• {review}</Text>
             ))}
           </View>
-        )}
+        )}*/}
 
         {/* Features - Only show if there are features */}
         {apartment.features && apartment.features.length > 0 && (

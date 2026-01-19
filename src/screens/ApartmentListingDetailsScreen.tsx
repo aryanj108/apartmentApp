@@ -321,41 +321,47 @@ useEffect(() => {
         </View>
 
         {/* Available Units */}
-        {availableUnits.length > 0 && (
-          <View style={styles.section}>
-            <View style={styles.unitsSectionHeader}>
-              <Text style={styles.unitsSectionTitle}>
-                Available Units {/*({availableUnits.length})*/}
-              </Text>
-              <Text style={styles.unitsSectionSubtitle}>
-                Tap a unit to view details
-              </Text>
-            </View>
+// In ApartmentListingDetailsScreen.js
+// Replace the Available Units section with this:
 
-            {availableUnits.map(unit => (
-              <UnitCard
-                key={unit.id}
-                listing={unit}
-                matchScore={unit.matchScore}
-                onPress={() =>
-                  navigation.navigate('RoomListingDetailsScreen', {
-                    listing: {
-                      ...unit,
-                      name: apartment.name,
-                      address: apartment.address,
-                      distance: apartment.distance,
-                      images: apartment.images,
-                      description: apartment.description,
-                      contact: apartment.contact,
-                      website: apartment.website,
-                    },
-                    matchScore: unit.matchScore,
-                  })
-                }
-              />
-            ))}
-          </View>
-        )}
+{availableUnits.length > 0 && (
+  <View style={styles.section}>
+    <View style={styles.unitsSectionHeader}>
+      <Text style={styles.unitsSectionTitle}>
+        Available Units
+      </Text>
+      <Text style={styles.unitsSectionSubtitle}>
+        Tap a unit to view details
+      </Text>
+    </View>
+
+    {availableUnits.map(unit => (
+      <UnitCard
+        key={unit.id}
+        listing={unit}
+        matchScore={unit.matchScore}
+        onPress={() =>
+          navigation.navigate('RoomListingDetailsScreen', {
+            listing: {
+              ...unit,
+              name: apartment.name,
+              address: apartment.address,
+              distance: apartment.distance,
+              images: apartment.images,
+              description: apartment.description,
+              reviews: apartment.reviews,          
+              features: apartment.features,         
+              contact: apartment.contact,
+              leaseDetails: apartment.leaseDetails, 
+              website: apartment.website,
+            },
+            matchScore: unit.matchScore,
+          })
+        }
+      />
+    ))}
+  </View>
+)}
 
         {/* Website Button - Only show if website exists */}
         {apartment.website && (

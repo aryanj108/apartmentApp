@@ -19,6 +19,7 @@ import ParkingIcon from '../../assets/parkingIcon.svg';
 import FurnishedIcon from '../../assets/furnishedIcon.svg';
 import PetIcon from '../../assets/petIcon.svg';
 import BedIcon from '../../assets/bedIcon.svg';
+import CheckIcon from '../../assets/checkIcon.svg'; 
 
 export default function PreferencesScreen({ navigation }) {
   const { user } = useAuth();
