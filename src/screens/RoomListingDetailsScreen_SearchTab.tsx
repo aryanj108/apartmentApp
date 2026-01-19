@@ -331,8 +331,6 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
           )}
         </View>
 
-        {/* Website Button - Only show if website exists */}
-
 <View style={styles.apartmentLinkSection}>
           <Text style={styles.subHeaderText}>Interested in the building?</Text>
           <TouchableOpacity 
@@ -412,6 +410,8 @@ imageGalleryContainer: {
     padding: 20,
     borderBottomWidth: 1,
     borderBottomColor: '#e5e7eb',
+    marginHorizontal: 20,  // Pulls the border to the screen edges
+    paddingHorizontal: -20,
   },
   sectionTitle: {
     fontSize: 22,
@@ -484,17 +484,22 @@ imageGalleryContainer: {
     flexWrap: 'wrap',
     marginTop: 5,
     marginBottom: 10,
-    gap: 10,
+    gap: 13,
+    paddingBottom: 20,              
+    marginHorizontal: 20,             
+    borderBottomWidth: 1,            
+    borderBottomColor: '#e5e7eb',
   },
   chip: {
     width: '31%',
-    paddingVertical: 5,
+    paddingVertical: 10,
     paddingHorizontal: 0,
-    borderRadius: 0,
+    borderRadius: 8,
     alignItems: 'center',
+    backgroundColor: '#f3f4f6',      
   },
   chipText: {
-    fontSize: 16,
+    fontSize: 12,
     color: '#000000ff',
     fontWeight: '800',
   },

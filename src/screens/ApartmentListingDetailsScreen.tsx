@@ -433,6 +433,8 @@ imageGalleryContainer: {
     padding: 20,
     borderBottomWidth: 1,
     borderBottomColor: '#e5e7eb',
+    marginHorizontal: 20,  // Pulls the border to the screen edges
+    paddingHorizontal: -20,
   },
   sectionTitle: {
     fontSize: 22,
@@ -471,8 +473,8 @@ imageGalleryContainer: {
     flex: 1,
     backgroundColor: '#ffffff',
     paddingTop: 0,
-      paddingHorizontal: 20,  // Keep left/right padding
-  paddingBottom: 20,      // Keep bottom padding
+      paddingHorizontal: 20,  
+  paddingBottom: 20,      
   },
   infoContent: {
     flexDirection: 'row',
