@@ -25,7 +25,6 @@ import { listingsData } from '../data/listings';
 import { usePreferences } from '../context/PreferencesContext';
 import {
   calculateMatchScore,
-  getMatchColor,
 } from '../data/matchingAlgorithm';
 
 import SwipeCard from '../navigation/SwipeCard';
@@ -271,7 +270,7 @@ const styles = StyleSheet.create({
   apartmentImage: {
     width: '100%',
     height: '100%',
-    borderRadius: 15,
+    borderRadius: 20,
   },
   matchBadge: {
     position: 'absolute',
