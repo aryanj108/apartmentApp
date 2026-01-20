@@ -8,6 +8,7 @@ import {
   Image,
   ScrollView,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 
 import BedIcon from '../../assets/bedIcon.svg';
 import DistanceIcon from '../../assets/distanceIcon(2).svg';
@@ -138,7 +139,7 @@ export default function SwipeScreen({ navigation }: any) {
         .map(listing => {
           const score = calculateMatchScore(listing, preferences, selectedAmenities);
           const color = '#BF5700';
-
+          
           return (
             <SwipeCard
               key={listing.id}
@@ -157,13 +158,18 @@ export default function SwipeScreen({ navigation }: any) {
                     style={styles.apartmentImage}
                     resizeMode="cover"
                   />
-                  {/* Match Badge on Image */}
-                  <View style={[styles.matchBadge, { backgroundColor: color }]}>
+                  {/* Match Badge updated with LinearGradient */}
+                  <LinearGradient
+                    colors={['#FF8C42', '#BF5700', '#994400']}
+                    start={{ x: 0, y: 1 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.matchBadge} // Style remains the same for positioning
+                  >
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                       <Stars width={16} height={16} fill={'#fff'}/>
                       <Text style={styles.matchScoreText}>{score}%</Text>
                     </View>
-                  </View>
+                  </LinearGradient>
                 </View>
 
                 {/* Info Section with ScrollView */}

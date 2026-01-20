@@ -24,11 +24,13 @@ import FeaturesIcon from '../../assets/featuresIcon.svg';
 import ContactIcon from '../../assets/contactIcon.svg';
 import LeaseIcon from '../../assets/leaseIcon.svg';
 import BackIcon from '../../assets/backIcon.svg';
+import KeysIcon from '../../assets/keys.svg';
 import { usePreferences } from '../context/PreferencesContext';
 import SaveOutlineIcon from '../../assets/saveIcon.svg';
 import SaveFilledIcon from '../../assets/filledInSaveIcon.svg';
 import SaveOutlineIconHeart from '../../assets/heartOutline.svg';
 import SaveFilledIconHeart from '../../assets/heart.svg';
+
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -266,10 +268,11 @@ useEffect(() => {
         {availableUnits.length > 0 && (
           <View style={styles.section}>
             <View style={styles.unitsSectionHeader}>
-              <Text style={styles.unitsSectionTitle}>
-                Available Units
-              </Text>
-              <Text style={styles.unitsSectionSubtitle}>
+          <View style={styles.sectionHeader}>
+            <KeysIcon width={24} height={24} style={styles.sectionIcon} />
+            <Text style={styles.sectionTitle}>Available Units</Text>
+          </View>
+              <Text style={styles.description}>
                 Tap a unit to view details
               </Text>
             </View>

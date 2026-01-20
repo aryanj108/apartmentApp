@@ -318,7 +318,7 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
               style={styles.apartmentButton}
             >
             <Text style={styles.apartmentButtonText}>View Apartment Details</Text>
-             </LinearGradient>
+            </LinearGradient>
          </TouchableOpacity>
          </View>
         )}
