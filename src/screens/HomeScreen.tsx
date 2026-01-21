@@ -26,6 +26,7 @@ import SaveOutlineIcon from '../../assets/saveIcon.svg';
 import SaveFilledIcon from '../../assets/filledInSaveIcon.svg';
 import Stars from '../../assets/stars.svg';
 import Heart from '../../assets/heart.svg';
+import Logo from '../../assets/longhornLivingIcon1.png';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH * 0.7;
@@ -277,22 +278,33 @@ export default function Home({ navigation }) {
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={true}>
-        {/* Header */}
-        <View style={styles.header}>
-          <View style={styles.headerContent}>
-            <View>
+      {/* Header */}
+      <View style={styles.header}>
+        <View style={styles.headerContent}>
+          <View style={styles.headerLeft}>
+            {/* Logo */}
+            <Image
+              source={Logo}
+              style={styles.headerLogo}
+              resizeMode="contain"
+            />
+            
+            {/* Text */}
+            <View style={styles.headerTextContainer}>
               <Text style={styles.headerTitle}>Longhorn Living</Text>
-              <Text style={styles.headerSubtitle}> Find your ideal apartment </Text>
+              <Text style={styles.headerSubtitle}>Find your ideal apartment</Text>
             </View>
-            {/* Filter Button */}
-            <TouchableOpacity
-              style={styles.filterButton}
-              onPress={() => setFilterModalVisible(true)}
-            >
-              <FilterIcon width={30} height={30} />
-            </TouchableOpacity>
           </View>
+          
+          {/* Filter Button */}
+          <TouchableOpacity
+            style={styles.filterButton}
+            onPress={() => setFilterModalVisible(true)}
+          >
+            <FilterIcon width={35} height={35} />
+          </TouchableOpacity>
         </View>
+      </View>
 
         {/* Sections */}
         {sections.map((section) => (
@@ -356,24 +368,42 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    padding: 20,
-    paddingTop: 60,
-    backgroundColor: '#ffffff',
-    marginBottom: 10,
+  padding: 20,
+  paddingTop: 60,
+  backgroundColor: '#ffffff',
+  marginBottom: 10,
   },
   headerContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    width: '100%',
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
+  },
+  headerLogo: {
+    width: 90,
+    height: 90,
+    marginLeft: -10,
+    marginRight: -10,
+    marginTop: -10,
+    marginBottom: -20,
+  },
+  headerTextContainer: {
+    flex: 1,
   },
   headerTitle: {
-    fontSize: 28,
+    fontSize: 23,
     fontWeight: 'bold',
     color: '#000000',
-    marginBottom: 8,
+    marginBottom: 2,
   },
   headerSubtitle: {
-    fontSize: 16,
+    fontSize: 13,
     color: '#6b7280',
   },
   filterButton: {
@@ -383,10 +413,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: 10,
-    marginBottom: 20,
-  },
-  filterButtonText: {
-    fontSize: 20,
   },
   section: {
     marginBottom: 30,
