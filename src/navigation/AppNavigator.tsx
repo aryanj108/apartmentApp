@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { useAuth } from '../context/AuthContext';
@@ -13,21 +13,27 @@ import ApartmentListingDetailsScreen from '../screens/ApartmentListingDetailsScr
 import RoomListingDetailsScreen from '../screens/RoomListingDetailsScreen';
 import RoomListingDetailsScreen_SearchScreen from '../screens/RoomListingDetailsScreen_SearchTab';
 
-
 import Home from '../screens/HomeScreen';
+import CustomLoadingScreen from '../screens/CustomLoadingScreen';
 
 const Stack = createNativeStackNavigator();
 
 export default function AppNavigator() {
   const { user, loading } = useAuth();
+  const [minLoadingTime, setMinLoadingTime] = useState(true);
+  
+  useEffect(() => {
+    // Set minimum loading time of 2 seconds (adjust as needed)
+    const timer = setTimeout(() => {
+      setMinLoadingTime(false);
+    }, 4000); // 2000ms = 2 seconds
 
-  // Show loading screen while checking auth state
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#BF5700" />
-      </View>
-    );
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Show loading screen while checking auth OR until minimum time has passed
+  if (loading || minLoadingTime) {
+    return <CustomLoadingScreen />;
   }
 
   return (

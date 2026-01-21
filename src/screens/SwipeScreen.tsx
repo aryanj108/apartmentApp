@@ -29,6 +29,7 @@ import {
 } from '../data/matchingAlgorithm';
 
 import SwipeCard from '../navigation/SwipeCard';
+import CustomLoadingScreen from './CustomLoadingScreen';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -72,6 +73,15 @@ export default function SwipeScreen({ navigation }: any) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAmenities, setSelectedAmenities] = useState<any[]>([]);
   const [enrichedListings, setEnrichedListings] = useState<any[]>([]);
+  const [minLoadingTime, setMinLoadingTime] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setMinLoadingTime(false);
+    }, 2500); 
+
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     const selected = allAmenities.map(amenity => ({
@@ -98,12 +108,8 @@ export default function SwipeScreen({ navigation }: any) {
 
   const currentListing = enrichedListings[currentIndex];
   
-  if (!currentListing) {
-    return (
-      <View style={styles.container}>
-        <Text style={{ marginTop: 100, textAlign: 'center' }}>Loading next matches...</Text>
-      </View>
-    );
+  if (!currentListing || minLoadingTime) {
+      return <CustomLoadingScreen />;
   }
 
   const matchScore = calculateMatchScore(currentListing, preferences, selectedAmenities);
