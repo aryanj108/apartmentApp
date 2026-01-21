@@ -12,6 +12,7 @@ import {
   Alert,
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const { width } = Dimensions.get('window');
 const scale = (size: number) => (width / 375) * size;

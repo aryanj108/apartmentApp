@@ -12,6 +12,8 @@ import {
   Platform,
   UIManager
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+
 import { buildingsData } from '../data/buildings';
 import { listingsData } from '../data/listings';
 import { usePreferences } from '../context/PreferencesContext';
@@ -75,14 +77,18 @@ function ApartmentCard({ listing, matchScore, onPress, isSaved, onSavePress }) {
               <Heart width={25} height={25} fill="#BF5700" />
             </View>
           )}
-
           {matchScore && (
-            <View style={[styles.matchBadge, { backgroundColor: '#BF5700' }]}>
+            <LinearGradient
+              colors={['#FF8C42', '#BF5700', '#994400']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.matchBadge}
+            >
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <Stars width={15} height={15} fill={'#ffffff'} />
                 <Text style={styles.matchText}> {matchScore}%</Text>
               </View>
-            </View>
+            </LinearGradient>
           )}
         </View>
 
@@ -578,7 +584,7 @@ const styles = StyleSheet.create({
   },
   saveBadge: {
     position: 'absolute',
-    top: 10,
+    top: 16,
     left: 10,
     flexDirection: 'row',
     alignItems: 'center',

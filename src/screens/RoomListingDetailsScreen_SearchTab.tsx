@@ -126,51 +126,39 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
             </View>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={() => {
-              const wasSaved = isSaved;
-
-              Alert.alert(
-                wasSaved ? 'Listing Unsaved' : 'Listing Saved',
-                wasSaved
-                  ? 'This listing has been removed from your saved listings.'
-                  : 'This listing has been added to your saved listings.'
-              );
-              toggleSave(apartment.id)
-            }}
-            style={{
-              position: 'absolute',
-              top: 50,
-              right: 20,
-              zIndex: 100,
-            }}
-          >
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                paddingHorizontal: 16,
-                paddingVertical: 10,
-                borderRadius: 20,
-                backgroundColor: '#f3f4f6',
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.25,
-                shadowRadius: 4,
-                elevation: 5,
-              }}
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onPress={() => {
+            const wasSaved = isSaved;
+            Alert.alert(
+              wasSaved ? 'Listing Unsaved' : 'Listing Saved',
+              wasSaved
+                ? 'This listing has been removed from your saved listings.'
+                : 'This listing has been added to your saved listings.'
+            );
+            toggleSave(apartment.id);
+          }}
+          style={styles.saveButtonContainer}
+        >
+          {isSaved ? (
+            /* GRADIENT BACKGROUND WHEN SAVED */
+            <LinearGradient
+              colors={['#FF8C42', '#BF5700', '#994400']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.saveButtonContent}
             >
-              {isSaved ? (
-                <SaveFilledIconHeart width={16} height={16} />
-              ) : (
-                <SaveOutlineIconHeart width={16} height={16} />
-              )}
-              <Text style={{ fontSize: 14, fontWeight: 'bold', marginLeft: 6 }}>
-                {isSaved ? 'Saved' : 'Save Listing'}
-              </Text>
+              <SaveFilledIconHeart width={16} height={16} fill="#fff" />
+              <Text style={[styles.saveButtonText, { color: '#fff' }]}>Saved</Text>
+            </LinearGradient>
+          ) : (
+            /* PLAIN BACKGROUND WHEN NOT SAVED */
+            <View style={[styles.saveButtonContent, { backgroundColor: '#f3f4f6' }]}>
+              <SaveOutlineIconHeart width={16} height={16} fill="#000" />
+              <Text style={[styles.saveButtonText, { color: '#000' }]}>Save Listing</Text>
             </View>
-          </TouchableOpacity>
+          )}
+        </TouchableOpacity>
 
           <ImageCarousel images={apartment.images || []} />
         </View>
@@ -310,7 +298,8 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
         {/* View Apartment Details Button */}
         {apartment.website && (
         <View style={styles.buttonContainer}>
-        <TouchableOpacity onPress={() => {/* Add website link logic here */}}>
+        <TouchableOpacity 
+        onPress={handleViewApartmentDetails}>
             <LinearGradient
               colors={['#FF8C42', '#BF5700', '#994400']} 
               start={{ x: 0, y: 0 }}
@@ -576,5 +565,28 @@ const styles = StyleSheet.create({
     minWidth: 35,
     marginLeft: 4,
     textAlign: 'right',
+  },
+    saveButtonContainer: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    zIndex: 100,
+  },
+  saveButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  saveButtonText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginLeft: 6,
   },
 });

@@ -61,11 +61,16 @@ function UnitCard({ listing, matchScore, onPress }) {
         </View>
 
         <View style={styles.unitCardRight}>
-          {matchScore !== undefined &&  (
-            <View style={styles.unitMatchBadge}>
+          {matchScore !== undefined && (
+            <LinearGradient
+              colors={['#FF8C42', '#BF5700', '#994400']}
+              start={{ x: 0, y: 1 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.unitMatchBadge}
+            >
               <Stars width={12} height={12} fill={'#ffffff'}/>
               <Text style={styles.unitMatchText}> {matchScore}%</Text>
-            </View>
+            </LinearGradient>
           )}
           <Text style={styles.unitPrice}>${listing.price}/mo</Text>
           <Text style={styles.viewDetailsText}>View Details →</Text>

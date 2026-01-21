@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../context/AuthContext';
 import EyeOffOutline from '../../assets/eye-off-outline.svg';
 import EyeOpenOutline from '../../assets/eye-open.svg';

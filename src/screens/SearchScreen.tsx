@@ -11,6 +11,7 @@ import {
   Switch,
 } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
+import { LinearGradient } from 'expo-linear-gradient';
 
 import { buildingsData } from '../data/buildings';
 import { listingsData } from '../data/listings';
@@ -113,12 +114,17 @@ function ListingVerticalCard({ listing, matchScore, onPress, isSaved }) {
         )}
 
         {matchScore && (
-          <View style={styles.matchBadge}>
+          <LinearGradient
+            colors={['#FF8C42', '#BF5700', '#994400']}
+            start={{ x: 0, y: 1 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.matchBadge}
+          >
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <Stars width={15} height={15} fill={'#ffffff'} />
               <Text style={styles.matchText}> {matchScore}%</Text>
             </View>
-          </View>
+          </LinearGradient>
         )}
       </View>
       
