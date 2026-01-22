@@ -170,7 +170,7 @@ export default function SwipeScreen({ navigation }: any) {
                     colors={['#FF8C42', '#BF5700', '#994400']}
                     start={{ x: 0, y: 1 }}
                     end={{ x: 1, y: 1 }}
-                    style={styles.matchBadge} // Style remains the same for positioning
+                    style={styles.matchBadge}
                   >
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                       <Stars width={16} height={16} fill={'#fff'}/>
@@ -199,7 +199,10 @@ export default function SwipeScreen({ navigation }: any) {
                           {currentListing.address}
                         </Text>
                       </View>
-                      <Text style={styles.price}>${currentListing.price}/mo</Text>
+                      <View style={styles.priceContainer}>
+                        <Text style={styles.price}>${currentListing.price}</Text>
+                        <Text style={styles.perMonth}>per month</Text>
+                      </View>
                     </View>
 
                     {/* Details Chips (Bed, Bath, Distance) */}
@@ -346,6 +349,14 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: '#BF5700',
+  },
+  priceContainer: {
+    alignItems: 'flex-end',
+  },
+  perMonth: {
+    fontSize: 12,
+    color: '#6b7280',
+    marginTop: -2,
   },
   chipsContainer: {
     flexDirection: 'row',
