@@ -1,12 +1,12 @@
 export const buildingsData = [
   {
     id: 1,
-    name: "Campus Edge Flats",
-    address: "2101 Speedway, Austin, TX",
-    latitude: 30.2898,
-    longitude: -97.7464,
-    distance: 0.5,
-    amenities: ["wifi", "parking"],
+    name: "The Callaway House Austin",
+    address: "505 W 22nd St, Austin, TX 78705",
+    latitude: 30.285421752101193,
+    longitude: -97.7435689220141,
+    distance: 0.8,
+    amenities: ["wifi", "pool", "gym", "parking", "furnished", "petFriendly"],
     images: [
       require('../data/images/apartmentTestImage1.jpg'),
       require('../data/images/apartmentTestImage2.jpg'),
@@ -14,11 +14,45 @@ export const buildingsData = [
       require('../data/images/apartmentTestImage4.jpg'),
       require('../data/images/testApartmentImage5.jpg'),
     ],
-    description: "Affordable apartments right next to campus.",
-    features: ["Close to Campus", "Natural Light"],
-    reviews: ["Great location for students."],
-    contact: { phone: "555-1001", email: "info@campusedge.com", hours: "Mon-Fri 9AM-5PM" },
-    website: "https://campusedge.com"
+    description: "The Callaway House is the premier, full-service, private UT dorm located just 1 block from The University of Texas at Austin. Our fully furnished, modern living spaces feature private and shared accommodations, an unlimited meal plan at our full-service dining hall, biweekly housekeeping services, and all utilities included. Residents enjoy access to state-of-the-art amenities, including a rooftop pool and lounge, fitness center, academic center, and social spaces designed for student success and wellness.",
+    features: [
+      "1 block from UT Austin",
+      "Private and shared suites",
+      "Fully furnished units",
+      "Unlimited meal plan",
+      "All utilities included",
+      "Biweekly housekeeping",
+      "Rooftop pool and hot tub",
+      "Rooftop lounge with city views",
+      "Fitness center with cardio & strength equipment",
+      "Academic center with iMacs and study spaces",
+      "Recreation center with billiards and theater room",
+      "Wi-Fi throughout the community",
+      "24-hour on-call staff",
+      "Roommate matching available",
+      "S.M.A.R.T. Housing program available",
+      "Garage parking available"
+    ],
+    reviews: [
+      "Great location for students, just one block from UT Austin.",
+      "Friendly and helpful staff who make moving in easy.",
+      "Clean, modern apartments with excellent amenities.",
+      "Fully furnished units with all utilities and an unlimited meal plan included.",
+      "Rooftop pool, lounge, and fitness center make it easy to stay active and social.",
+      "Roommate matching makes finding a compatible roommate simple.",
+      "24-hour on-call staff and professional management provide peace of mind."
+    ],
+    contact: {
+      phone: "(512) 582-0200",
+      email: "TheCallawayHouseAustin@AmericanCampus.com",
+      hours: "Mon-Fri 9AM-6PM, Sat 10AM-4PM, Sun 12PM-4PM"
+    },
+    leaseDetails: {
+      term: "Academic year / Semester",
+      deposit: "Varies / Contact office",
+      availability: "Contact office for availability"
+    },
+    website: "https://www.americancampus.com/student-apartments/tx/austin/the-callaway-house-austin"
   },
   {
     id: 2,

@@ -75,7 +75,7 @@ function ApartmentCard({ listing, matchScore, onPress, isSaved, onSavePress }) {
           {/* Floating Save Button */}
           {isSaved && (
             <View style={styles.saveBadge}>
-              <Heart width={25} height={25} fill="#BF5700" />
+              <Heart width={28} height={28} fill="#BF5700" />
             </View>
           )}
           {matchScore && (
@@ -610,7 +610,7 @@ const styles = StyleSheet.create({
   },
   saveBadge: {
     position: 'absolute',
-    top: 16,
+    top: 15,
     left: 10,
     flexDirection: 'row',
     alignItems: 'center',

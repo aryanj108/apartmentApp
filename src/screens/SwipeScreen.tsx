@@ -63,6 +63,7 @@ function getEnrichedListings() {
       features: building?.features || [],
       reviews: building?.reviews || [],
       contact: building?.contact || {},
+      leaseDetails: building?.leaseDetails || {},
       website: building?.website || '',
     };
   });
