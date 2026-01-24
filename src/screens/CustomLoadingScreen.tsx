@@ -158,28 +158,3 @@ const styles = StyleSheet.create({
   },
 });
 
-// USAGE EXAMPLE:
-// Replace ActivityIndicator with this component wherever you have loading states
-
-// Example 1: In your main App.js or navigation
-/*
-if (loading) {
-  return <CustomLoadingScreen />;
-}
-*/
-
-// Example 2: Conditional rendering in a screen
-/*
-{loading ? (
-  <CustomLoadingScreen />
-) : (
-  <YourActualContent />
-)}
-*/
-
-// Example 3: In PreferencesScreen
-/*
-if (loading) {
-  return <CustomLoadingScreen />;
-}
-*/

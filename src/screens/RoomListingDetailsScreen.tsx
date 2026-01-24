@@ -1,16 +1,6 @@
 import React, { useEffect, useRef } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Dimensions,
-  ScrollView,
-  TouchableOpacity,
-  Alert,
-  Animated
-} from 'react-native';
+import { View, Text, StyleSheet, Dimensions, ScrollView, TouchableOpacity, Alert, Animated, Linking } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-
 import BedIcon from '../../assets/bedIcon.svg';
 import DistanceIcon from '../../assets/distanceIcon(2).svg';
 import BathIcon from '../../assets/bathIcon.svg';
@@ -26,36 +16,30 @@ import SaveFilledIcon from '../../assets/filledInSaveIcon.svg';
 import SaveOutlineIconHeart from '../../assets/heartOutline.svg';
 import SaveFilledIconHeart from '../../assets/heart.svg';
 import StarIcon from '../../assets/stars.svg';
-
+import ExternalLinkIcon from '../../assets/shareIcon2.svg'; 
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-
-
 import ImageCarousel from '../navigation/ImageCarousel';
-
 
 export default function RoomListingDetailsScreen({ navigation, route }) {
   const { savedIds, toggleSave } = usePreferences();
   const { listing, matchScore } = route.params;
   const scoreValue = matchScore || 0;
-
   const animatedWidth = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // 2. Start animation when screen loads
     Animated.timing(animatedWidth, {
-      toValue: scoreValue, // Animates to the actual score
-      duration: 1000,      // 1 second duration
-      useNativeDriver: false, // Width animation requires false
+      toValue: scoreValue,
+      duration: 1000,
+      useNativeDriver: false,
     }).start();
   }, [scoreValue]);
 
-  // Interpolate the number into a percentage string
   const widthInterpolate = animatedWidth.interpolate({
     inputRange: [0, 100],
     outputRange: ['0%', '100%'],
   });
-  
+
   const apartment = route.params?.listing || {
     name: 'Modern Downtown Loft',
     address: '123 Main St, Downtown',
@@ -78,101 +62,83 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
     },
     website: ''
   };
+
   const isSaved = savedIds.includes(apartment.id);
+
   const handleViewApartmentDetails = () => {
     navigation.navigate('ApartmentListingDetails', {
-      listing: listing, // Passing the full apartment object
+      listing: listing,
       matchScore: matchScore,
     });
   };
 
+  const handleOpenWebsite = () => {
+    if (apartment.website) {
+      Linking.openURL(apartment.website).catch(err => {
+        Alert.alert('Error', 'Unable to open website');
+      });
+    }
+  };
 
-  // Create details array based on apartment data
   const details = [
-    { 
-      id: 'bath', 
-      label: `${apartment.bathrooms} Bath${apartment.bathrooms !== 1 ? 's' : ''}`, 
-      icon: BathIcon 
-    },
-    { 
-      id: 'bed', 
-      label: `${apartment.bedrooms} Bed${apartment.bedrooms !== 1 ? 's' : ''}`, 
-      icon: BedIcon 
-    },
-    { 
-      id: 'distance', 
-      label: `${apartment.distance} Mile${apartment.distance !== 1 ? 's' : ''}`, 
-      icon: DistanceIcon 
-    },
+    { id: 'bath', label: `${apartment.bathrooms} Bath${apartment.bathrooms !== 1 ? 's' : ''}`, icon: BathIcon },
+    { id: 'bed', label: `${apartment.bedrooms} Bed${apartment.bedrooms !== 1 ? 's' : ''}`, icon: BedIcon },
+    { id: 'distance', label: `${apartment.distance} Mile${apartment.distance !== 1 ? 's' : ''}`, icon: DistanceIcon },
   ];
 
   return (
     <View style={styles.container}>
-      {/* Scrollable Content */}
       <ScrollView style={styles.content}>
-        
         {/* Image Gallery Section */}
         <View style={styles.imageGalleryContainer}>
+          <ImageCarousel images={apartment.images} />
           
-          {/* Back Button positioned ON the image section */}
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.backButtonOverlay}
             onPress={() => navigation.goBack()}
           >
-            <View style={styles.saveBadge}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <BackIcon width={20} height={20} />
-              </View>
-            </View>
+            <BackIcon width={24} height={24} />
           </TouchableOpacity>
 
-        <TouchableOpacity
-          activeOpacity={0.7}
-          onPress={() => {
-            const wasSaved = isSaved;
-            Alert.alert(
-              wasSaved ? 'Listing Unsaved' : 'Listing Saved',
-              wasSaved
-                ? 'This listing has been removed from your saved listings.'
-                : 'This listing has been added to your saved listings.'
-            );
-            toggleSave(apartment.id);
-          }}
-          style={styles.saveButtonContainer}
-        >
-          {isSaved ? (
-            /* GRADIENT BACKGROUND WHEN SAVED */
-            <LinearGradient
-              colors={['#FF8C42', '#BF5700', '#994400']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.saveButtonContent}
-            >
-              <SaveFilledIconHeart width={16} height={16} fill="#fff" />
-              <Text style={[styles.saveButtonText, { color: '#fff' }]}>Saved</Text>
-            </LinearGradient>
-          ) : (
-            /* PLAIN BACKGROUND WHEN NOT SAVED */
-            <View style={[styles.saveButtonContent, { backgroundColor: '#f3f4f6' }]}>
-              <SaveOutlineIconHeart width={16} height={16} fill="#000" />
-              <Text style={[styles.saveButtonText, { color: '#000' }]}>Save Listing</Text>
-            </View>
-          )}
-        </TouchableOpacity>
-
-          <ImageCarousel images={apartment.images || []} />
+          <TouchableOpacity
+            onPress={() => {
+              const wasSaved = isSaved;
+              Alert.alert(
+                wasSaved ? 'Listing Unsaved' : 'Listing Saved',
+                wasSaved
+                  ? 'This listing has been removed from your saved listings.'
+                  : 'This listing has been added to your saved listings.'
+              );
+              toggleSave(apartment.id);
+            }}
+            style={styles.saveButtonContainer}
+          >
+            {isSaved ? (
+              <LinearGradient
+                colors={['#FF8C42', '#BF5700', '#994400']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.saveButtonContent}
+              >
+                <SaveFilledIconHeart width={20} height={20} />
+                <Text style={[styles.saveButtonText, { color: '#ffffff' }]}>Saved</Text>
+              </LinearGradient>
+            ) : (
+              <View style={[styles.saveButtonContent, { backgroundColor: '#ffffff' }]}>
+                <SaveOutlineIconHeart width={20} height={20} />
+                <Text style={[styles.saveButtonText, { color: '#000000' }]}>Save Listing</Text>
+              </View>
+            )}
+          </TouchableOpacity>
         </View>
 
         {/* Basic Info */}
         <View style={styles.infoSection}>
           <View style={styles.infoContent}>
-            {/* Left side: Name and Address */}
             <View style={styles.leftInfo}>
               <Text style={styles.apartmentName}>{apartment.name}</Text>
               <Text style={styles.address}>{apartment.address}</Text>
             </View>
-
-            {/* Right side: Price */}
             <View style={styles.rightInfo}>
               <Text style={styles.price}>${apartment.price}/mo</Text>
             </View>
@@ -181,60 +147,38 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
           {/* AI Match Score Bar */}
           <View style={styles.matchScoreSection}>
             <View style={styles.matchRow}>
-              
-              {/* Left Side: Icon + Label */}
               <View style={styles.matchLabelGroup}>
-                <StarIcon width={18} height={18} fill="#BF5700" />
-                <Text style={styles.matchScoreTitle}>AI Match Score: </Text>
+                <StarIcon width={18} height={18} />
+                <Text style={styles.matchScoreTitle}>AI Match Score:</Text>
               </View>
-
-              {/* Center: The Bar (Stretched via flex: 1) */}
               <View style={styles.progressBarTrack}>
-                <Animated.View 
+                <Animated.View
                   style={[
-                    { width: widthInterpolate, height: '100%' }
-                  ]} 
-                >
-                  <LinearGradient
-                    colors={['#FF8C00', '#BF5700', '#8B4000']} // Orange gradient
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                    style={styles.progressBarFill}
-                  />
-                </Animated.View>
+                    styles.progressBarFill,
+                    { width: widthInterpolate }
+                  ]}
+                />
               </View>
-
-              {/* Right Side: Percentage */}
               <Text style={styles.matchScorePercent}>{scoreValue}%</Text>
-              
             </View>
           </View>
         </View>
 
         <View style={styles.chipsContainer}>
           {details.map((detail) => (
-            <View 
-              key={detail.id}
-              style={[styles.chip]}
-            >
+            <View key={detail.id} style={styles.chip}>
               <View style={styles.chipContent}>
-                <detail.icon 
-                  width={24} 
-                  height={24} 
-                  style={styles.chipIconLeft}
-                />
-                <Text style={[styles.chipText]}>
-                  {detail.label}
-                </Text>
+                <detail.icon width={24} height={24} />
+                <Text style={styles.chipText}>{detail.label}</Text>
               </View>
             </View>
           ))}
         </View>
-      
+
         {/* Description */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <DescriptionIcon width={24} height={24} style={styles.sectionIcon} />
+            <DescriptionIcon width={22} height={22} style={styles.sectionIcon} />
             <Text style={styles.sectionTitle}>Room Description</Text>
           </View>
           <Text style={styles.description}>
@@ -242,15 +186,17 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
           </Text>
         </View>
 
-        {/* Features - Only show if there are features */}
+        {/* Features */}
         {apartment.features && apartment.features.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <FeaturesIcon width={24} height={24} style={styles.sectionIcon} />
+              <FeaturesIcon width={22} height={22} style={styles.sectionIcon} />
               <Text style={styles.sectionTitle}>Features</Text>
             </View>
             {apartment.features.map((feature, index) => (
-              <Text key={index} style={styles.featureItem}>• {feature}</Text>
+              <Text key={index} style={styles.featureItem}>
+                • {feature}
+              </Text>
             ))}
           </View>
         )}
@@ -258,7 +204,7 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
         {/* Contact */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <ContactIcon width={24} height={24} style={styles.sectionIcon} />
+            <ContactIcon width={22} height={22} style={styles.sectionIcon} />
             <Text style={styles.sectionTitle}>Contact</Text>
           </View>
           {apartment.contact?.phone && (
@@ -278,7 +224,7 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
         {/* Lease Details */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <LeaseIcon width={24} height={24} style={styles.sectionIcon} />
+            <LeaseIcon width={22} height={22} style={styles.sectionIcon} />
             <Text style={styles.sectionTitle}>Lease Details</Text>
           </View>
           {apartment.leaseDetails?.term && (
@@ -295,6 +241,24 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
           )}
         </View>
 
+        {/* View Original Listing Button - Only show if website exists */}
+        {apartment.website && (
+          <View style={styles.websiteButtonContainer}>
+            <TouchableOpacity onPress={handleOpenWebsite}>
+              <LinearGradient
+                colors={['#FF8C42', '#BF5700', '#994400']} 
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.contactButton}
+              >
+                <View style={styles.websiteButtonContent}>
+                  <ExternalLinkIcon width={27} height={27} color="#ffffff" style={styles.externalLinkIcon} />
+                  <Text style={styles.contactButtonText}>View Original Listing</Text>
+                </View>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        )}
       </ScrollView>
     </View>
   );
@@ -387,21 +351,20 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   contactButton: {
-    backgroundColor: '#f3f4f6',
-    width: '95%',
-    paddingVertical: 10,
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    borderRadius: 12,
     alignItems: 'center',
-    alignSelf: 'center',
-    padding: 24,
-    marginBottom: 30,
-    marginTop: 5,
-    borderRadius: 16,
     elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   contactButtonText: {
-    color: '#000000ff',
-    fontSize: 23,
-    fontWeight: '500',
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: '600',
   },
   infoSection: {
     backgroundColor: '#ffffff',
@@ -579,5 +542,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
     marginLeft: 6,
+  },
+  websiteButtonContainer: {
+    paddingHorizontal: 20,
+    paddingVertical: 24,
+  },
+  websiteButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+  },
+  externalLinkIcon: {
+    tintColor: '#ffffff',
   },
 });

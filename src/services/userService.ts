@@ -12,7 +12,6 @@ preferences?: {
   bedrooms?: number;
   bathrooms?: number;
   maxDistance?: number;  
-  hasCompletedPreferences?: boolean;
   wifi?: boolean;
   gym?: boolean;
   pool?: boolean;
