@@ -555,5 +555,6 @@ const styles = StyleSheet.create({
   },
   externalLinkIcon: {
     tintColor: '#ffffff',
+    marginTop: -3 
   },
 });

@@ -7,7 +7,8 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
-  Animated
+  Animated,
+  Linking,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -26,7 +27,7 @@ import SaveFilledIcon from '../../assets/filledInSaveIcon.svg';
 import SaveOutlineIconHeart from '../../assets/heartOutline.svg';
 import SaveFilledIconHeart from '../../assets/heart.svg';
 import StarIcon from '../../assets/stars.svg';
-
+import ExternalLinkIcon from '../../assets/shareIcon2.svg'; 
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -297,19 +298,42 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
 
         {/* View Apartment Details Button */}
         {apartment.website && (
-        <View style={styles.buttonContainer}>
-        <TouchableOpacity 
-        onPress={handleViewApartmentDetails}>
-            <LinearGradient
-              colors={['#FF8C42', '#BF5700', '#994400']} 
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.apartmentButton}
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity onPress={handleViewApartmentDetails}>
+              <LinearGradient
+                colors={['#FF8C42', '#BF5700', '#994400']} 
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.apartmentButton}
+              >
+                <Text style={styles.apartmentButtonText}>View Apartment Details</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+
+            {/* View Original Listing Button */}
+            <TouchableOpacity 
+              onPress={() => {
+                if (apartment.website) {
+                  Linking.openURL(apartment.website).catch(err => {
+                    Alert.alert('Error', 'Unable to open website');
+                  });
+                }
+              }}
+              style={{ marginTop: 16 }}
             >
-            <Text style={styles.apartmentButtonText}>View Apartment Details</Text>
-            </LinearGradient>
-         </TouchableOpacity>
-         </View>
+              <LinearGradient
+                colors={['#FF8C42', '#BF5700', '#994400']} 
+                start={{ x: 0, y: 1 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.apartmentButton}
+              >
+                <View style={styles.websiteButtonContent}>
+                  <ExternalLinkIcon width={24} height={24} color="#ffffff" />
+                  <Text style={styles.apartmentButtonText}>View Original Listing</Text>
+                </View>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
         )}
       </ScrollView>
     </View>
@@ -589,4 +613,10 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginLeft: 6,
   },
+  websiteButtonContent: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: 10,
+},
 });

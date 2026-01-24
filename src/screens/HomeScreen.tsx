@@ -292,7 +292,7 @@ export default function Home({ navigation }) {
             {/* Text */}
             <View style={styles.headerTextContainer}>
               <Text style={styles.headerTitle}>Longhorn Living</Text>
-              <Text style={styles.headerSubtitle}>Find your ideal apartment</Text>
+              <Text style={styles.headerSubtitle}>Find your dream apartment</Text>
             </View>
           </View>
           
