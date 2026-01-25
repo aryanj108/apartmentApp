@@ -1,19 +1,40 @@
-// Each listing is an individual rentable unit within a building
 export const listingsData = [
   // Campus Edge Flats (buildingId: 1)
   {
-    id: 1,
-    buildingId: 1,
-    unitNumber: "101",
-    price: 950,
-    bedrooms: 1,
-    bathrooms: 1,
-    sqft: 600,
-    floorPlan: "Studio",
-    available: true,
-    availableDate: "Available now",
-    deposit: 950,
-    leaseTerm: "12-month"
+  id: 1,
+  buildingId: 1,
+  unitNumber: "Deluxe Studio Apartment Alt",
+  smartHousing: true,
+  description:  "The Deluxe Studio Apartment Alt - SMART at The Callaway House Austin offers a fully furnished, private suite designed for students seeking comfort and convenience. This apartment includes a kitchenette with granite counters and stainless steel appliances, premium features like hardwood-style floors and granite bathroom counters, and an all-inclusive utility package with high-speed internet. Residents also enjoy access to biweekly housekeeping, an unlimited meal plan, and SMART Housing support for need-based students.",
+  features: [
+  "Private furnished studio suite",
+  "Full-sized, extra long bed",
+  "Study desk and chair",
+  "Dining table and chairs",
+  "Kitchenette with granite counters and stainless steel appliances",
+  "Full-sized refrigerator and microwave",
+  "Premium hardwood-style floors and granite bathroom counters",
+  "Unlimited meal plan included",
+  "Biweekly housekeeping",
+  "All-inclusive utilities (electricity, water, sewer, trash, internet)",
+  "High-speed internet up to 1Gbps per bed",
+  "Four community laundry facilities",
+  "Academic term lease (August-May)",
+  "SMART Housing program available",
+  "Mobility accessible features",
+  "Parking and scooter parking available"
+  ],
+  price: 1959,
+  bedrooms: 1,
+  bathrooms: 1,
+  sqft: 600,
+  floorPlan: "Studio",
+  available: true,
+  availableDate: "Available now",
+  moveInFee: 200,
+  deposit: 950,
+  leaseTerm: "Academic term leases (August-May)",
+  website: "https://www.americancampus.com/student-apartments/tx/austin/the-callaway-house-austin/floor-plans#/detail/685-deluxestudioapartmentalt-smart-fall2026_academicterm_08_2026-05_2027"
   },
   {
     id: 2,

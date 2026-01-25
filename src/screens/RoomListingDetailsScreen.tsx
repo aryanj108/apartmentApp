@@ -5,18 +5,16 @@ import BedIcon from '../../assets/bedIcon.svg';
 import DistanceIcon from '../../assets/distanceIcon(2).svg';
 import BathIcon from '../../assets/bathIcon.svg';
 import DescriptionIcon from '../../assets/descriptionIcon.svg';
-import ReviewIcon from '../../assets/reviewIcon.svg';
 import FeaturesIcon from '../../assets/featuresIcon.svg';
 import ContactIcon from '../../assets/contactIcon.svg';
 import LeaseIcon from '../../assets/leaseIcon.svg';
 import BackIcon from '../../assets/backIcon.svg';
 import { usePreferences } from '../context/PreferencesContext';
-import SaveOutlineIcon from '../../assets/saveIcon.svg';
-import SaveFilledIcon from '../../assets/filledInSaveIcon.svg';
 import SaveOutlineIconHeart from '../../assets/heartOutline.svg';
 import SaveFilledIconHeart from '../../assets/heart.svg';
 import StarIcon from '../../assets/stars.svg';
-import ExternalLinkIcon from '../../assets/shareIcon2.svg'; 
+import ExternalLinkIcon from '../../assets/shareIcon2.svg';
+import { buildingsData } from '../data/buildings';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 import ImageCarousel from '../navigation/ImageCarousel';
@@ -40,34 +38,56 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
     outputRange: ['0%', '100%'],
   });
 
-  const apartment = route.params?.listing || {
-    name: 'Modern Downtown Loft',
-    address: '123 Main St, Downtown',
-    price: 1800,
-    bedrooms: 1,
-    bathrooms: 1,
-    distance: 0.5,
-    description: "Beautiful modern loft in the heart of downtown.",
-    reviews: [],
-    features: [],
-    contact: {
+  // Get building data based on buildingId from listing
+  const buildingData = buildingsData.find(b => b.id === listing.buildingId) || {};
+
+  // Merge listing data with building data
+  const apartment = {
+    // Room-specific data from listing
+    id: listing.id,
+    unitNumber: listing.unitNumber,
+    price: listing.price,
+    bedrooms: listing.bedrooms,
+    bathrooms: listing.bathrooms,
+    sqft: listing.sqft,
+    floorPlan: listing.floorPlan,
+    available: listing.available,
+    availableDate: listing.availableDate,
+    deposit: listing.deposit,
+    leaseTerm: listing.leaseTerm,
+    
+    // Room-specific fields (if they exist on listing)
+    description: listing.description || buildingData.description || "No description available.",
+    features: listing.features || buildingData.features || [],
+    website: listing.website || buildingData.website || "",
+    smartHousing: listing.smartHousing || false,
+    moveInFee: listing.moveInFee,
+    
+    // Building data
+    name: buildingData.name || 'Apartment',
+    address: buildingData.address || 'Address not available',
+    distance: buildingData.distance || 0,
+    images: buildingData.images || [],
+    contact: buildingData.contact || {
       phone: '',
       email: '',
       hours: ''
     },
+    
+    // Override lease details if room has specific ones
     leaseDetails: {
-      term: '',
-      deposit: '',
-      availability: ''
-    },
-    website: ''
+      term: listing.leaseTerm || buildingData.leaseDetails?.term || '',
+      deposit: listing.deposit ? `$${listing.deposit}` : buildingData.leaseDetails?.deposit || '',
+      availability: listing.availableDate || buildingData.leaseDetails?.availability || '',
+      moveInFee: listing.moveInFee ? `$${listing.moveInFee}` : undefined
+    }
   };
 
   const isSaved = savedIds.includes(apartment.id);
 
   const handleViewApartmentDetails = () => {
     navigation.navigate('ApartmentListingDetails', {
-      listing: listing,
+      listing: buildingData,
       matchScore: matchScore,
     });
   };
@@ -120,7 +140,7 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
                 end={{ x: 1, y: 0 }}
                 style={styles.saveButtonContent}
               >
-                <SaveFilledIconHeart width={20} height={20} />
+                <SaveFilledIconHeart width={20} height={20} fill="#ffffff"/>
                 <Text style={[styles.saveButtonText, { color: '#ffffff' }]}>Saved</Text>
               </LinearGradient>
             ) : (
@@ -137,10 +157,19 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
           <View style={styles.infoContent}>
             <View style={styles.leftInfo}>
               <Text style={styles.apartmentName}>{apartment.name}</Text>
+              <Text style={styles.unitNumber}>Unit {apartment.unitNumber}</Text>
               <Text style={styles.address}>{apartment.address}</Text>
+              {apartment.smartHousing && (
+                <View style={styles.smartBadge}>
+                  <Text style={styles.smartBadgeText}>SMART Housing</Text>
+                </View>
+              )}
             </View>
             <View style={styles.rightInfo}>
               <Text style={styles.price}>${apartment.price}/mo</Text>
+              {apartment.sqft && (
+                <Text style={styles.sqftText}>{apartment.sqft} sqft</Text>
+              )}
             </View>
           </View>
 
@@ -182,7 +211,7 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
             <Text style={styles.sectionTitle}>Room Description</Text>
           </View>
           <Text style={styles.description}>
-            {apartment.description || 'No description available.'}
+            {apartment.description}
           </Text>
         </View>
 
@@ -233,6 +262,9 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
           {apartment.leaseDetails?.deposit && (
             <Text style={styles.featureItem}>• Security Deposit: {apartment.leaseDetails.deposit}</Text>
           )}
+          {apartment.leaseDetails?.moveInFee && (
+            <Text style={styles.featureItem}>• Move-In Fee: {apartment.leaseDetails.moveInFee}</Text>
+          )}
           {apartment.leaseDetails?.availability && (
             <Text style={styles.featureItem}>• Availability: {apartment.leaseDetails.availability}</Text>
           )}
@@ -272,27 +304,6 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-    backgroundColor: '#ffffff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
-  },
-  backButton: {
-    padding: 5,
-  },
-  backButtonText: {
-    fontSize: 18,
-    color: '#000000',
-    fontWeight: '600',
-  },
-  placeholder: {
-    width: 60,
-  },
   imageGalleryContainer: {
     position: 'relative',
     height: 400,
@@ -302,69 +313,6 @@ const styles = StyleSheet.create({
     top: 40,
     left: 20,
     zIndex: 10,
-  },
-  saveBadge: {
-    backgroundColor: '#f3f4f6',
-    paddingHorizontal: 10,
-    paddingVertical: 10,
-    borderRadius: 20,
-    marginTop: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  saveText: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#000000',
-  },
-  placeholderText: {
-    fontSize: 18,
-    color: '#6b7280',
-    fontWeight: '600',
-  },
-  section: {
-    paddingVertical: 20,
-    paddingHorizontal: 20,
-    borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#000000',
-  },
-  sectionIcon: {
-    marginRight: 8,
-  },
-  description: {
-    fontSize: 16,
-    color: '#6b7280',
-    lineHeight: 24,
-  },
-  featureItem: {
-    fontSize: 16,
-    color: '#374151',
-    marginBottom: 8,
-    lineHeight: 24,
-  },
-  contactButton: {
-    paddingVertical: 16,
-    paddingHorizontal: 32,
-    borderRadius: 12,
-    alignItems: 'center',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  contactButtonText: {
-    color: '#ffffff',
-    fontSize: 18,
-    fontWeight: '600',
   },
   infoSection: {
     backgroundColor: '#ffffff',
@@ -386,17 +334,42 @@ const styles = StyleSheet.create({
     color: '#000000',
     marginBottom: 4,
   },
+  unitNumber: {
+    fontSize: 16,
+    color: '#BF5700',
+    fontWeight: '600',
+    marginBottom: 4,
+  },
   address: {
-    fontSize: 18,
+    fontSize: 16,
     color: '#6b7280',
+  },
+  smartBadge: {
+    backgroundColor: '#BF5700',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    alignSelf: 'flex-start',
+    marginTop: 8,
+  },
+  smartBadgeText: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: 'bold',
   },
   rightInfo: {
     marginLeft: 16,
+    alignItems: 'flex-end',
   },
   price: {
     fontSize: 22,
     fontWeight: 'bold',
     color: '#000000',
+  },
+  sqftText: {
+    fontSize: 14,
+    color: '#6b7280',
+    marginTop: 4,
   },
   chipsContainer: {
     flexDirection: 'row',
@@ -427,57 +400,35 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
-  chipIconLeft: {
-    width: 20,
-    height: 20,
-  },
-  icon: {
-    width: 22,
-    height: 22,
-    resizeMode: 'contain',
-  },
-  iconContainerDistance: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#dfdfdfff',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 15,
-    marginLeft: -5,
+  section: {
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
   },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 12,
   },
-  apartmentLinkSection: {
-    padding: 20,
-    backgroundColor: '#f9fafb',
-    marginHorizontal: 20,
-    borderRadius: 12,
-    marginTop: 10,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-  },
-  subHeaderText: {
-    fontSize: 14,
-    color: '#6b7280',
-    marginBottom: 8,
-  },
-  apartmentButton: {
-    backgroundColor: '#BF5700',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 25,
-    width: '100%',
-    alignItems: 'center',
-  },
-  apartmentButtonText: {
-    color: '#ffffff',
-    fontSize: 16,
+  sectionTitle: {
+    fontSize: 20,
     fontWeight: 'bold',
+    color: '#000000',
+  },
+  sectionIcon: {
+    marginRight: 8,
+  },
+  description: {
+    fontSize: 16,
+    color: '#6b7280',
+    lineHeight: 24,
+  },
+  featureItem: {
+    fontSize: 16,
+    color: '#374151',
+    marginBottom: 8,
+    lineHeight: 24,
   },
   matchScoreSection: {
     marginTop: 15,
@@ -537,6 +488,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 5,
+    overflow: 'hidden'
   },
   saveButtonText: {
     fontSize: 14,
@@ -545,7 +497,23 @@ const styles = StyleSheet.create({
   },
   websiteButtonContainer: {
     paddingHorizontal: 20,
-    paddingVertical: 24,
+    paddingVertical: 12,
+  },
+  contactButton: {
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    borderRadius: 12,
+    alignItems: 'center',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  contactButtonText: {
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: '600',
   },
   websiteButtonContent: {
     flexDirection: 'row',
@@ -556,5 +524,19 @@ const styles = StyleSheet.create({
   externalLinkIcon: {
     tintColor: '#ffffff',
     marginTop: -3 
+  },
+  buildingButton: {
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    borderRadius: 12,
+    alignItems: 'center',
+    backgroundColor: '#f3f4f6',
+    borderWidth: 2,
+    borderColor: '#BF5700',
+  },
+  buildingButtonText: {
+    color: '#BF5700',
+    fontSize: 18,
+    fontWeight: '600',
   },
 });
