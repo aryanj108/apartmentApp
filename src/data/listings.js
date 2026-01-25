@@ -32,7 +32,6 @@ export const listingsData = [
   available: true,
   availableDate: "Available now",
   moveInFee: 200,
-  deposit: 950,
   leaseTerm: "Academic term leases (August-May)",
   website: "https://www.americancampus.com/student-apartments/tx/austin/the-callaway-house-austin/floor-plans#/detail/685-deluxestudioapartmentalt-smart-fall2026_academicterm_08_2026-05_2027"
   },
