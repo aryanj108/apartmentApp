@@ -6,7 +6,8 @@ import {
   Dimensions,
   ScrollView,
   TouchableOpacity,
-  Alert
+  Alert,
+  Linking
 } from 'react-native';
 import { useState, useEffect } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -313,7 +314,18 @@ useEffect(() => {
       {/* Website Button - Only show if website exists */}
       {apartment.website && (
         <View style={styles.websiteButtonContainer}>
-          <TouchableOpacity onPress={() => {/* Add website link logic here */}}>
+          <TouchableOpacity onPress={async () => {
+            try {
+              const supported = await Linking.canOpenURL(apartment.website);
+              if (supported) {
+                await Linking.openURL(apartment.website);
+              } else {
+                Alert.alert('Error', 'Cannot open this URL');
+              }
+            } catch (error) {
+              Alert.alert('Error', 'Failed to open website');
+            }
+          }}>
             <LinearGradient
               colors={['#FF8C42', '#BF5700', '#994400']} 
               start={{ x: 0, y: 0 }}
