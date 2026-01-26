@@ -52,7 +52,8 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
   // Merge listing and building data
   const roomData = {
     id: listing.id,
-    name: listing.unitNumber ? `${building.name} - ${listing.unitNumber}` : building.name,
+    buildingName: building.name,
+    unitNumber: listing.unitNumber,
     address: building.address || 'Address not available',
     price: listing.price || 0,
     bedrooms: listing.bedrooms || 0,
@@ -170,11 +171,14 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
         <View style={styles.infoSection}>
           <View style={styles.infoContent}>
             <View style={styles.leftInfo}>
-              <Text style={styles.apartmentName}>{roomData.name}</Text>
-              <Text style={styles.address}>{roomData.address}</Text>
-              {roomData.sqft && (
-                <Text style={styles.sqftText}>{roomData.sqft} sq ft</Text>
-              )}
+              {roomData.unitNumber && (
+                <Text style={styles.unitNumberText}>{roomData.unitNumber}</Text>
+                )}
+              <Text style={styles.apartmentName}>{roomData.buildingName}</Text>
+                <Text style={styles.address}>{roomData.address}</Text>
+                {roomData.sqft && (
+                  <Text style={styles.sqftText}>{roomData.sqft} sq ft</Text>
+                )}
             </View>
             <View style={styles.rightInfo}>
               <Text style={styles.price}>${roomData.price}/mo</Text>
@@ -430,20 +434,25 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   apartmentName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#000000',
+    marginBottom: 2,
+  },
+  address: {
+    fontSize: 14,
+    color: '#6b7280',
+    marginBottom: 2,
+  },
+  unitNumberText: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#000000',
-    marginBottom: 4,
-  },
-  address: {
-    fontSize: 16,
-    color: '#6b7280',
-    marginBottom: 4,
+    marginBottom: 2, 
   },
   sqftText: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#9ca3af',
-    marginTop: 2,
   },
   rightInfo: {
     marginLeft: 16,
