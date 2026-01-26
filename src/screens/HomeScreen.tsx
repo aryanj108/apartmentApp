@@ -47,11 +47,12 @@ function getEnrichedListings() {
       distance: building?.distance || 0,
       amenities: building?.amenities || [],
       images: building?.images || [],
-      description: building?.description || '',
-      features: building?.features || [],
+      description: listing.description || building?.description || '',
+      features: listing.features || building?.features || [],
       reviews: building?.reviews || [],
       contact: building?.contact || {},
-      website: building?.website || '',
+      leaseDetails: building?.leaseDetails || {},
+      website: listing.website || building?.website || '',
     };
   });
 }
