@@ -52,7 +52,7 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
   // Merge listing and building data
   const roomData = {
     id: listing.id,
-    name: listing.unitNumber ? `${building.name} - Unit ${listing.unitNumber}` : building.name,
+    name: listing.unitNumber ? `${building.name} - ${listing.unitNumber}` : building.name,
     address: building.address || 'Address not available',
     price: listing.price || 0,
     bedrooms: listing.bedrooms || 0,
@@ -150,6 +150,20 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
               </View>
             )}
           </TouchableOpacity>
+
+          {/* SMART Housing Badge */}
+          {roomData.smartHousing && (
+            <View style={styles.smartHousingBadgeContainer}>
+              <LinearGradient
+                colors={['#FF8C42', '#BF5700', '#994400']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.smartHousingBadge}
+              >
+                <Text style={styles.smartHousingBadgeText}>SMART Housing</Text>
+              </LinearGradient>
+            </View>
+          )}
         </View>
 
         {/* Basic Info */}
@@ -158,20 +172,12 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
             <View style={styles.leftInfo}>
               <Text style={styles.apartmentName}>{roomData.name}</Text>
               <Text style={styles.address}>{roomData.address}</Text>
-              {roomData.floorPlan && (
-                <Text style={styles.floorPlanText}>{roomData.floorPlan}</Text>
-              )}
               {roomData.sqft && (
                 <Text style={styles.sqftText}>{roomData.sqft} sq ft</Text>
               )}
             </View>
             <View style={styles.rightInfo}>
               <Text style={styles.price}>${roomData.price}/mo</Text>
-              {roomData.smartHousing && (
-                <View style={styles.smartBadge}>
-                  <Text style={styles.smartBadgeText}>SMART Housing</Text>
-                </View>
-              )}
             </View>
           </View>
 
@@ -424,23 +430,18 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   apartmentName: {
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#000000',
     marginBottom: 4,
   },
   address: {
-    fontSize: 18,
+    fontSize: 16,
     color: '#6b7280',
     marginBottom: 4,
   },
-  floorPlanText: {
-    fontSize: 16,
-    color: '#6b7280',
-    marginTop: 4,
-  },
   sqftText: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#9ca3af',
     marginTop: 2,
   },
@@ -449,21 +450,9 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   price: {
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#000000',
-  },
-  smartBadge: {
-    backgroundColor: '#BF5700',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-    marginTop: 8,
-  },
-  smartBadgeText: {
-    fontSize: 11,
-    fontWeight: 'bold',
-    color: '#ffffff',
   },
   chipsContainer: {
     flexDirection: 'row',
@@ -610,6 +599,27 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
     marginLeft: 6,
+  },
+  smartHousingBadgeContainer: {
+    position: 'absolute',
+    top: 100,
+    right: 20,
+    zIndex: 100,
+  },
+  smartHousingBadge: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  smartHousingBadgeText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#ffffff',
   },
   websiteButtonContainer: {
     paddingHorizontal: 20,
