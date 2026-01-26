@@ -120,6 +120,7 @@ function ApartmentCard({ listing, matchScore, onPress, isSaved, onSavePress }) {
                 <Text style={styles.cardDetailText}>{listing.bathrooms} Bath</Text>
               </View>
             </View>
+            <Text style={styles.cardPrice}>${formatPrice(listing.price)}</Text>
           </View>
         </View>
       </View>
