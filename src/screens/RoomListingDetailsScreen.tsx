@@ -44,11 +44,6 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
   // Get the building data for this listing
   const building = buildingsData.find(b => b.id === listing.buildingId) || {};
 
-  console.log('Listing:', listing);
-  console.log('Building:', building);
-  console.log('Listing description:', listing.description);
-  console.log('Listing features:', listing.features);
-
   // Merge listing and building data
   const roomData = {
     id: listing.id,
@@ -114,11 +109,15 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
         <View style={styles.imageGalleryContainer}>
           <ImageCarousel images={roomData.images} />
           
-          <TouchableOpacity
+            <TouchableOpacity 
             style={styles.backButtonOverlay}
             onPress={() => navigation.goBack()}
           >
-            <BackIcon width={24} height={24} />
+            <View style={styles.saveBadge}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <BackIcon width={20} height={20} />
+              </View>
+            </View>
           </TouchableOpacity>
 
           <TouchableOpacity
