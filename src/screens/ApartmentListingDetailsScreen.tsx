@@ -301,11 +301,11 @@ useEffect(() => {
                       features: unit.features || apartment.features,         
                       contact: apartment.contact,
                       leaseDetails: apartment.leaseDetails, 
-                      website: apartment.website,
+                      website: unit.website || building?.website || '',
                     },
                     matchScore: unit.matchScore,
                   })
-                }
+              }
               />
             ))}
           </View>
