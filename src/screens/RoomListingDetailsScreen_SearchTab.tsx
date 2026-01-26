@@ -1,17 +1,6 @@
 import React, { useEffect, useRef } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Dimensions,
-  ScrollView,
-  TouchableOpacity,
-  Alert,
-  Animated,
-  Linking,
-} from 'react-native';
+import { View, Text, StyleSheet, Dimensions, ScrollView, TouchableOpacity, Alert, Animated, Linking } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-
 import BedIcon from '../../assets/bedIcon.svg';
 import DistanceIcon from '../../assets/distanceIcon(2).svg';
 import BathIcon from '../../assets/bathIcon.svg';
@@ -28,95 +17,97 @@ import SaveOutlineIconHeart from '../../assets/heartOutline.svg';
 import SaveFilledIconHeart from '../../assets/heart.svg';
 import StarIcon from '../../assets/stars.svg';
 import ExternalLinkIcon from '../../assets/shareIcon2.svg'; 
+import { buildingsData } from '../data/buildings';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-
-
 import ImageCarousel from '../navigation/ImageCarousel';
-
 
 export default function RoomListingDetailsScreen({ navigation, route }) {
   const { savedIds, toggleSave } = usePreferences();
   const { listing, matchScore } = route.params;
   const scoreValue = matchScore || 0;
-
   const animatedWidth = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // 2. Start animation when screen loads
     Animated.timing(animatedWidth, {
-      toValue: scoreValue, // Animates to the actual score
-      duration: 1000,      // 1 second duration
-      useNativeDriver: false, // Width animation requires false
+      toValue: scoreValue,
+      duration: 1000,
+      useNativeDriver: false,
     }).start();
   }, [scoreValue]);
 
-  // Interpolate the number into a percentage string
   const widthInterpolate = animatedWidth.interpolate({
     inputRange: [0, 100],
     outputRange: ['0%', '100%'],
   });
-  
-  const apartment = route.params?.listing || {
-    name: 'Modern Downtown Loft',
-    address: '123 Main St, Downtown',
-    price: 1800,
-    bedrooms: 1,
-    bathrooms: 1,
-    distance: 0.5,
-    description: "Beautiful modern loft in the heart of downtown.",
-    reviews: [],
-    features: [],
-    contact: {
+
+  // Get the building data for this listing
+  const building = buildingsData.find(b => b.id === listing.buildingId) || {};
+
+  // Merge listing and building data
+  const roomData = {
+    id: listing.id,
+    buildingName: building.name,
+    unitNumber: listing.unitNumber,
+    address: building.address || 'Address not available',
+    price: listing.price || 0,
+    bedrooms: listing.bedrooms || 0,
+    bathrooms: listing.bathrooms || 0,
+    distance: building.distance || 0,
+    description: (listing.description && listing.description.trim()) 
+      ? listing.description 
+      : (building.description || 'No description available.'),
+    features: (listing.features && listing.features.length > 0) 
+      ? listing.features 
+      : (building.features || []),
+    images: building.images || [],
+    contact: building.contact || {
       phone: '',
       email: '',
       hours: ''
     },
     leaseDetails: {
-      term: '',
-      deposit: '',
-      availability: ''
+      term: listing.leaseTerm || '',
+      deposit: listing.deposit ? `${listing.deposit}` : '',
+      availability: listing.availableDate || ''
     },
-    website: ''
+    website: listing.website || building.website || '',
+    sqft: listing.sqft,
+    floorPlan: listing.floorPlan,
+    smartHousing: listing.smartHousing
   };
-  const isSaved = savedIds.includes(apartment.id);
+
+  const isSaved = savedIds.includes(roomData.id);
+
   const handleViewApartmentDetails = () => {
     navigation.navigate('ApartmentListingDetails', {
-      listing: listing, // Passing the full apartment object
+      listing: building,
       matchScore: matchScore,
     });
   };
 
+  const handleOpenWebsite = () => {
+    if (roomData.website) {
+      Linking.openURL(roomData.website).catch(err => {
+        Alert.alert('Error', 'Unable to open website');
+      });
+    }
+  };
 
-  // Create details array based on apartment data
   const details = [
-    { 
-      id: 'bath', 
-      label: `${apartment.bathrooms} Bath${apartment.bathrooms !== 1 ? 's' : ''}`, 
-      icon: BathIcon 
-    },
-    { 
-      id: 'bed', 
-      label: `${apartment.bedrooms} Bed${apartment.bedrooms !== 1 ? 's' : ''}`, 
-      icon: BedIcon 
-    },
-    { 
-      id: 'distance', 
-      label: `${apartment.distance} Mile${apartment.distance !== 1 ? 's' : ''}`, 
-      icon: DistanceIcon 
-    },
+    { id: 'bath', label: `${roomData.bathrooms} Bath${roomData.bathrooms !== 1 ? 's' : ''}`, icon: BathIcon },
+    { id: 'bed', label: `${roomData.bedrooms} Bed${roomData.bedrooms !== 1 ? 's' : ''}`, icon: BedIcon },
+    { id: 'distance', label: `${roomData.distance} Mile${roomData.distance !== 1 ? 's' : ''}`, icon: DistanceIcon },
   ];
 
   return (
     <View style={styles.container}>
-      {/* Scrollable Content */}
       <ScrollView style={styles.content}>
-        
         {/* Image Gallery Section */}
         <View style={styles.imageGalleryContainer}>
+          <ImageCarousel images={roomData.images} />
           
-          {/* Back Button positioned ON the image section */}
-          <TouchableOpacity 
+            <TouchableOpacity 
             style={styles.backButtonOverlay}
             onPress={() => navigation.goBack()}
           >
@@ -127,55 +118,72 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
             </View>
           </TouchableOpacity>
 
-        <TouchableOpacity
-          activeOpacity={0.7}
-          onPress={() => {
-            const wasSaved = isSaved;
-            Alert.alert(
-              wasSaved ? 'Listing Unsaved' : 'Listing Saved',
-              wasSaved
-                ? 'This listing has been removed from your saved listings.'
-                : 'This listing has been added to your saved listings.'
-            );
-            toggleSave(apartment.id);
-          }}
-          style={styles.saveButtonContainer}
-        >
-          {isSaved ? (
-            /* GRADIENT BACKGROUND WHEN SAVED */
-            <LinearGradient
-              colors={['#FF8C42', '#BF5700', '#994400']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.saveButtonContent}
-            >
-              <SaveFilledIconHeart width={16} height={16} fill="#fff" />
-              <Text style={[styles.saveButtonText, { color: '#fff' }]}>Saved</Text>
-            </LinearGradient>
-          ) : (
-            /* PLAIN BACKGROUND WHEN NOT SAVED */
-            <View style={[styles.saveButtonContent, { backgroundColor: '#f3f4f6' }]}>
-              <SaveOutlineIconHeart width={16} height={16} fill="#000" />
-              <Text style={[styles.saveButtonText, { color: '#000' }]}>Save Listing</Text>
-            </View>
-          )}
-        </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => {
+              const wasSaved = isSaved;
+              Alert.alert(
+                wasSaved ? 'Listing Unsaved' : 'Listing Saved',
+                wasSaved
+                  ? 'This listing has been removed from your saved listings.'
+                  : 'This listing has been added to your saved listings.'
+              );
+              toggleSave(roomData.id);
+            }}
+            style={styles.saveButtonContainer}
+          >
+            {isSaved ? (
+              <LinearGradient
+                colors={['#FF8C42', '#BF5700', '#994400']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.saveButtonContent}
+              >
+                <SaveFilledIconHeart width={20} height={20} fill="#ffffff"/>
+                <Text style={[styles.saveButtonText, { color: '#ffffff' }]}>Saved</Text>
+              </LinearGradient>
+            ) : (
+              <View style={[styles.saveButtonContent, { backgroundColor: '#ffffff' }]}>
+                <SaveOutlineIconHeart width={20} height={20} />
+                <Text style={[styles.saveButtonText, { color: '#000000' }]}>Save Listing</Text>
+              </View>
+            )}
+          </TouchableOpacity>
 
-          <ImageCarousel images={apartment.images || []} />
+          {/* SMART Housing Badge 
+          {roomData.smartHousing && (
+            <View style={styles.smartHousingBadgeContainer}>
+              <LinearGradient
+                colors={['#FF8C42', '#BF5700', '#994400']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.smartHousingBadge}
+              >
+                <Text style={styles.smartHousingBadgeText}>SMART Housing</Text>
+              </LinearGradient>
+            </View>
+          )}*/}
         </View>
 
         {/* Basic Info */}
         <View style={styles.infoSection}>
           <View style={styles.infoContent}>
-            {/* Left side: Name and Address */}
             <View style={styles.leftInfo}>
-              <Text style={styles.apartmentName}>{apartment.name}</Text>
-              <Text style={styles.address}>{apartment.address}</Text>
+              {roomData.unitNumber && (
+                <Text style={styles.unitNumberText}>{roomData.unitNumber}</Text>
+                )}
+              <Text style={styles.apartmentName}>{roomData.buildingName}</Text>
+                <Text style={styles.address}>{roomData.address}</Text>
+                {roomData.sqft && (
+                  <Text style={styles.sqftText}>{roomData.sqft} sq ft</Text>
+                )}
+                {roomData.smartHousing && (
+                <Text style={styles.smartHousingLine}>
+                SMART Housing Available
+                </Text>
+              )}
             </View>
-
-            {/* Right side: Price */}
             <View style={styles.rightInfo}>
-              <Text style={styles.price}>${apartment.price}/mo</Text>
+              <Text style={styles.price}>${roomData.price}/mo</Text>
             </View>
           </View>
 
@@ -207,51 +215,43 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
 
               {/* Right Side: Percentage */}
               <Text style={styles.matchScorePercent}>{scoreValue}%</Text>
-              
             </View>
           </View>
         </View>
 
         <View style={styles.chipsContainer}>
           {details.map((detail) => (
-            <View 
-              key={detail.id}
-              style={[styles.chip]}
-            >
+            <View key={detail.id} style={styles.chip}>
               <View style={styles.chipContent}>
-                <detail.icon 
-                  width={24} 
-                  height={24} 
-                  style={styles.chipIconLeft}
-                />
-                <Text style={[styles.chipText]}>
-                  {detail.label}
-                </Text>
+                <detail.icon width={24} height={24} />
+                <Text style={styles.chipText}>{detail.label}</Text>
               </View>
             </View>
           ))}
         </View>
-      
+
         {/* Description */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <DescriptionIcon width={24} height={24} style={styles.sectionIcon} />
+            <DescriptionIcon width={22} height={22} style={styles.sectionIcon} />
             <Text style={styles.sectionTitle}>Room Description</Text>
           </View>
           <Text style={styles.description}>
-            {apartment.description || 'No description available.'}
+            {roomData.description}
           </Text>
         </View>
 
-        {/* Features - Only show if there are features */}
-        {apartment.features && apartment.features.length > 0 && (
+        {/* Features */}
+        {roomData.features && roomData.features.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <FeaturesIcon width={24} height={24} style={styles.sectionIcon} />
+              <FeaturesIcon width={22} height={22} style={styles.sectionIcon} />
               <Text style={styles.sectionTitle}>Features</Text>
             </View>
-            {apartment.features.map((feature, index) => (
-              <Text key={index} style={styles.featureItem}>• {feature}</Text>
+            {roomData.features.map((feature, index) => (
+              <Text key={index} style={styles.featureItem}>
+                • {feature}
+              </Text>
             ))}
           </View>
         )}
@@ -259,19 +259,19 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
         {/* Contact */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <ContactIcon width={24} height={24} style={styles.sectionIcon} />
+            <ContactIcon width={22} height={22} style={styles.sectionIcon} />
             <Text style={styles.sectionTitle}>Contact</Text>
           </View>
-          {apartment.contact?.phone && (
-            <Text style={styles.featureItem}>• Phone Number: {apartment.contact.phone}</Text>
+          {roomData.contact?.phone && (
+            <Text style={styles.featureItem}>• Phone Number: {roomData.contact.phone}</Text>
           )}
-          {apartment.contact?.email && (
-            <Text style={styles.featureItem}>• Email: {apartment.contact.email}</Text>
+          {roomData.contact?.email && (
+            <Text style={styles.featureItem}>• Email: {roomData.contact.email}</Text>
           )}
-          {apartment.contact?.hours && (
-            <Text style={styles.featureItem}>• Hours: {apartment.contact.hours}</Text>
+          {roomData.contact?.hours && (
+            <Text style={styles.featureItem}>• Hours: {roomData.contact.hours}</Text>
           )}
-          {!apartment.contact?.phone && !apartment.contact?.email && !apartment.contact?.hours && (
+          {!roomData.contact?.phone && !roomData.contact?.email && !roomData.contact?.hours && (
             <Text style={styles.featureItem}>• Contact information not available</Text>
           )}
         </View>
@@ -279,25 +279,25 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
         {/* Lease Details */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <LeaseIcon width={24} height={24} style={styles.sectionIcon} />
+            <LeaseIcon width={22} height={22} style={styles.sectionIcon} />
             <Text style={styles.sectionTitle}>Lease Details</Text>
           </View>
-          {apartment.leaseDetails?.term && (
-            <Text style={styles.featureItem}>• Lease Term: {apartment.leaseDetails.term}</Text>
+          {roomData.leaseDetails?.term && (
+            <Text style={styles.featureItem}>• Lease Term: {roomData.leaseDetails.term}</Text>
           )}
-          {apartment.leaseDetails?.deposit && (
-            <Text style={styles.featureItem}>• Security Deposit: {apartment.leaseDetails.deposit}</Text>
+          {roomData.leaseDetails?.deposit && (
+            <Text style={styles.featureItem}>• Security Deposit: {roomData.leaseDetails.deposit}</Text>
           )}
-          {apartment.leaseDetails?.availability && (
-            <Text style={styles.featureItem}>• Availability: {apartment.leaseDetails.availability}</Text>
+          {roomData.leaseDetails?.availability && (
+            <Text style={styles.featureItem}>• Availability: {roomData.leaseDetails.availability}</Text>
           )}
-          {!apartment.leaseDetails?.term && !apartment.leaseDetails?.deposit && !apartment.leaseDetails?.availability && (
+          {!roomData.leaseDetails?.term && !roomData.leaseDetails?.deposit && !roomData.leaseDetails?.availability && (
             <Text style={styles.featureItem}>• Lease details not available</Text>
           )}
         </View>
 
         {/* View Apartment Details Button */}
-        {apartment.website && (
+        {roomData.website && (
           <View style={styles.buttonContainer}>
             <TouchableOpacity onPress={handleViewApartmentDetails}>
               <LinearGradient
@@ -313,11 +313,7 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
             {/* View Original Listing Button */}
             <TouchableOpacity 
               onPress={() => {
-                if (apartment.website) {
-                  Linking.openURL(apartment.website).catch(err => {
-                    Alert.alert('Error', 'Unable to open website');
-                  });
-                }
+              handleOpenWebsite();
               }}
               style={{ marginTop: 16 }}
             >
@@ -458,20 +454,20 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   apartmentName: {
-    fontSize: 22,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#000000',
     marginBottom: 4,
   },
   address: {
-    fontSize: 18,
+    fontSize: 14,
     color: '#6b7280',
   },
   rightInfo: {
     marginLeft: 16,
   },
   price: {
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#000000',
   },
@@ -619,4 +615,20 @@ const styles = StyleSheet.create({
   justifyContent: 'center',
   gap: 10,
 },
+  unitNumberText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#000000',
+    marginBottom: 2, 
+  },
+  smartHousingLine: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#BF5700', 
+    marginTop: 2,
+  },
+  sqftText: {
+    fontSize: 14,
+    color: '#6b7280',
+  },
 });

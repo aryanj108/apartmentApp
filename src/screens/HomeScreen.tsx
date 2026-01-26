@@ -99,7 +99,7 @@ function ApartmentCard({ listing, matchScore, onPress, isSaved, onSavePress }) {
             {listing.name}
           </Text>
           <Text style={styles.unitNumber}>
-            Unit {listing.unitNumber} • {listing.floorPlan}
+            {listing.unitNumber} • {listing.floorPlan}
           </Text>
           <Text style={styles.cardAddress} numberOfLines={1}>
             {listing.address}

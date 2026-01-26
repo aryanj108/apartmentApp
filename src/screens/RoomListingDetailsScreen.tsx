@@ -462,7 +462,7 @@ const styles = StyleSheet.create({
   },
   sqftText: {
     fontSize: 14,
-    color: '#9ca3af',
+    color: '#6b7280',
   },
   rightInfo: {
     marginLeft: 16,
