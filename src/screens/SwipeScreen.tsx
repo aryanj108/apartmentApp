@@ -140,6 +140,14 @@ export default function SwipeScreen({ navigation }: any) {
 
   return (
     <View style={styles.container}>
+      {/* Add Title Header */}
+    <View style={styles.headerContainer}>
+      <Text style={styles.headerTitle}>Your Matches</Text>
+      <Text style={styles.headerSubtitle}>
+        {enrichedListings.length} Listings • Swipe Mode
+      </Text>
+    </View>
+    <View style={styles.cardsContainer}>
       {enrichedListings
         .slice(currentIndex, currentIndex + 2)
         .reverse()
@@ -262,6 +270,7 @@ export default function SwipeScreen({ navigation }: any) {
           );
         })}
     </View>
+  </View>
   );
 }
 
@@ -269,9 +278,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f3f4f6',
-    justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 20,
+    paddingTop: 60
   },
   cardContent: {
     width: CARD_WIDTH,
@@ -279,6 +287,11 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     overflow: 'hidden',
     backgroundColor: '#ffffff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
   pictureSection: {
     height: IMAGE_HEIGHT,
@@ -426,5 +439,21 @@ const styles = StyleSheet.create({
     color: '#000000',
     fontSize: 16,
     fontWeight: '600',
+  },
+  headerContainer: {
+    alignItems: 'center',
+    marginBottom: 16,
+    paddingHorizontal: 20,
+    zIndex: 10
+  },
+  headerTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#000000',
+  },
+  headerSubtitle: {
+    fontSize: 10,
+    color: '#6b7280',
+    fontWeight: '500',
   },
 });
