@@ -170,17 +170,37 @@ function SearchModal({ visible, onClose, buildings, onSelectBuilding }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredBuildings, setFilteredBuildings] = useState([]);
 
-  useEffect(() => {
-    if (searchQuery.trim() === '') {
-      setFilteredBuildings([]);
-    } else {
-      const filtered = buildings.filter(building =>
-        building.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        building.address.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-      setFilteredBuildings(filtered);
-    }
-  }, [searchQuery, buildings]);
+useEffect(() => {
+  if (searchQuery.trim() === '') {
+    setFilteredBuildings([]);
+  } else {
+    const query = searchQuery.toLowerCase();
+    const filtered = buildings.filter(building =>
+      building.name.toLowerCase().includes(query) ||
+      building.address.toLowerCase().includes(query)
+    );
+    
+    const sorted = filtered.sort((a, b) => {
+      const aName = a.name.toLowerCase();
+      const bName = b.name.toLowerCase();
+      const aAddress = a.address.toLowerCase();
+      const bAddress = b.address.toLowerCase();
+      
+      if (aName === query) return -1;
+      if (bName === query) return 1;
+      
+      if (aName.startsWith(query) && !bName.startsWith(query)) return -1;
+      if (bName.startsWith(query) && !aName.startsWith(query)) return 1;
+      
+      if (aAddress.startsWith(query) && !bAddress.startsWith(query)) return -1;
+      if (bAddress.startsWith(query) && !aAddress.startsWith(query)) return 1;
+      
+      return aName.localeCompare(bName);
+    });
+    
+    setFilteredBuildings(sorted);
+  }
+}, [searchQuery, buildings]);
 
   const handleSelectBuilding = (building) => {
     setSearchQuery('');
@@ -442,7 +462,7 @@ const styles = StyleSheet.create({
   },
   searchIconButton: {
     position: 'absolute',
-    right: 0,
+    left: 0,
     padding: 4,
     marginTop: 5,
     top: 0
@@ -680,9 +700,10 @@ const styles = StyleSheet.create({
     color: '#6b7280',
   },
   searchResultArrow: {
-    fontSize: 20,
+    fontSize: 24, 
     color: '#BF5700',
     marginLeft: 12,
+    fontWeight: 'bold', 
   },
   emptyState: {
     alignItems: 'center',
