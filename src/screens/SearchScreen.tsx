@@ -38,6 +38,11 @@ const AUSTIN_REGION = {
   longitudeDelta: 0.15,
 };
 
+// Helper function to format price with commas
+function formatPrice(price) {
+  return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
 // Helper function to combine listing with building data
 function getEnrichedListings() {
   return listingsData.map(listing => {
@@ -158,7 +163,7 @@ function ListingVerticalCard({ listing, matchScore, onPress, isSaved }) {
               <Text style={styles.cardDetailText}>{listing.distance} mi</Text>
             </View>
           </View>
-          <Text style={styles.cardPrice}>${listing.price}/mo</Text>
+          <Text style={styles.cardPrice}>${formatPrice(listing.price)}/mo</Text>
         </View>
       </View>
     </TouchableOpacity>
