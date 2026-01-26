@@ -9,6 +9,9 @@ import {
   Dimensions,
   ActivityIndicator,
   Switch,
+  Modal,
+  TextInput,
+  Keyboard,
 } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -23,6 +26,7 @@ import DistanceIcon from '../../assets/distanceIcon(2).svg';
 import Stars from '../../assets/stars.svg';
 import SaveFilledIconHeart from '../../assets/heart.svg';
 import PinIcon from '../../assets/pinIcon.svg';
+import SearchIcon from '../../assets/searchIcon.svg'; 
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -133,7 +137,7 @@ function ListingVerticalCard({ listing, matchScore, onPress, isSaved }) {
           {listing.name}
         </Text>
         <Text style={styles.unitNumber}>
-          Unit {listing.unitNumber} • {listing.floorPlan}
+          {listing.unitNumber} • {listing.floorPlan}
         </Text>
         <Text style={styles.cardAddress} numberOfLines={1}>
           {listing.address}
@@ -161,12 +165,100 @@ function ListingVerticalCard({ listing, matchScore, onPress, isSaved }) {
   );
 }
 
+// Search Modal Component
+function SearchModal({ visible, onClose, buildings, onSelectBuilding }) {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredBuildings, setFilteredBuildings] = useState([]);
+
+  useEffect(() => {
+    if (searchQuery.trim() === '') {
+      setFilteredBuildings([]);
+    } else {
+      const filtered = buildings.filter(building =>
+        building.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        building.address.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      setFilteredBuildings(filtered);
+    }
+  }, [searchQuery, buildings]);
+
+  const handleSelectBuilding = (building) => {
+    setSearchQuery('');
+    setFilteredBuildings([]);
+    onSelectBuilding(building);
+    onClose();
+  };
+
+  return (
+    <Modal
+      visible={visible}
+      animationType="slide"
+      transparent={true}
+      onRequestClose={onClose}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContent}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Search Apartments</Text>
+            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+              <Text style={styles.closeButtonText}>✕</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.searchInputContainer}>
+            <SearchIcon width={25} height={25}/>
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search by name or address..."
+              placeholderTextColor="#9ca3af"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              autoFocus={true}
+            />
+            {searchQuery.length > 0 && (
+              <TouchableOpacity onPress={() => setSearchQuery('')}>
+                <Text style={styles.clearButton}>✕</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+
+          <FlatList
+            data={filteredBuildings}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={styles.searchResultItem}
+                onPress={() => handleSelectBuilding(item)}
+              >
+                <View style={styles.searchResultContent}>
+                  <Text style={styles.searchResultName}>{item.name}</Text>
+                  <Text style={styles.searchResultAddress}>{item.address}</Text>
+                </View>
+                <Text style={styles.searchResultArrow}>→</Text>
+              </TouchableOpacity>
+            )}
+            ListEmptyComponent={
+              searchQuery.trim() !== '' ? (
+                <View style={styles.emptyState}>
+                  <Text style={styles.emptyStateText}>No apartments found</Text>
+                </View>
+              ) : null
+            }
+            contentContainerStyle={styles.searchResultsList}
+          />
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
 export default function Search({ navigation }) {
   const { preferences, savedIds, toggleSave, loading: prefsLoading } = usePreferences();
   const [sortedListings, setSortedListings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showMap, setShowMap] = useState(true);
   const [initialMapRegion] = useState(AUSTIN_REGION);
+  const [searchModalVisible, setSearchModalVisible] = useState(false);
   const mapRef = useRef(null);
 
   const allAmenities = ['wifi', 'gym', 'pool', 'parking', 'furnished', 'petFriendly'];
@@ -211,6 +303,13 @@ export default function Search({ navigation }) {
     });
   };
 
+  const handleSearchSelect = (building) => {
+    // Same as clicking a pin on the map
+    navigation.navigate('ApartmentListingDetails', {
+      listing: building,
+    });
+  };
+
   const handleResetMap = () => {
     if (mapRef.current) {
       mapRef.current.animateToRegion(initialMapRegion, 750);
@@ -229,7 +328,15 @@ export default function Search({ navigation }) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Browse Listings</Text>
+        <View style={styles.headerTitleRow}>
+          <Text style={styles.headerTitle}>Browse Listings</Text>
+          <TouchableOpacity 
+            style={styles.searchIconButton}
+            onPress={() => setSearchModalVisible(true)}
+          >
+            <SearchIcon width={40} height={40}/>
+          </TouchableOpacity>
+        </View>
         <View style={styles.headerBottom}>
           <Text style={styles.headerSubtitle}>
             {sortedListings.length} Listings • {showMap ? 'Map View' : 'List View'}
@@ -286,6 +393,13 @@ export default function Search({ navigation }) {
           showsVerticalScrollIndicator={true}
         />
       )}
+
+      <SearchModal
+        visible={searchModalVisible}
+        onClose={() => setSearchModalVisible(false)}
+        buildings={buildingsData}
+        onSelectBuilding={handleSearchSelect}
+      />
     </View>
   );
 }
@@ -313,11 +427,25 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     alignItems: 'center',
   },
+  headerTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    position: 'relative',
+  },
   headerTitle: {
     fontSize: 17,
     fontWeight: 'bold',
     color: '#000000',
     textAlign: 'center',
+  },
+  searchIconButton: {
+    position: 'absolute',
+    right: 0,
+    padding: 4,
+    marginTop: 5,
+    top: 0
   },
   headerBottom: {
     flexDirection: 'row',
@@ -467,5 +595,102 @@ const styles = StyleSheet.create({
     fontSize: 19,
     fontWeight: 'bold',
     color: '#BF5700',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#ffffff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    height: '80%',
+    paddingTop: 20,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#000000',
+  },
+  closeButton: {
+    padding: 4,
+  },
+  closeButtonText: {
+    fontSize: 24,
+    color: '#6b7280',
+    fontWeight: '300',
+  },
+  searchInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f3f4f6',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginHorizontal: 20,
+    marginTop: 16,
+    marginBottom: 12,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    color: '#000000',
+    marginLeft: 12,
+  },
+  clearButton: {
+    fontSize: 18,
+    color: '#6b7280',
+    paddingHorizontal: 8,
+  },
+  searchResultsList: {
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+  },
+  searchResultItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    backgroundColor: '#f9fafb',
+    borderRadius: 12,
+    marginTop: 8,
+  },
+  searchResultContent: {
+    flex: 1,
+  },
+  searchResultName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000000',
+    marginBottom: 4,
+  },
+  searchResultAddress: {
+    fontSize: 14,
+    color: '#6b7280',
+  },
+  searchResultArrow: {
+    fontSize: 20,
+    color: '#BF5700',
+    marginLeft: 12,
+  },
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
+  },
+  emptyStateText: {
+    fontSize: 16,
+    color: '#9ca3af',
   },
 });
