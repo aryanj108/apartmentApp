@@ -42,6 +42,7 @@ export const listingsData = [
     price: 1100,
     bedrooms: 1,
     bathrooms: 1,
+    smartHousing: false,
     sqft: 700,
     floorPlan: "One Bedroom",
     available: true,

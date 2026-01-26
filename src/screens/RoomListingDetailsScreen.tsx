@@ -151,7 +151,7 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
             )}
           </TouchableOpacity>
 
-          {/* SMART Housing Badge */}
+          {/* SMART Housing Badge 
           {roomData.smartHousing && (
             <View style={styles.smartHousingBadgeContainer}>
               <LinearGradient
@@ -163,7 +163,7 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
                 <Text style={styles.smartHousingBadgeText}>SMART Housing</Text>
               </LinearGradient>
             </View>
-          )}
+          )}*/}
         </View>
 
         {/* Basic Info */}
@@ -178,6 +178,11 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
                 {roomData.sqft && (
                   <Text style={styles.sqftText}>{roomData.sqft} sq ft</Text>
                 )}
+                {roomData.smartHousing && (
+                <Text style={styles.smartHousingLine}>
+                SMART Housing Available
+                </Text>
+              )}
             </View>
             <View style={styles.rightInfo}>
               <Text style={styles.price}>${roomData.price}/mo</Text>
@@ -448,6 +453,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#000000',
     marginBottom: 2, 
+  },
+  smartHousingLine: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#BF5700', 
+    marginTop: 2,
   },
   sqftText: {
     fontSize: 14,
