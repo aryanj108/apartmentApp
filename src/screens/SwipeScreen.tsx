@@ -228,32 +228,34 @@ export default function SwipeScreen({ navigation }: any) {
                     )}
                   </ScrollView>
 
-                  {/* Buttons - Fixed at Bottom */}
-                  <View style={styles.buttonsContainer}>
-                    <TouchableOpacity
-                      style={styles.detailsButton}
-                      onPress={() =>
-                        navigation.navigate('ApartmentListingDetails', {
-                          listing: currentListing,
-                          matchScore,
-                        })
-                      }
-                    >
-                      <Text style={styles.buttonText}>Apartment Details</Text>
-                    </TouchableOpacity>
-                  
-                    <TouchableOpacity
-                      style={styles.detailsButton}
-                      onPress={() =>
-                        navigation.navigate('RoomListingDetailsScreen', {
-                          listing: currentListing,
-                          matchScore,
-                        })
-                      }
-                    >
-                      <Text style={styles.buttonText}>Room Details</Text>
-                    </TouchableOpacity>
-                  </View>
+                  {/* Buttons */}
+                <View style={styles.buttonsContainer}>
+                  <TouchableOpacity
+                    style={styles.detailsButton}
+                    onPress={() => {
+                      // Find the actual building for apartment details
+                      const building = buildingsData.find(b => b.id === currentListing.buildingId);
+                      navigation.navigate('ApartmentListingDetails', {
+                        listing: building,
+                        matchScore,
+                      });
+                    }}
+                  >
+                    <Text style={styles.buttonText}>Apartment Details</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.detailsButton}
+                    onPress={() =>
+                      navigation.navigate('RoomListingDetailsScreen', {
+                        listing: currentListing,
+                        matchScore,
+                      })
+                    }
+                  >
+                    <Text style={styles.buttonText}>Room Details</Text>
+                  </TouchableOpacity>
+                </View>
                 </View>
               </View>
             </SwipeCard>
