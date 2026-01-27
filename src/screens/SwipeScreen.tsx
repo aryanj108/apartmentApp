@@ -140,14 +140,14 @@ export default function SwipeScreen({ navigation }: any) {
 
   return (
     <View style={styles.container}>
-      {/* Add Title Header */}
-    <View style={styles.headerContainer}>
+      <View style={styles.headerContainer}>
       <Text style={styles.headerTitle}>Your Matches</Text>
       <Text style={styles.headerSubtitle}>
         {enrichedListings.length} Listings • Swipe Mode
       </Text>
     </View>
-    <View style={styles.cardsContainer}>
+
+    <View style={styles.cardStackContainer}>
       {enrichedListings
         .slice(currentIndex, currentIndex + 2)
         .reverse()
@@ -278,8 +278,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f3f4f6',
+    justifyContent: 'flex-start',
     alignItems: 'center',
-    paddingTop: 60
+    paddingVertical: 55,
   },
   cardContent: {
     width: CARD_WIDTH,
@@ -287,11 +288,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     overflow: 'hidden',
     backgroundColor: '#ffffff',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
   },
   pictureSection: {
     height: IMAGE_HEIGHT,
@@ -444,7 +440,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 16,
     paddingHorizontal: 20,
-    zIndex: 10
+    zIndex: 10,         
+    elevation: 10,
   },
   headerTitle: {
     fontSize: 16,
@@ -456,4 +453,10 @@ const styles = StyleSheet.create({
     color: '#6b7280',
     fontWeight: '500',
   },
+  cardStackContainer: {
+  flex: 0.95,            
+  width: '100%',
+  alignItems: 'center',
+  justifyContent: 'center', 
+},
 });
