@@ -410,8 +410,8 @@ const styles = StyleSheet.create({
   },
   amenityText: {
     fontSize: 11,
-    color: '#374151',
-    fontWeight: '600',
+    color: '#000000',
+    fontWeight: '700',
   },
   buttonsContainer: {
     flexDirection: 'row',
@@ -434,7 +434,7 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#000000',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   headerContainer: {
     alignItems: 'center',

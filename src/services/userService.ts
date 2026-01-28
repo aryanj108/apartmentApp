@@ -141,3 +141,39 @@ export async function unsaveApartment(uid: string, apartmentId: string) {
     throw error;
   }
 }
+
+export const checkUserOnboardingStatus = async (uid) => {
+  try {
+    const userDoc = await getDoc(doc(db, 'users', uid));
+    if (userDoc.exists()) {
+      return userDoc.data().hasCompletedOnboarding || false;
+    }
+    return false;
+  } catch (error) {
+    console.error('Error checking onboarding status:', error);
+    return false;
+  }
+};
+
+export const setUserOnboardingComplete = async (uid) => {
+  try {
+    await updateDoc(doc(db, 'users', uid), {
+      hasCompletedOnboarding: true,
+      onboardingCompletedAt: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Error setting onboarding complete:', error);
+    throw error;
+  }
+};
+
+export const resetUserOnboarding = async (uid) => {
+  try {
+    await updateDoc(doc(db, 'users', uid), {
+      hasCompletedOnboarding: false
+    });
+  } catch (error) {
+    console.error('Error resetting onboarding:', error);
+    throw error;
+  }
+};
