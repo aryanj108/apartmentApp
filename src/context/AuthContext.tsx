@@ -10,11 +10,13 @@ import {
   User
 } from 'firebase/auth';
 import { auth } from '../config/firebaseConfig';
-import { createUserProfile } from '../services/userService';
+import { checkUserOnboardingStatus, createUserProfile } from '../services/userService';
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
+  hasCompletedOnboarding: boolean | null;  // ADD THIS LINE
+  setHasCompletedOnboarding: (status: boolean) => void;  // ADD THIS LINE
   signInWithEmail: (email: string, password: string) => Promise<void>;
   signUpWithEmail: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
@@ -31,11 +33,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState<boolean | null>(null);
 
   // Listen for authentication state changes
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setUser(user);
+      
+      if (user) {
+        // Check onboarding status when user is authenticated
+        try {
+          const status = await checkUserOnboardingStatus(user.uid);
+          setHasCompletedOnboarding(status);
+        } catch (error) {
+          console.error('Error checking onboarding status:', error);
+          setHasCompletedOnboarding(false);
+        }
+      } else {
+        setHasCompletedOnboarding(null);
+      }
+      
       setLoading(false);
     });
 
@@ -57,7 +74,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-// Sign up with email and password
+  // Sign up with email and password
   const signUpWithEmail = async (email: string, password: string) => {
     try {
       setError(null);
@@ -66,6 +83,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       // Create user profile in Firestore
       await createUserProfile(userCredential.user.uid, email);
+      
+      // Set onboarding status to false for new users
+      setHasCompletedOnboarding(false);
       
     } catch (err: any) {
       console.error('Email sign up error:', err);
@@ -81,6 +101,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setError(null);
       await firebaseSignOut(auth);
+      setHasCompletedOnboarding(null);
     } catch (err: any) {
       console.error('Sign out error:', err);
       setError(err.message || 'Failed to sign out');
@@ -89,59 +110,61 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   // Reset password
-const resetPassword = async (email: string) => {
+  const resetPassword = async (email: string) => {
     try {
-        setError(null);
-        await sendPasswordResetEmail(auth, email);
+      setError(null);
+      await sendPasswordResetEmail(auth, email);
     } catch (err: any) {
-        console.error('Password reset error:', err);
-        setError(err.message || 'Failed to send reset email');
-        throw err;
+      console.error('Password reset error:', err);
+      setError(err.message || 'Failed to send reset email');
+      throw err;
     }
   };
 
   // Send email verification
-const sendVerificationEmail = async () => {
-  try {
-    if (!auth.currentUser) {
-      throw new Error('No user signed in');
+  const sendVerificationEmail = async () => {
+    try {
+      if (!auth.currentUser) {
+        throw new Error('No user signed in');
+      }
+      await sendEmailVerification(auth.currentUser);
+    } catch (err: any) {
+      console.error('Send verification error:', err);
+      setError(err.message || 'Failed to send verification email');
+      throw err;
     }
-    await sendEmailVerification(auth.currentUser);
-  } catch (err: any) {
-    console.error('Send verification error:', err);
-    setError(err.message || 'Failed to send verification email');
-    throw err;
-  }
-};
+  };
 
-// Reload user to check verification status
-const reloadUser = async () => {
-  try {
-    if (auth.currentUser) {
-      await reload(auth.currentUser);
-      // Force update by creating a new object reference
-      setUser({ ...auth.currentUser });
+  // Reload user to check verification status
+  const reloadUser = async () => {
+    try {
+      if (auth.currentUser) {
+        await reload(auth.currentUser);
+        // Force update by creating a new object reference
+        setUser({ ...auth.currentUser });
+      }
+    } catch (err: any) {
+      console.error('Reload user error:', err);
+      throw err;
     }
-  } catch (err: any) {
-    console.error('Reload user error:', err);
-    throw err;
-  }
-};
+  };
 
-return (
-  <AuthContext.Provider
-    value={{
-      user,
-      loading,
-      signInWithEmail,
-      signUpWithEmail,
-      signOut,
-      resetPassword,
-      sendVerificationEmail,
-      reloadUser,
-      error,
-      setError,
-    }}
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        hasCompletedOnboarding,
+        setHasCompletedOnboarding,
+        signInWithEmail,
+        signUpWithEmail,
+        signOut,
+        resetPassword,
+        sendVerificationEmail,
+        reloadUser,
+        error,
+        setError,
+      }}
     >
       {children}
     </AuthContext.Provider>

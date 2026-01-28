@@ -9,47 +9,47 @@ import {
   ActivityIndicator
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
+import { resetUserOnboarding } from '../services/userService';
 
-export default function Profile() {
+export default function Profile({ navigation }: any) {
   const { user, signOut, sendVerificationEmail, reloadUser } = useAuth();
   const [refreshing, setRefreshing] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
 
-const formatMemberSince = () => {
-  try {
-    if (!user?.metadata?.creationTime) {
-      console.log('No creationTime found');
+  const formatMemberSince = () => {
+    try {
+      if (!user?.metadata?.creationTime) {
+        console.log('No creationTime found');
+        return 'Recently';
+      }
+      
+      console.log('Raw creationTime:', user.metadata.creationTime);
+      
+      const date = new Date(user.metadata.creationTime);
+      console.log('Parsed date:', date);
+      console.log('Date timestamp:', date.getTime());
+      
+      if (isNaN(date.getTime())) {
+        console.log('Invalid date');
+        return 'Recently';
+      }
+      
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const month = months[date.getMonth()];
+      const day = date.getDate();
+      const year = date.getFullYear();
+      
+      console.log('Formatted parts - Month:', month, 'Day:', day, 'Year:', year);
+      
+      const result = `${month} ${day}, ${year}`;
+      console.log('Final result:', result);
+      
+      return result;
+    } catch (error) {
+      console.error('Date formatting error:', error);
       return 'Recently';
     }
-    
-    console.log('Raw creationTime:', user.metadata.creationTime);
-    
-    const date = new Date(user.metadata.creationTime);
-    console.log('Parsed date:', date);
-    console.log('Date timestamp:', date.getTime());
-    
-    if (isNaN(date.getTime())) {
-      console.log('Invalid date');
-      return 'Recently';
-    }
-    
-    // Use getMonth() and getFullYear() for better compatibility
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const month = months[date.getMonth()];
-    const day = date.getDate();
-    const year = date.getFullYear();
-    
-    console.log('Formatted parts - Month:', month, 'Day:', day, 'Year:', year);
-    
-    const result = `${month} ${day}, ${year}`;
-    console.log('Final result:', result);
-    
-    return result;
-  } catch (error) {
-    console.error('Date formatting error:', error);
-    return 'Recently';
-  }
-};
+  };
 
   const handleSignOut = async () => {
     Alert.alert(
@@ -105,6 +105,36 @@ const formatMemberSince = () => {
     } finally {
       setRefreshing(false);
     }
+  };
+
+  const handleRedoPreferences = () => {
+    Alert.alert(
+      'Redo Preferences',
+      'This will take you through the preferences and swiping flow again. Your current preferences will be updated.',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Continue',
+          onPress: async () => {
+            try {
+              if (user?.uid) {
+                // Reset onboarding status
+                await resetUserOnboarding(user.uid);
+                
+                // Navigate to preferences with redo flag
+                navigation.navigate('Preferences', { isRedo: true });
+              }
+            } catch (error) {
+              console.error('Error resetting preferences:', error);
+              Alert.alert('Error', 'Failed to reset preferences. Please try again.');
+            }
+          },
+        },
+      ]
+    );
   };
 
   return (
@@ -182,6 +212,22 @@ const formatMemberSince = () => {
               </Text>
             </View>
           </View>
+        </View>
+
+        {/* Preferences Section - NEW */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Preferences</Text>
+          
+          <Pressable 
+            style={styles.redoPreferencesButton}
+            onPress={handleRedoPreferences}
+          >
+            <Text style={styles.redoPreferencesText}>🔄 Redo Preferences & Swiping</Text>
+          </Pressable>
+          
+          <Text style={styles.redoDescription}>
+            Update your housing preferences and go through the swiping experience again
+          </Text>
         </View>
 
         {/* Sign Out Button */}
@@ -325,6 +371,32 @@ const styles = StyleSheet.create({
   },
   notVerified: {
     color: '#f59e0b',
+  },
+  // NEW STYLES FOR REDO PREFERENCES
+  redoPreferencesButton: {
+    backgroundColor: '#fff',
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#BF5700',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  redoPreferencesText: {
+    color: '#BF5700',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  redoDescription: {
+    fontSize: 13,
+    color: '#6b7280',
+    textAlign: 'center',
+    marginTop: 8,
+    paddingHorizontal: 12,
   },
   signOutButton: {
     backgroundColor: '#ef4444',

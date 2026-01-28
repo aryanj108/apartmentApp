@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Image,
   ScrollView,
+  Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -24,6 +25,8 @@ import Stars from '../../assets/stars.svg';
 import { buildingsData } from '../data/buildings';
 import { listingsData } from '../data/listings';
 import { usePreferences } from '../context/PreferencesContext';
+import { useAuth } from '../context/AuthContext';  // NEW IMPORT
+import { setUserOnboardingComplete } from '../services/userService';  // NEW IMPORT
 import {
   calculateMatchScore,
 } from '../data/matchingAlgorithm';
@@ -69,8 +72,13 @@ function getEnrichedListings() {
   });
 }
 
-export default function SwipeScreen({ navigation }: any) {
+export default function SwipeScreen({ navigation, route }: any) {
   const { preferences } = usePreferences();
+  const { user, setHasCompletedOnboarding } = useAuth();  // NEW: Get auth context
+  
+  // NEW: Check if this is a redo flow
+  const isRedoingPreferences = route?.params?.isRedo || false;
+  
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAmenities, setSelectedAmenities] = useState<any[]>([]);
   const [enrichedListings, setEnrichedListings] = useState<any[]>([]);
@@ -98,11 +106,54 @@ export default function SwipeScreen({ navigation }: any) {
     setEnrichedListings(listings);
   }, []);
 
+  // NEW: Handle completing onboarding when all cards are swiped
+  const handleFinishSwiping = async () => {
+    try {
+      // Only mark onboarding complete if this is NOT a redo
+      if (!isRedoingPreferences && user?.uid) {
+        await setUserOnboardingComplete(user.uid);
+        setHasCompletedOnboarding(true);
+        
+        Alert.alert(
+          'Setup Complete! 🎉',
+          'Your preferences have been saved. You can now browse apartments!',
+          [
+            {
+              text: 'Start Browsing',
+              onPress: () => navigation.navigate('MainTabs')
+            }
+          ]
+        );
+      } else if (isRedoingPreferences) {
+        // If redoing, just go back to main tabs
+        Alert.alert(
+          'Preferences Updated! ✓',
+          'Your housing preferences have been updated.',
+          [
+            {
+              text: 'Return to Home',
+              onPress: () => navigation.navigate('MainTabs')
+            }
+          ]
+        );
+      } else {
+        // Fallback - just navigate
+        navigation.navigate('MainTabs');
+      }
+    } catch (error) {
+      console.error('Error completing swiping:', error);
+      Alert.alert('Error', 'Something went wrong. Please try again.');
+      // Still navigate even if there's an error
+      navigation.navigate('MainTabs');
+    }
+  };
+
+  // UPDATED: Call handleFinishSwiping instead of direct navigation
   useEffect(() => {
     if (enrichedListings.length > 0 && currentIndex >= enrichedListings.length - 1) {
-      // Navigate to MainTabs after finishing all listings
+      // Finished all listings - complete onboarding
       setTimeout(() => {
-        navigation.navigate('MainTabs');
+        handleFinishSwiping();
       }, 500);
     }
   }, [currentIndex, enrichedListings.length]);
@@ -141,136 +192,146 @@ export default function SwipeScreen({ navigation }: any) {
   return (
     <View style={styles.container}>
       <View style={styles.headerContainer}>
-      <Text style={styles.headerTitle}>Your Matches</Text>
-      <Text style={styles.headerSubtitle}>
-        {enrichedListings.length} Listings • Swipe Mode
-      </Text>
-    </View>
+        <Text style={styles.headerTitle}>Your Matches</Text>
+        <Text style={styles.headerSubtitle}>
+          {enrichedListings.length} Listings • Swipe Mode
+        </Text>
+      </View>
 
-    <View style={styles.cardStackContainer}>
-      {enrichedListings
-        .slice(currentIndex, currentIndex + 2)
-        .reverse()
-        .map(listing => {
-          const score = calculateMatchScore(listing, preferences, selectedAmenities);
-          const color = '#BF5700';
-          
-          return (
-            <SwipeCard
-              key={listing.id}
-              apartment={listing}
-              navigation={navigation}
-              matchScore={score}
-              matchColor={color}
-              onSwipeLeft={() => setCurrentIndex(i => i + 1)}
-              onSwipeRight={() => setCurrentIndex(i => i + 1)}
-            >
-              <View style={styles.cardContent}>
-                {/* Picture Section */}
-                <View style={styles.pictureSection}>
-                  <Image
-                    source={listing.images[0]}
-                    style={styles.apartmentImage}
-                    resizeMode="cover"
-                  />
-                  {/* Match Badge updated with LinearGradient */}
-                  <LinearGradient
-                    colors={['#FF8C42', '#BF5700', '#994400']}
-                    start={{ x: 0, y: 1 }}
-                    end={{ x: 1, y: 1 }}
-                    style={styles.matchBadge}
-                  >
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                      <Stars width={16} height={16} fill={'#fff'}/>
-                      <Text style={styles.matchScoreText}>{score}%</Text>
-                    </View>
-                  </LinearGradient>
-                </View>
-
-                {/* Info Section with ScrollView */}
-                <View style={styles.infoSection}>
-                  <ScrollView 
-                    showsVerticalScrollIndicator={false}
-                    contentContainerStyle={styles.scrollContent}
-                    style={{ flex: 1 }}
-                  >
-                    {/* Title & Price */}
-                    <View style={styles.infoHeader}>
-                      <View style={styles.leftInfo}>
-                        <Text style={styles.apartmentName} numberOfLines={1}>
-                          {currentListing.name}
-                        </Text>
-                        <Text style={styles.unitNumber}>
-                          {currentListing.unitNumber} • {currentListing.floorPlan}
-                        </Text>
-                        <Text style={styles.address} numberOfLines={1}>
-                          {currentListing.address}
-                        </Text>
+      <View style={styles.cardStackContainer}>
+        {enrichedListings
+          .slice(currentIndex, currentIndex + 2)
+          .reverse()
+          .map(listing => {
+            const score = calculateMatchScore(listing, preferences, selectedAmenities);
+            const color = '#BF5700';
+            
+            return (
+              <SwipeCard
+                key={listing.id}
+                apartment={listing}
+                navigation={navigation}
+                matchScore={score}
+                matchColor={color}
+                onSwipeLeft={() => setCurrentIndex(i => i + 1)}
+                onSwipeRight={() => setCurrentIndex(i => i + 1)}
+              >
+                <View style={styles.cardContent}>
+                  {/* Picture Section */}
+                  <View style={styles.pictureSection}>
+                    <Image
+                      source={listing.images[0]}
+                      style={styles.apartmentImage}
+                      resizeMode="cover"
+                    />
+                    {/* Match Badge updated with LinearGradient */}
+                    <LinearGradient
+                      colors={['#FF8C42', '#BF5700', '#994400']}
+                      start={{ x: 0, y: 1 }}
+                      end={{ x: 1, y: 1 }}
+                      style={styles.matchBadge}
+                    >
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <Stars width={16} height={16} fill={'#fff'}/>
+                        <Text style={styles.matchScoreText}>{score}%</Text>
                       </View>
-                      <View style={styles.priceContainer}>
-                        <Text style={styles.price}>${currentListing.price}</Text>
-                        <Text style={styles.perMonth}>per month</Text>
-                      </View>
-                    </View>
+                    </LinearGradient>
+                  </View>
 
-                    {/* Details Chips (Bed, Bath, Distance) */}
-                    <View style={styles.chipsContainer}>
-                      {details.map(detail => (
-                        <View key={detail.id} style={styles.chip}>
-                          <detail.icon width={25} height={25} />
-                          <Text style={styles.chipText}>{detail.label}</Text>
+                  {/* Info Section with ScrollView */}
+                  <View style={styles.infoSection}>
+                    <ScrollView 
+                      showsVerticalScrollIndicator={false}
+                      contentContainerStyle={styles.scrollContent}
+                      style={{ flex: 1 }}
+                    >
+                      {/* Title & Price */}
+                      <View style={styles.infoHeader}>
+                        <View style={styles.leftInfo}>
+                          <Text style={styles.apartmentName} numberOfLines={1}>
+                            {currentListing.name}
+                          </Text>
+                          <Text style={styles.unitNumber}>
+                            {currentListing.unitNumber} • {currentListing.floorPlan}
+                          </Text>
+                          <Text style={styles.address} numberOfLines={1}>
+                            {currentListing.address}
+                          </Text>
                         </View>
-                      ))}
-                    </View>
+                        <View style={styles.priceContainer}>
+                          <Text style={styles.price}>${currentListing.price}</Text>
+                          <Text style={styles.perMonth}>per month</Text>
+                        </View>
+                      </View>
 
-                    {/* Amenities */}
-                    {listingAmenities.length > 0 && (
-                      <View style={styles.amenitiesContainer}>
-                        {listingAmenities.map(amenity => (
-                          <View key={amenity.id} style={styles.amenityChip}>
-                            <amenity.icon width={18} height={18} />
-                            <Text style={styles.amenityText}>{amenity.label}</Text>
+                      {/* Details Chips (Bed, Bath, Distance) */}
+                      <View style={styles.chipsContainer}>
+                        {details.map(detail => (
+                          <View key={detail.id} style={styles.chip}>
+                            <detail.icon width={25} height={25} />
+                            <Text style={styles.chipText}>{detail.label}</Text>
                           </View>
                         ))}
                       </View>
-                    )}
-                  </ScrollView>
 
-                  {/* Buttons */}
-                <View style={styles.buttonsContainer}>
-                  <TouchableOpacity
-                    style={styles.detailsButton}
-                    onPress={() => {
-                      // Find the actual building for apartment details
-                      const building = buildingsData.find(b => b.id === currentListing.buildingId);
-                      navigation.navigate('ApartmentListingDetails', {
-                        listing: building,
-                        matchScore,
-                      });
-                    }}
-                  >
-                    <Text style={styles.buttonText}>Apartment Details</Text>
-                  </TouchableOpacity>
+                      {/* Amenities */}
+                      {listingAmenities.length > 0 && (
+                        <View style={styles.amenitiesContainer}>
+                          {listingAmenities.map(amenity => (
+                            <View key={amenity.id} style={styles.amenityChip}>
+                              <amenity.icon width={18} height={18} />
+                              <Text style={styles.amenityText}>{amenity.label}</Text>
+                            </View>
+                          ))}
+                        </View>
+                      )}
+                    </ScrollView>
 
-                  <TouchableOpacity
-                    style={styles.detailsButton}
-                    onPress={() =>
-                      navigation.navigate('RoomListingDetailsScreen', {
-                        listing: currentListing,
-                        matchScore,
-                      })
-                    }
-                  >
-                    <Text style={styles.buttonText}>Room Details</Text>
-                  </TouchableOpacity>
+                    {/* Buttons */}
+                    <View style={styles.buttonsContainer}>
+                      <TouchableOpacity
+                        style={styles.detailsButton}
+                        onPress={() => {
+                          // Find the actual building for apartment details
+                          const building = buildingsData.find(b => b.id === currentListing.buildingId);
+                          navigation.navigate('ApartmentListingDetails', {
+                            listing: building,
+                            matchScore,
+                          });
+                        }}
+                      >
+                        <Text style={styles.buttonText}>Apartment Details</Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={styles.detailsButton}
+                        onPress={() =>
+                          navigation.navigate('RoomListingDetailsScreen', {
+                            listing: currentListing,
+                            matchScore,
+                          })
+                        }
+                      >
+                        <Text style={styles.buttonText}>Room Details</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
                 </View>
-                </View>
-              </View>
-            </SwipeCard>
-          );
-        })}
+              </SwipeCard>
+            );
+          })}
+      </View>
+
+      {/* NEW: Optional Manual "Done" Button */}
+      <TouchableOpacity 
+        style={styles.doneButton}
+        onPress={handleFinishSwiping}
+      >
+        <Text style={styles.doneButtonText}>
+          {isRedoingPreferences ? 'Finish & Return Home' : 'Skip & Complete Setup'}
+        </Text>
+      </TouchableOpacity>
     </View>
-  </View>
   );
 }
 
@@ -454,9 +515,29 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   cardStackContainer: {
-  flex: 0.95,            
-  width: '100%',
-  alignItems: 'center',
-  justifyContent: 'center', 
-},
+    flex: 0.95,            
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center', 
+  },
+  doneButton: {
+    position: 'absolute',
+    bottom: 20,
+    left: 20,
+    right: 20,
+    backgroundColor: '#BF5700',
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  doneButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
 });

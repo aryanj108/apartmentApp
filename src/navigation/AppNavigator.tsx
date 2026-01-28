@@ -12,27 +12,26 @@ import SwipeScreen from '../screens/SwipeScreen';
 import ApartmentListingDetailsScreen from '../screens/ApartmentListingDetailsScreen';
 import RoomListingDetailsScreen from '../screens/RoomListingDetailsScreen';
 import RoomListingDetailsScreen_SearchScreen from '../screens/RoomListingDetailsScreen_SearchTab';
-
 import Home from '../screens/HomeScreen';
 import CustomLoadingScreen from '../screens/CustomLoadingScreen';
 
 const Stack = createNativeStackNavigator();
 
 export default function AppNavigator() {
-  const { user, loading } = useAuth();
+  const { user, loading, hasCompletedOnboarding } = useAuth();
   const [minLoadingTime, setMinLoadingTime] = useState(true);
   
   useEffect(() => {
-    // Set minimum loading time of 2 seconds (adjust as needed)
+    // Set minimum loading time of 4 seconds
     const timer = setTimeout(() => {
       setMinLoadingTime(false);
-    }, 4000); // 2000ms = 2 seconds
-
+    }, 4000);
     return () => clearTimeout(timer);
   }, []);
-
+  
   // Show loading screen while checking auth OR until minimum time has passed
-  if (loading || minLoadingTime) {
+  // Also wait for onboarding status to be determined
+  if (loading || minLoadingTime || (user && hasCompletedOnboarding === null)) {
     return <CustomLoadingScreen />;
   }
 
@@ -50,11 +49,24 @@ export default function AppNavigator() {
         <>
           <Stack.Screen name="VerifyEmail" component={VerifyEmailScreen} />
         </>
-      ) : (
-        // User is signed in AND email is verified - show main app
+      ) : !hasCompletedOnboarding ? (
+        // User is signed in, email verified, but has NOT completed onboarding
+        // Show onboarding flow: Preferences -> SwipeSearch -> MainTabs
         <>
           <Stack.Screen name="Preferences" component={PreferencesScreen} />
+          <Stack.Screen name="SwipeSearch" component={SwipeScreen} />
           <Stack.Screen name="MainTabs" component={MainTabs} />
+          <Stack.Screen name="HomePage" component={Home} />
+          <Stack.Screen name="ApartmentListingDetails" component={ApartmentListingDetailsScreen} />
+          <Stack.Screen name="RoomListingDetailsScreen" component={RoomListingDetailsScreen} />
+          <Stack.Screen name="RoomListingDetailsScreen_SearchVersion" component={RoomListingDetailsScreen_SearchScreen} />
+        </>
+      ) : (
+        // User is signed in, email verified, AND has completed onboarding
+        // Show main app directly (skip preferences/swiping)
+        <>
+          <Stack.Screen name="MainTabs" component={MainTabs} />
+          <Stack.Screen name="Preferences" component={PreferencesScreen} />
           <Stack.Screen name="SwipeSearch" component={SwipeScreen} />
           <Stack.Screen name="HomePage" component={Home} />
           <Stack.Screen name="ApartmentListingDetails" component={ApartmentListingDetailsScreen} />
