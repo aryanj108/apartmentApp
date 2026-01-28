@@ -222,7 +222,7 @@ export default function Profile({ navigation }: any) {
             style={styles.redoPreferencesButton}
             onPress={handleRedoPreferences}
           >
-            <Text style={styles.redoPreferencesText}>🔄 Redo Preferences & Swiping</Text>
+            <Text style={styles.redoPreferencesText}>Redo Preferences & Swiping</Text>
           </Pressable>
           
           <Text style={styles.redoDescription}>
@@ -372,14 +372,13 @@ const styles = StyleSheet.create({
   notVerified: {
     color: '#f59e0b',
   },
-  // NEW STYLES FOR REDO PREFERENCES
   redoPreferencesButton: {
     backgroundColor: '#fff',
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#BF5700',
+    borderColor: '#ffffff',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
@@ -387,13 +386,13 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   redoPreferencesText: {
-    color: '#BF5700',
+    color: '#6b7280',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   redoDescription: {
     fontSize: 13,
-    color: '#6b7280',
+    color: '#c',
     textAlign: 'center',
     marginTop: 8,
     paddingHorizontal: 12,

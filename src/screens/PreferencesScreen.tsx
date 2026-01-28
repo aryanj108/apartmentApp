@@ -20,22 +20,30 @@ import FurnishedIcon from '../../assets/furnishedIcon.svg';
 import PetIcon from '../../assets/petIcon.svg';
 import BedIcon from '../../assets/bedIcon.svg';
 
-
-
-export default function PreferencesScreen({ navigation }) {
+export default function PreferencesScreen({ navigation, route }) {
   const { user } = useAuth();
   const { preferences, setPreferences, loading } = usePreferences();
+  
+  // Check if this is a redo flow
+  const isRedoingPreferences = route?.params?.isRedo || false;
+  
   console.log("Current Render minPrice:", preferences.minPrice);
   console.log("Current Render beds:", preferences.beds);
 
-  if (loading) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#d1d5db' }}>
-        <ActivityIndicator size="large" color="#000000" />
-        <Text style={{ marginTop: 16, fontSize: 16, color: '#6b7280' }}>Loading preferences...</Text>
-      </View>
-    );
-  }
+  // LOCAL STATE - Only for UI updates, doesn't trigger Firebase saves
+  const [localPreferences, setLocalPreferences] = useState({
+    minPrice: 0,
+    maxPrice: 5000,
+    beds: 1,
+    bathrooms: 1,
+    distance: 0.5,
+    parking: false,
+    furnished: false,
+    wifi: false,
+    gym: false,
+    pool: false,
+    petFriendly: false,
+  });
 
   const [amenities, setAmenities] = useState([
     { id: 'wifi', label: 'WiFi', selected: false, icon: WifiIcon },
@@ -46,30 +54,58 @@ export default function PreferencesScreen({ navigation }) {
     { id: 'petFriendly', label: 'Pet Friendly', selected: false, icon: PetIcon },
   ]);
 
-  // Sync amenities state with preferences when preferences load
+  // Initialize local state from context preferences when they load
+  useEffect(() => {
+    if (!loading && preferences) {
+      setLocalPreferences({
+        minPrice: preferences.minPrice,
+        maxPrice: preferences.maxPrice,
+        beds: preferences.beds,
+        bathrooms: preferences.bathrooms,
+        distance: preferences.distance,
+        parking: preferences.parking,
+        furnished: preferences.furnished,
+        wifi: preferences.wifi,
+        gym: preferences.gym,
+        pool: preferences.pool,
+        petFriendly: preferences.petFriendly,
+      });
+    }
+  }, [loading, preferences]);
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#d1d5db' }}>
+        <ActivityIndicator size="large" color="#000000" />
+        <Text style={{ marginTop: 16, fontSize: 16, color: '#6b7280' }}>Loading preferences...</Text>
+      </View>
+    );
+  }
+
+  // Sync amenities state with LOCAL preferences
   useEffect(() => {
     setAmenities([
-      { id: 'wifi', label: 'WiFi', selected: preferences.wifi, icon: WifiIcon },
-      { id: 'gym', label: 'Gym', selected: preferences.gym, icon: GymIcon },
-      { id: 'pool', label: 'Pool', selected: preferences.pool, icon: PoolIcon },
-      { id: 'parking', label: 'Parking', selected: preferences.parking, icon: ParkingIcon },
-      { id: 'furnished', label: 'Furnished', selected: preferences.furnished, icon: FurnishedIcon },
-      { id: 'petFriendly', label: 'Pet Friendly', selected: preferences.petFriendly, icon: PetIcon },
+      { id: 'wifi', label: 'WiFi', selected: localPreferences.wifi, icon: WifiIcon },
+      { id: 'gym', label: 'Gym', selected: localPreferences.gym, icon: GymIcon },
+      { id: 'pool', label: 'Pool', selected: localPreferences.pool, icon: PoolIcon },
+      { id: 'parking', label: 'Parking', selected: localPreferences.parking, icon: ParkingIcon },
+      { id: 'furnished', label: 'Furnished', selected: localPreferences.furnished, icon: FurnishedIcon },
+      { id: 'petFriendly', label: 'Pet Friendly', selected: localPreferences.petFriendly, icon: PetIcon },
     ]);
-  }, [preferences.wifi, preferences.gym, preferences.pool, preferences.parking, preferences.furnished, preferences.petFriendly]);
+  }, [localPreferences.wifi, localPreferences.gym, localPreferences.pool, localPreferences.parking, localPreferences.furnished, localPreferences.petFriendly]);
 
   const toggleAmenity = (id) => {
     setAmenities(amenities.map(amenity => 
       amenity.id === id ? { ...amenity, selected: !amenity.selected } : amenity
     ));
-    setPreferences({
-      ...preferences,
-      [id]: !preferences[id]
+    setLocalPreferences({
+      ...localPreferences,
+      [id]: !localPreferences[id]
     });
   };
 
   const resetPreferences = () => {
-    setPreferences({
+    setLocalPreferences({
       minPrice: 0,
       maxPrice: 5000,
       beds: 1,
@@ -131,7 +167,7 @@ export default function PreferencesScreen({ navigation }) {
           <View style={styles.headerText}>
             <Text style={styles.title}>Monthly Rent</Text>
             <Text style={styles.content}>
-              ${preferences.minPrice} - ${preferences.maxPrice}
+              ${localPreferences.minPrice} - ${localPreferences.maxPrice}
             </Text>
           </View>
         </View>
@@ -140,15 +176,15 @@ export default function PreferencesScreen({ navigation }) {
         <View style={styles.sliderContainer}>
           <View style={styles.sliderRow}>
             <Text style={styles.sliderLabel}>Min</Text>
-            <Text style={styles.sliderValue}>${preferences.minPrice}</Text>
+            <Text style={styles.sliderValue}>${localPreferences.minPrice}</Text>
           </View>
           <Slider
             style={styles.slider}
             minimumValue={0}
             maximumValue={5000}
             step={100}
-            value={preferences.minPrice}
-            onValueChange={(value) => setPreferences({...preferences, minPrice: value})}
+            value={localPreferences.minPrice}
+            onValueChange={(value) => setLocalPreferences({...localPreferences, minPrice: value})}
             minimumTrackTintColor="#000000"
             maximumTrackTintColor="#d1d5db"
             thumbTintColor="#000000"
@@ -163,15 +199,15 @@ export default function PreferencesScreen({ navigation }) {
         <View style={styles.sliderContainer}>
           <View style={styles.sliderRow}>
             <Text style={styles.sliderLabel}>Max</Text>
-            <Text style={styles.sliderValue}>${preferences.maxPrice}</Text>
+            <Text style={styles.sliderValue}>${localPreferences.maxPrice}</Text>
           </View>
           <Slider
             style={styles.slider}
             minimumValue={0}
             maximumValue={5000}
             step={100}
-            value={preferences.maxPrice}
-            onValueChange={(value) => setPreferences({...preferences, maxPrice: value})}
+            value={localPreferences.maxPrice}
+            onValueChange={(value) => setLocalPreferences({...localPreferences, maxPrice: value})}
             minimumTrackTintColor="#000000"
             maximumTrackTintColor="#d1d5db"
             thumbTintColor="#000000"
@@ -192,8 +228,8 @@ export default function PreferencesScreen({ navigation }) {
           <View style={styles.headerText}>
             <Text style={styles.title}>Beds & Bathrooms</Text>
             <Text style={styles.content}>
-              {preferences.beds} {preferences.beds === 1 ? 'Bed' : 'Beds'} ×{' '}
-              {preferences.bathrooms} {preferences.bathrooms === 1 ? 'Bathroom' : 'Bathrooms'}
+              {localPreferences.beds} {localPreferences.beds === 1 ? 'Bed' : 'Beds'} ×{' '}
+              {localPreferences.bathrooms} {localPreferences.bathrooms === 1 ? 'Bathroom' : 'Bathrooms'}
             </Text>
           </View>
         </View>
@@ -202,15 +238,15 @@ export default function PreferencesScreen({ navigation }) {
         <View style={styles.sliderContainer}>
           <View style={styles.sliderRow}>
             <Text style={styles.sliderLabel}>Beds</Text>
-            <Text style={styles.sliderValueBB}>{preferences.beds}</Text>
+            <Text style={styles.sliderValueBB}>{localPreferences.beds}</Text>
           </View>
           <Slider
             style={styles.slider}
             minimumValue={1}
             maximumValue={10}
             step={1}
-            value={preferences.beds}
-            onValueChange={(value) => setPreferences({...preferences, beds: value})}
+            value={localPreferences.beds}
+            onValueChange={(value) => setLocalPreferences({...localPreferences, beds: value})}
             minimumTrackTintColor="#000000"
             maximumTrackTintColor="#d1d5db"
             thumbTintColor="#000000"
@@ -225,15 +261,15 @@ export default function PreferencesScreen({ navigation }) {
         <View style={styles.sliderContainer}>
           <View style={styles.sliderRow}>
             <Text style={styles.sliderLabel}>Bathrooms</Text>
-            <Text style={styles.sliderValueBB}>{preferences.bathrooms}</Text>
+            <Text style={styles.sliderValueBB}>{localPreferences.bathrooms}</Text>
           </View>
           <Slider
             style={styles.slider}
             minimumValue={1}
             maximumValue={10}
             step={1}
-            value={preferences.bathrooms}
-            onValueChange={(value) => setPreferences({...preferences, bathrooms: value})}
+            value={localPreferences.bathrooms}
+            onValueChange={(value) => setLocalPreferences({...localPreferences, bathrooms: value})}
             minimumTrackTintColor="#000000"
             maximumTrackTintColor="#d1d5db"
             thumbTintColor="#000000"
@@ -253,7 +289,7 @@ export default function PreferencesScreen({ navigation }) {
           </View>
           <View style={styles.headerText}>
             <Text style={styles.title}>Max Distance</Text>
-            <Text style={styles.content}>{preferences.distance} Miles</Text>
+            <Text style={styles.content}>{localPreferences.distance} Miles</Text>
             <View style={styles.sliderContainerDistance}>
               <View style={styles.sliderRow}></View>
               <Slider
@@ -261,8 +297,8 @@ export default function PreferencesScreen({ navigation }) {
                 minimumValue={0.5}
                 maximumValue={10}
                 step={0.5}
-                value={preferences.distance}
-                onValueChange={(value) => setPreferences({...preferences, distance: value})}
+                value={localPreferences.distance}
+                onValueChange={(value) => setLocalPreferences({...localPreferences, distance: value})}
                 minimumTrackTintColor="#000000"
                 maximumTrackTintColor="#d1d5db"
                 thumbTintColor="#000000"
@@ -325,24 +361,26 @@ export default function PreferencesScreen({ navigation }) {
         onPress={async () => {
           try {
             if (user?.uid) {
-              // Manually save preferences to Firestore
+              // Save to Firebase
               await updateUserPreferences(user.uid, {
-                minPrice: preferences.minPrice,
-                maxPrice: preferences.maxPrice,
-                bedrooms: preferences.beds,
-                bathrooms: preferences.bathrooms,
-                maxDistance: preferences.distance,
-                parking: preferences.parking,
-                furnished: preferences.furnished,
-                wifi: preferences.wifi,
-                gym: preferences.gym,
-                pool: preferences.pool,
-                petFriendly: preferences.petFriendly,
+                minPrice: localPreferences.minPrice,
+                maxPrice: localPreferences.maxPrice,
+                bedrooms: localPreferences.beds,
+                bathrooms: localPreferences.bathrooms,
+                maxDistance: localPreferences.distance,
+                parking: localPreferences.parking,
+                furnished: localPreferences.furnished,
+                wifi: localPreferences.wifi,
+                gym: localPreferences.gym,
+                pool: localPreferences.pool,
+                petFriendly: localPreferences.petFriendly,
               });
               
-              alert('Preferences saved!');
-              console.log('Saved preferences:', preferences);
-              navigation.navigate('SwipeSearch');
+              // Update context state AFTER successful save
+              setPreferences(localPreferences);
+              
+              console.log('Saved preferences:', localPreferences);
+              navigation.navigate('SwipeSearch', { isRedo: isRedoingPreferences });
             }
           } catch (error) {
             console.error('Error saving preferences:', error);

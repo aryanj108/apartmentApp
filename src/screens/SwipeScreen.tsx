@@ -25,8 +25,8 @@ import Stars from '../../assets/stars.svg';
 import { buildingsData } from '../data/buildings';
 import { listingsData } from '../data/listings';
 import { usePreferences } from '../context/PreferencesContext';
-import { useAuth } from '../context/AuthContext';  // NEW IMPORT
-import { setUserOnboardingComplete } from '../services/userService';  // NEW IMPORT
+import { useAuth } from '../context/AuthContext';  
+import { setUserOnboardingComplete } from '../services/userService'; 
 import {
   calculateMatchScore,
 } from '../data/matchingAlgorithm';
@@ -115,8 +115,8 @@ export default function SwipeScreen({ navigation, route }: any) {
         setHasCompletedOnboarding(true);
         
         Alert.alert(
-          'Setup Complete! 🎉',
-          'Your preferences have been saved. You can now browse apartments!',
+          'Setup Complete!',
+          'Your preferences have been saved. You can now browse apartments.',
           [
             {
               text: 'Start Browsing',
@@ -127,7 +127,7 @@ export default function SwipeScreen({ navigation, route }: any) {
       } else if (isRedoingPreferences) {
         // If redoing, just go back to main tabs
         Alert.alert(
-          'Preferences Updated! ✓',
+          'Preferences Updated',
           'Your housing preferences have been updated.',
           [
             {
@@ -191,12 +191,22 @@ export default function SwipeScreen({ navigation, route }: any) {
 
   return (
     <View style={styles.container}>
-      <View style={styles.headerContainer}>
-        <Text style={styles.headerTitle}>Your Matches</Text>
-        <Text style={styles.headerSubtitle}>
-          {enrichedListings.length} Listings • Swipe Mode
-        </Text>
-      </View>
+      <View style={styles.headerRow}>
+  <View style={styles.sideSpacer} />
+
+  <View style={styles.headerCenter}>
+    <Text style={styles.headerTitle}>Your Matches</Text>
+    <Text style={styles.headerSubtitle}>
+      {enrichedListings.length} Listings • Swipe Mode
+    </Text>
+  </View>
+
+  <TouchableOpacity onPress={handleFinishSwiping}
+    style={{ marginLeft: 'auto' }}>
+    <Text style={styles.skipText}>Skip</Text>
+  </TouchableOpacity>
+</View>
+
 
       <View style={styles.cardStackContainer}>
         {enrichedListings
@@ -322,7 +332,7 @@ export default function SwipeScreen({ navigation, route }: any) {
           })}
       </View>
 
-      {/* NEW: Optional Manual "Done" Button */}
+      {/* Optional Manual "Done" Button 
       <TouchableOpacity 
         style={styles.doneButton}
         onPress={handleFinishSwiping}
@@ -330,7 +340,7 @@ export default function SwipeScreen({ navigation, route }: any) {
         <Text style={styles.doneButtonText}>
           {isRedoingPreferences ? 'Finish & Return Home' : 'Skip & Complete Setup'}
         </Text>
-      </TouchableOpacity>
+      </TouchableOpacity>*/}
     </View>
   );
 }
@@ -539,5 +549,29 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  skipText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#BF5700',
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+  },
+  headerRow: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    marginBottom: 16,
+    position: 'relative',
+  },
+  headerCenter: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+  },
+  sideSpacer: {
+    width: 40, 
   },
 });
