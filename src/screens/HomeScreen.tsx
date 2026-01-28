@@ -459,7 +459,8 @@ const styles = StyleSheet.create({
   },
   cardImage: {
     width: '100%',
-    height: '100%',
+    height: '105%',
+    borderRadius: 12,
   },
   placeholderImage: {
     backgroundColor: '#e5e7eb',
@@ -490,7 +491,7 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: '600',
     color: '#000000',
     marginBottom: 2,
   },

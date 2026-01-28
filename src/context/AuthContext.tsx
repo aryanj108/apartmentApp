@@ -15,8 +15,8 @@ import { checkUserOnboardingStatus, createUserProfile } from '../services/userSe
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  hasCompletedOnboarding: boolean | null;  // ADD THIS LINE
-  setHasCompletedOnboarding: (status: boolean) => void;  // ADD THIS LINE
+  hasCompletedOnboarding: boolean | null;  
+  setHasCompletedOnboarding: (status: boolean) => void;  
   signInWithEmail: (email: string, password: string) => Promise<void>;
   signUpWithEmail: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;

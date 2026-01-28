@@ -581,7 +581,7 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 23,
-    fontWeight: 'bold',
+    fontWeight: '600',
     color: '#000000',
     marginBottom: 2,
   },

@@ -74,7 +74,7 @@ function getEnrichedListings() {
 
 export default function SwipeScreen({ navigation, route }: any) {
   const { preferences } = usePreferences();
-  const { user, setHasCompletedOnboarding } = useAuth();  // NEW: Get auth context
+  const { user, setHasCompletedOnboarding } = useAuth();  
   
   // NEW: Check if this is a redo flow
   const isRedoingPreferences = route?.params?.isRedo || false;
@@ -106,11 +106,11 @@ export default function SwipeScreen({ navigation, route }: any) {
     setEnrichedListings(listings);
   }, []);
 
-  // NEW: Handle completing onboarding when all cards are swiped
+  // Handle completing onboarding when all cards are swiped
   const handleFinishSwiping = async () => {
     try {
       // Only mark onboarding complete if this is NOT a redo
-      if (!isRedoingPreferences && user?.uid) {
+      if (user?.uid) {
         await setUserOnboardingComplete(user.uid);
         setHasCompletedOnboarding(true);
         
