@@ -408,12 +408,14 @@ export default function PreferencesScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#d1d5db',
+    backgroundColor: '#e0e0e0',
+    paddingHorizontal: 16,
   },
   section: {
     backgroundColor: '#ffffff',
     padding: 24,
-    marginBottom: 12,
+    paddingVertical: 20,
+    marginBottom: 18,
     borderRadius: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
@@ -426,8 +428,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 0,
   },
   title: {
-    fontSize: 17,
-    fontWeight: 'bold',
+    fontSize: 13,
     marginBottom: 2,
     color: '#6b7280'
   },
@@ -439,11 +440,13 @@ const styles = StyleSheet.create({
   content: {
     fontSize: 23,
     color: '#000000ff',
+    fontWeight: '500',
   },
   disclaimer: {
     fontSize: 10,
     marginTop: 4,
-    color: '#e200008a',
+    fontWeight: '600',
+    color: '#e20000bd',
   },
   icon: {
     width: 22,
