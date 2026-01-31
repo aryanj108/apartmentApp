@@ -20,6 +20,10 @@ import FurnishedIcon from '../../assets/furnishedIcon.svg';
 import PetIcon from '../../assets/petIcon.svg';
 import BedIcon from '../../assets/bedIcon.svg';
 
+function formatPrice(price) {
+  return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
 export default function PreferencesScreen({ navigation, route }) {
   const { user } = useAuth();
   const { preferences, setPreferences, loading } = usePreferences();
@@ -135,7 +139,7 @@ export default function PreferencesScreen({ navigation, route }) {
       <View style={[styles.section, styles.firstSection]}>
         <View style={styles.header}>
           <View style={styles.iconContainer}>
-            <LocationIcon width={26} height={26} style={styles.icon} />
+            <LocationIcon width={28} height={28} style={styles.icon} />
           </View>
           <View style={styles.headerText}>
             <Text style={styles.title}>City & State</Text>
@@ -148,7 +152,7 @@ export default function PreferencesScreen({ navigation, route }) {
       <View style={[styles.section]}>
         <View style={styles.header}>
           <View style={styles.iconContainer}>
-            <CampusIcon width={26} height={26} style={styles.icon} />
+            <CampusIcon width={28} height={28} style={styles.icon} />
           </View>
           <View style={styles.headerText}>
             <Text style={styles.title}>Location (Optional)</Text>
@@ -162,12 +166,12 @@ export default function PreferencesScreen({ navigation, route }) {
       <View style={[styles.section]}>
         <View style={styles.header}>
           <View style={styles.iconContainer}>
-            <MoneyIcon width={32} height={32} style={styles.icon} />
+            <MoneyIcon width={36} height={36} style={styles.icon} />
           </View>
           <View style={styles.headerText}>
             <Text style={styles.title}>Monthly Rent</Text>
             <Text style={styles.content}>
-              ${localPreferences.minPrice} - ${localPreferences.maxPrice}
+              ${formatPrice(localPreferences.minPrice)} - ${formatPrice(localPreferences.maxPrice)}
             </Text>
           </View>
         </View>
@@ -176,7 +180,7 @@ export default function PreferencesScreen({ navigation, route }) {
         <View style={styles.sliderContainer}>
           <View style={styles.sliderRow}>
             <Text style={styles.sliderLabel}>Min</Text>
-            <Text style={styles.sliderValue}>${localPreferences.minPrice}</Text>
+            <Text style={styles.sliderValue}>${formatPrice(localPreferences.minPrice)}</Text>
           </View>
           <Slider
             style={styles.slider}
@@ -199,7 +203,7 @@ export default function PreferencesScreen({ navigation, route }) {
         <View style={styles.sliderContainer}>
           <View style={styles.sliderRow}>
             <Text style={styles.sliderLabel}>Max</Text>
-            <Text style={styles.sliderValue}>${localPreferences.maxPrice}</Text>
+            <Text style={styles.sliderValue}>${formatPrice(localPreferences.maxPrice)}</Text>
           </View>
           <Slider
             style={styles.slider}
@@ -223,7 +227,7 @@ export default function PreferencesScreen({ navigation, route }) {
       <View style={[styles.section]}>
         <View style={styles.header}>
           <View style={styles.iconContainer}>
-            <BedIcon width={30} height={30} style={styles.icon} />
+            <BedIcon width={32} height={32} style={styles.icon} />
           </View>
           <View style={styles.headerText}>
             <Text style={styles.title}>Beds & Bathrooms</Text>
@@ -289,7 +293,7 @@ export default function PreferencesScreen({ navigation, route }) {
           </View>
           <View style={styles.headerText}>
             <Text style={styles.title}>Max Distance</Text>
-            <Text style={styles.content}>{localPreferences.distance} Miles</Text>
+            <Text style={styles.selectedContent}>{localPreferences.distance} Miles</Text>
             <View style={styles.sliderContainerDistance}>
               <View style={styles.sliderRow}></View>
               <Slider
@@ -320,7 +324,7 @@ export default function PreferencesScreen({ navigation, route }) {
           </View>
           <View style={styles.headerText}>
             <Text style={styles.title}>Preferred Amenities</Text>
-            <Text style={styles.content}>
+            <Text style={styles.selectedContent}>
               {amenities.filter(a => a.selected).length} selected
             </Text>
           </View>
@@ -338,8 +342,8 @@ export default function PreferencesScreen({ navigation, route }) {
             >
               <View style={styles.chipContent}>
                 <amenity.icon 
-                  width={27} 
-                  height={27} 
+                  width={22} 
+                  height={22} 
                   style={styles.chipIconLeft}
                   fill={amenity.selected ? '#ffffff' : '#6b7280'}
                 />
@@ -388,7 +392,7 @@ export default function PreferencesScreen({ navigation, route }) {
           }
         }}
       >
-        <Text style={styles.startButtonText}>Save Preferences</Text>
+        <Text style={styles.startButtonText}>Find My Dream Apartment</Text>
       </TouchableOpacity>
 
       {/* Section 7 */}
@@ -408,13 +412,13 @@ export default function PreferencesScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#e0e0e0',
+    backgroundColor: 'rgba(223, 223, 223, 0)',
     paddingHorizontal: 16,
   },
   section: {
     backgroundColor: '#ffffff',
     padding: 24,
-    paddingVertical: 20,
+    paddingVertical: 18,
     marginBottom: 18,
     borderRadius: 16,
     shadowColor: '#000',
@@ -438,9 +442,14 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   content: {
-    fontSize: 23,
+    fontSize: 22,
     color: '#000000ff',
-    fontWeight: '500',
+    fontWeight: '700',
+  },
+  selectedContent: {
+    fontSize: 20,
+    color: '#000000ff',
+    fontWeight: '700',
   },
   disclaimer: {
     fontSize: 10,
@@ -454,8 +463,8 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
   iconContainer: {
-    width: 44,
-    height: 44,
+    width: 48,
+    height: 48,
     borderRadius: 22,
     backgroundColor: '#dfdfdfff',
     justifyContent: 'center',
@@ -488,19 +497,21 @@ const styles = StyleSheet.create({
   },
   sliderLabel: {
     fontSize: 23,
-    fontWeight: 'bold',
+    fontWeight: '500',
     minWidth: 20,
     color: '#000000ff',
   },
   sliderValue: {
     fontSize: 20,
     minWidth: 50,
+    fontWeight: '500',
     color: '#000000ff',
     marginRight: 0
   },
   sliderValueBB: {
     fontSize: 23,
     minWidth: 50,
+    fontWeight: '500',
     color: '#000000ff',
     marginRight: -19
   },
@@ -543,7 +554,7 @@ const styles = StyleSheet.create({
     borderColor: '#000000',
   },
   chipText: {
-    fontSize: 15,
+    fontSize: 12,
     color: '#000000ff',
     fontWeight: '800',
   },
@@ -576,7 +587,7 @@ const styles = StyleSheet.create({
   },
   startButtonText: {
     color: '#000000ff',
-    fontSize: 23,
-    fontWeight: '600',
+    fontSize: 18,
+    fontWeight: '500',
   },
 });
