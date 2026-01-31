@@ -46,7 +46,7 @@ function UnitCard({ listing, matchScore, onPress }) {
     >
       <View style={styles.unitCardContent}>
         <View style={styles.unitCardLeft}>
-          <Text style={styles.unitNumber}>Unit {listing.unitNumber}</Text>
+          <Text style={styles.unitNumber}>{listing.unitNumber}</Text>
           <Text style={styles.floorPlan}>{listing.floorPlan}</Text>
 
           <View style={styles.unitDetails}>
@@ -74,7 +74,7 @@ function UnitCard({ listing, matchScore, onPress }) {
             </LinearGradient>
           )}
           <Text style={styles.unitPrice}>${listing.price}/mo</Text>
-          <Text style={styles.viewDetailsText}>View Details →</Text>
+          {/*<Text style={styles.viewDetailsText}>View Details →</Text>*/}
         </View>
       </View>
     </TouchableOpacity>
