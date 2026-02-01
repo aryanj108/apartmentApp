@@ -19,6 +19,9 @@ import ParkingIcon from '../../assets/parkingIcon.svg';
 import FurnishedIcon from '../../assets/furnishedIcon.svg';
 import PetIcon from '../../assets/petIcon.svg';
 import BedIcon from '../../assets/bedIcon.svg';
+import StarIcon from '../../assets/stars.svg';
+import Arrow from '../../assets/rightArrowIcon.svg'
+
 
 function formatPrice(price) {
   return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
@@ -392,7 +395,24 @@ export default function PreferencesScreen({ navigation, route }) {
           }
         }}
       >
-        <Text style={styles.startButtonText}>Find My Dream Apartment</Text>
+
+      {/* Text */}
+        <View style={styles.headerWithIcons}>
+          {/* Left Icon */}
+          <View style={styles.headerIconLeft}>
+            <StarIcon width={24} height={24} />
+          </View>
+          
+          {/* Text Content */}
+          <View style={styles.headerTextContent}>
+            <Text style={styles.startButtonText}>Find your dream apartment</Text>
+          </View>
+          
+          {/* Right Icon */}
+          <View style={styles.headerIconRight}>
+            <Arrow width={24} height={24} />
+          </View>
+        </View>
       </TouchableOpacity>
 
       {/* Section 7 */}
@@ -403,7 +423,9 @@ export default function PreferencesScreen({ navigation, route }) {
           resetPreferences();
         }}
       >  
-        <Text style={styles.startButtonText}>Reset Preferences</Text>
+        <View style={styles.headerTextContent}>
+            <Text style={styles.startButtonText}>Reset Preferences</Text>
+          </View>
       </TouchableOpacity>
     </ScrollView>
   );
@@ -589,5 +611,30 @@ const styles = StyleSheet.create({
     color: '#000000ff',
     fontSize: 18,
     fontWeight: '500',
+  },
+  headerWithIcons: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  width: '100%',
+  },
+  headerIconLeft: {
+    marginLeft: 14,
+  },
+  headerIconRight: {
+    marginRight: 14,
+  },
+  headerTextContent: {
+    flex: 1,
+    alignItems: 'center', 
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#000000',
+  },
+  headerSubtitle: {
+    fontSize: 14,
+    color: '#6b7280',
   },
 });
