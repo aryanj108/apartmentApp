@@ -27,6 +27,7 @@ import Stars from '../../assets/stars.svg';
 import SaveFilledIconHeart from '../../assets/heart.svg';
 import PinIcon from '../../assets/pinIcon2.svg';
 import SearchIcon from '../../assets/searchIcon.svg'; 
+import ResetIcon from '../../assets/resetIcon.svg';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -399,7 +400,10 @@ export default function Search({ navigation }) {
             style={styles.resetButton}
             onPress={handleResetMap}
           >
-            <Text style={styles.resetButtonText}>⟲ Reset View</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <ResetIcon width={15} height={15} fill={'#ffffff'} />
+            <Text style={styles.resetButtonText}>  Reset View</Text>
+            </View>
           </TouchableOpacity>
         </View>
       ) : (
