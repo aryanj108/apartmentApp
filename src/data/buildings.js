@@ -3,8 +3,8 @@ export const buildingsData = [
     id: 1,
     name: "The Callaway House Austin",
     address: "505 W 22nd St, Austin, TX 78705",
-    latitude: 30.285421752101193,
-    longitude: -97.7435689220141,
+    latitude: 30.284797126164932,
+    longitude: -97.74347691539313,
     distance: 0.8,
     amenities: ["wifi", "pool", "gym", "parking", "furnished", "petFriendly"],
     images: [

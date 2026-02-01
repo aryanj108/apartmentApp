@@ -454,8 +454,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 0,
   },
   title: {
-    fontSize: 13,
-    marginBottom: 2,
+    fontSize: 14,
     color: '#6b7280'
   },
   header: {
@@ -466,12 +465,12 @@ const styles = StyleSheet.create({
   content: {
     fontSize: 22,
     color: '#000000ff',
-    fontWeight: '700',
+    fontWeight: '600',
   },
   selectedContent: {
     fontSize: 20,
     color: '#000000ff',
-    fontWeight: '700',
+    fontWeight: '600',
   },
   disclaimer: {
     fontSize: 10,

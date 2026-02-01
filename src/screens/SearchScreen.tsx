@@ -25,7 +25,7 @@ import BathIcon from '../../assets/bathIcon.svg';
 import DistanceIcon from '../../assets/distanceIcon(2).svg';
 import Stars from '../../assets/stars.svg';
 import SaveFilledIconHeart from '../../assets/heart.svg';
-import PinIcon from '../../assets/pinIcon.svg';
+import PinIcon from '../../assets/pinIcon2.svg';
 import SearchIcon from '../../assets/searchIcon.svg'; 
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
