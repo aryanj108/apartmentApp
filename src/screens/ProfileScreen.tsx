@@ -208,7 +208,7 @@ export default function Profile({ navigation }: any) {
                 styles.infoValue, 
                 user?.emailVerified ? styles.verified : styles.notVerified
               ]}>
-                {user?.emailVerified ? 'Yes ✓' : 'Not yet'}
+                {user?.emailVerified ? '✓' : 'Not yet'}
               </Text>
             </View>
           </View>

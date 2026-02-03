@@ -1,5 +1,4 @@
 export const listingsData = [
-  // Campus Edge Flats (buildingId: 1)
   {
   id: 1,
   buildingId: 1,
@@ -74,21 +73,45 @@ export const listingsData = [
   leaseTerm: "Academic term leases (August-May)",
   website: "https://www.americancampus.com/student-apartments/tx/austin/the-callaway-house-austin/floor-plans#/detail/685-deluxestudiosuite-smart-fall2026_academicterm_08_2026-05_2027__"
   },
-  
-  // The Pearl Residences (buildingId: 2)
   {
-    id: 3,
-    buildingId: 2,
-    unitNumber: "3A",
-    price: 1800,
-    bedrooms: 2,
-    bathrooms: 2,
-    sqft: 1100,
-    floorPlan: "Two Bedroom",
-    available: true,
-    availableDate: "Available August",
-    deposit: 1800,
-    leaseTerm: "12-month"
+  id: 3,
+  buildingId: 1,
+  unitNumber: "Deluxe Studio Suite Alt",
+  smartHousing: true,
+  description: "The Deluxe Studio Suite Alt - SMART at The Callaway House Austin offers a fully furnished, private suite designed for students seeking comfort and convenience. This apartment includes a kitchenette with granite counters and stainless steel appliances, premium features like hardwood-style floors, granite bathroom counters, and a curved shower rod, and an all-inclusive utility package with high-speed internet. Residents also enjoy access to biweekly housekeeping, an unlimited meal plan, and SMART Housing support for need-based students. This floor plan also features modifications for mobility accessibility.",
+  features: [ 
+  "Private furnished studio suite", 
+  "Full-sized, extra long bed", 
+  "Study desk and chair", 
+  "Leather-style sofa and coffee table", 
+  "Entertainment system", 
+  "Dining table and chairs", 
+  "Kitchenette with granite counters and stainless steel appliances", 
+  "Full-sized refrigerator and microwave", 
+  "Premium hardwood-style floors and granite bathroom counters", 
+  "2in wood-style blinds", 
+  "Curved shower rod", 
+  "Unlimited meal plan included", 
+  "Biweekly housekeeping", 
+  "All-inclusive utilities (electricity, water, sewer, trash, internet)", 
+  "High-speed internet up to 1Gbps per bed", 
+  "Four community laundry facilities", 
+  "Academic term lease (August-May)", 
+  "SMART Housing program available", 
+  "Mobility accessible features", 
+  "Parking and scooter parking available" 
+  ],
+  price: 1879,
+  bedrooms: 1,
+  bathrooms: 1,
+  sqft: 600,
+  floorPlan: "Studio",
+  available: true,
+  availableDate: "Available now",
+  moveInFee: 200,
+  deposit: 950,
+  leaseTerm: "Academic term leases (August-May)",
+  website: "https://www.americancampus.com/student-apartments/tx/austin/the-callaway-house-austin/floor-plans#/detail/685-deluxestudiosuitealt-smart-fall2026_academicterm_08_2026-05_2027"
   },
   {
     id: 4,

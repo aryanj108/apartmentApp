@@ -116,10 +116,15 @@ export default function LoginScreen({ navigation }: any) {
       style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <LinearGradient
+      {/*<LinearGradient
         colors={['#BF5700', '#FF8C42', '#FFFFFF']} 
         style={styles.gradient}
-      >
+      >*/}
+         <ImageBackground
+    source={require('../../assets/background.jpg')}
+    style={styles.backgroundImage}
+    resizeMode="cover"
+  >
         <View style={styles.centerContainer}>
           <BlurView intensity={80} tint="light" style={styles.blurCard}>
             <View style={styles.cardContent}>
@@ -211,28 +216,32 @@ export default function LoginScreen({ navigation }: any) {
             </View>
           </BlurView>
         </View>
-      </LinearGradient>
+        </ImageBackground>
+      {/*</LinearGradient>*/}
     </KeyboardAvoidingView>
   );
 }
 
 
 const styles = StyleSheet.create({
-gradient: {
+  gradient: {
+      flex: 1,
+    },
+  centerContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: scale(24),
+    },
+    backgroundImage: {
     flex: 1,
-  },
-centerContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: scale(24),
   },
   blurCard: {
     width: '100%',
     maxWidth: 400,
     borderRadius: scale(24),
     overflow: 'hidden',
-    backgroundColor: 'rgba(255, 255, 255, 0.7)', 
+    backgroundColor: 'rgba(255, 255, 255, 0.6)', 
     borderWidth: 1.5,
     borderColor: 'rgba(255, 255, 255, 0.5)',
     shadowColor: '#000',
