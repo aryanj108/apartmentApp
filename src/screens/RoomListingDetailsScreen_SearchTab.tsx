@@ -74,7 +74,8 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
     website: listing.website || building.website || '',
     sqft: listing.sqft,
     floorPlan: listing.floorPlan,
-    smartHousing: listing.smartHousing
+    smartHousing: listing.smartHousing,
+    moveInFee: listing.moveInFee  
   };
 
   const isSaved = savedIds.includes(roomData.id);
