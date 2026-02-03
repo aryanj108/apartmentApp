@@ -51,17 +51,28 @@ function UnitCard({ listing, matchScore, onPress }) {
       <View style={styles.unitCardContent}>
         {/* Top Row: Unit Number and Match Badge */}
         <View style={styles.unitCardTop}>
-          <Text style={styles.unitNumber}>{listing.unitNumber}</Text>
-          {matchScore !== undefined && (
-            <LinearGradient
-              colors={['#FF8C42', '#BF5700', '#994400']}
-              start={{ x: 0, y: 1 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.unitMatchBadge}
+          <View style={{ flex: 1, marginRight: 8 }}> 
+            <Text 
+              style={styles.unitNumber} 
+              numberOfLines={1} 
+              ellipsizeMode="tail"
             >
-              <Stars width={12} height={12} fill={'#ffffff'}/>
-              <Text style={styles.unitMatchText}> {matchScore}%</Text>
-            </LinearGradient>
+              {listing.unitNumber}
+            </Text>
+          </View>
+
+          {matchScore !== undefined && (
+            <View style={{ flexShrink: 0 }}> {/* Prevents the badge from shrinking */}
+              <LinearGradient
+                colors={['#FF8C42', '#BF5700', '#994400']}
+                start={{ x: 0, y: 1 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.unitMatchBadge}
+              >
+                <Stars width={12} height={12} fill={'#ffffff'}/>
+                <Text style={styles.unitMatchText}> {matchScore}%</Text>
+              </LinearGradient>
+            </View>
           )}
         </View>
 
@@ -602,8 +613,9 @@ unitCardContent: {
     color: '#BF5700',
   },
   unitNumber: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
+    letterSpacing: -0.2,
   },
   floorPlan: {
     fontSize: 14,
