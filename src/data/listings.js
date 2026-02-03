@@ -838,5 +838,5 @@ export const listingsData = [
     availableDate: "Available now",
     deposit: 4500,
     leaseTerm: "12-month"
-  }
+  },
 ];
