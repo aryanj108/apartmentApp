@@ -226,7 +226,7 @@ export const listingsData = [
   {
   id: 7,
   buildingId: 1,
-  unitNumber: "2 Bed - 2 Bath Floors 16-17",
+  unitNumber: "2 Bed - 2 Bath Apartment - Floors 16-17",
   smartHousing: true,
   description: "The 2 Bed - 2 Bath Apartment on Floors 16-17 at The Callaway House Austin offers fully furnished private bedrooms and a shared living space, perfect for students seeking comfort, convenience, and premium amenities. Each bedroom includes a full-sized, extra long bed and study desk with chair. The living room features a leather-style sofa, coffee and end tables, entertainment system, and counter stools. The kitchen includes granite counters and stainless steel appliances. Residents enjoy premium features such as hardwood-style floors, granite bathroom counters, full-sized washer and dryer, as well as an all-inclusive utility package, high-speed internet, biweekly housekeeping, and unlimited meal plan.",
   features: [
@@ -258,21 +258,39 @@ export const listingsData = [
   leaseTerm: "Academic term leases (August-May)",
   website: "https://www.americancampus.com/student-apartments/tx/austin/the-callaway-house-austin/floor-plans#/detail/685-2bed-2bathapartment-floors16-17-fall2026_academicterm_08_2026-05_2027"
   },
-
-  // Riverside Commons (buildingId: 4)
   {
-    id: 8,
-    buildingId: 4,
-    unitNumber: "A1",
-    price: 1300,
-    bedrooms: 1,
-    bathrooms: 1,
-    sqft: 750,
-    floorPlan: "One Bedroom",
-    available: true,
-    availableDate: "Available now",
-    deposit: 1300,
-    leaseTerm: "6 or 12-month"
+  id: 8,
+  buildingId: 1,
+  unitNumber: "2 Bed - 2 Bath Apartment Alt Floors 16-17",
+  smartHousing: true,
+  description: "The 2 Bed - 2 Bath Apartment Alt on Floors 16-17 at The Callaway House Austin offers fully furnished private bedrooms and a shared living space with premium features and mobility accessibility. Each bedroom includes a full-sized, extra long bed and study desk with chair. The living room features a leather-style sofa, coffee and end tables, entertainment system, and counter stools. The kitchen has granite counters and stainless steel appliances. Residents enjoy hardwood-style floors, granite bathroom counters, all-inclusive utilities, high-speed internet, biweekly housekeeping, unlimited meal plan, and SMART Housing support.",
+  features: [
+  "Two private furnished bedrooms with full-sized, extra long beds",
+  "Study desk and chair in each bedroom",
+  "Fully furnished living room with leather-style sofa, coffee & end tables, entertainment system, counter stools",
+  "Kitchen with granite counters, stainless steel appliances, full-sized refrigerator, microwave",
+  "Premium hardwood-style floors and granite bathroom counters",
+  "Mobility accessible features",
+  "2in wood-style blinds and curved shower rods",
+  "Unlimited meal plan included",
+  "Biweekly housekeeping",
+  "All-inclusive utilities (electricity, water, sewer, trash, internet)",
+  "High-speed internet up to 1Gbps per bed",
+  "Four community laundry facilities",
+  "Academic term lease (August-May)",
+  "Parking and scooter parking available"
+],
+  price: 3474,
+  bedrooms: 2,
+  bathrooms: 2,
+  sqft: 1100,
+  floorPlan: "2 Bed / 2 Bath",
+  available: true,
+  availableDate: "Available now",
+  moveInFee: 200,
+  deposit: 950,
+  leaseTerm: "Academic term leases (August-May)",
+  website: "https://www.americancampus.com/student-apartments/tx/austin/the-callaway-house-austin/floor-plans#/detail/685-2bed-2bathapartmentalt-floors16-17-fall2026_academicterm_08_2026-05_2027"
   },
   {
     id: 9,

@@ -51,6 +51,10 @@ const allAmenities = [
   { id: 'petFriendly', label: 'Pet Friendly', icon: PetIcon },
 ];
 
+function formatPrice(price) {
+  return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
 // Helper function to combine listing with building data
 function getEnrichedListings() {
   return listingsData.map(listing => {
@@ -269,7 +273,7 @@ export default function SwipeScreen({ navigation, route }: any) {
                           </Text>
                         </View>
                         <View style={styles.priceContainer}>
-                          <Text style={styles.price}>${currentListing.price}</Text>
+                          <Text style={styles.price}>${formatPrice(currentListing.price)}</Text>
                           <Text style={styles.perMonth}>per month</Text>
                         </View>
                       </View>

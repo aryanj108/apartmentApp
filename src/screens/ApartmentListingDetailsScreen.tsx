@@ -47,7 +47,7 @@ function UnitCard({ listing, matchScore, onPress }) {
       <View style={styles.unitCardContent}>
         <View style={styles.unitCardLeft}>
           <Text style={styles.unitNumber}>{listing.unitNumber}</Text>
-          <Text style={styles.floorPlan}>{listing.floorPlan}</Text>
+          <Text style={styles.floorPlan}>{/*{listing.floorPlan}*/}</Text>
 
           <View style={styles.unitDetails}>
             <View style={styles.unitDetailItem}>
