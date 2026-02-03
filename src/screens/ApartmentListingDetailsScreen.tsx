@@ -498,7 +498,7 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     marginTop: 5,
     marginBottom: 10,
-    gap: 0,
+    gap: 10,
   },
   chip: {
     width: '31%',
@@ -584,7 +584,7 @@ const styles = StyleSheet.create({
 unitCardContent: {
     padding: 16,
     flexDirection: 'column', 
-    gap: 12,
+    gap: 8,
   },
   unitCardTop: {
     flexDirection: 'row',
@@ -615,7 +615,6 @@ unitCardContent: {
     fontSize: 16,
     fontWeight: 'bold',
     letterSpacing: -0.2,
-    lineHeight: 22,
   },
   floorPlan: {
     fontSize: 14,

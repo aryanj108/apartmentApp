@@ -266,7 +266,7 @@ export default function SwipeScreen({ navigation, route }: any) {
                             {currentListing.name}
                           </Text>
                           <Text style={styles.unitNumber}>
-                            {currentListing.unitNumber} • {currentListing.floorPlan}
+                            {currentListing.unitNumber} {/*• {currentListing.floorPlan}*/}
                           </Text>
                           <Text style={styles.address} numberOfLines={1}>
                             {currentListing.address}
