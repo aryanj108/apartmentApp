@@ -1,4 +1,5 @@
 export const listingsData = [
+  // The Callaway House Austin (buildingId: 1)
   {
   id: 1,
   buildingId: 1,
@@ -100,7 +101,7 @@ export const listingsData = [
   "SMART Housing program available", 
   "Mobility accessible features", 
   "Parking and scooter parking available" 
-  ],
+],
   price: 1879,
   bedrooms: 1,
   bathrooms: 1,
