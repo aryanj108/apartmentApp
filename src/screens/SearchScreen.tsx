@@ -141,7 +141,7 @@ function ListingVerticalCard({ listing, matchScore, onPress, isSaved }) {
           {listing.name}
         </Text>
         <Text style={styles.unitNumber}>
-          {listing.unitNumber} • {listing.floorPlan}
+          {listing.unitNumber} {/*• {listing.floorPlan}*/}
         </Text>
         <Text style={styles.cardAddress} numberOfLines={1}>
           {listing.address}

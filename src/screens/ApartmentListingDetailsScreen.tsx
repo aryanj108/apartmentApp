@@ -612,7 +612,7 @@ unitCardContent: {
     color: '#BF5700',
   },
   unitNumber: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: 'bold',
     letterSpacing: -0.2,
   },
