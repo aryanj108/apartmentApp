@@ -529,21 +529,38 @@ export const listingsData = [
   leaseTerm: "Academic term leases (August-May)",
   website: "https://www.americancampus.com/student-apartments/tx/austin/the-callaway-house-austin/floor-plans#/detail/685-3bed-3bathapartmentalt-floors16-17-fall2026_academicterm_08_2026-05_2027"
   },
-
-  // Urban Core Lofts (buildingId: 8)
   {
-    id: 16,
-    buildingId: 8,
-    unitNumber: "L5",
-    price: 3800,
-    bedrooms: 2,
-    bathrooms: 2,
-    sqft: 1300,
-    floorPlan: "Downtown Loft",
-    available: true,
-    availableDate: "Limited",
-    deposit: 3800,
-    leaseTerm: "12-month"
+  id: 16,
+  buildingId: 1,
+  unitNumber: "3 Bed - 3 Bath Suite Single",
+  smartHousing: true,
+  description: "The 3 Bed - 3 Bath Suite Single at The Callaway House Austin features fully furnished private bedrooms with full-sized, extra long beds and study desks. The living room includes a leather-style sofa, coffee and end tables, entertainment system, and dining table with chairs. The kitchenette has granite counters, stainless steel appliances, full-sized refrigerator, and microwave. Residents enjoy premium hardwood-style floors, granite bathroom counters, all-inclusive utilities, high-speed internet, biweekly housekeeping, unlimited meal plan, and SMART Housing support.",
+  features: [
+  "Three fully furnished private bedrooms with full-sized, extra long beds",
+  "Study desk and chair in each bedroom",
+  "Fully furnished living room with leather-style sofa, coffee & end tables, entertainment system, dining table and chairs",
+  "Kitchenette with granite counters, stainless steel appliances, full-sized refrigerator, microwave",
+  "Premium hardwood-style floors and granite bathroom counters",
+  "2in wood-style blinds and curved shower rods",
+  "Unlimited meal plan included",
+  "Biweekly housekeeping",
+  "All-inclusive utilities (electricity, water, sewer, trash, internet)",
+  "High-speed internet up to 1Gbps per bed",
+  "Four community laundry facilities",
+  "Academic term lease (August-May)",
+  "Parking and scooter parking available"
+],
+  price: 3199,
+  bedrooms: 3,
+  bathrooms: 3,
+  sqft: 1200,
+  floorPlan: "3 Bed / 3 Bath",
+  available: true,
+  availableDate: "Available now",
+  moveInFee: 200,
+  deposit: 950,
+  leaseTerm: "Academic term leases (August-May)",
+  website: "https://www.americancampus.com/student-apartments/tx/austin/the-callaway-house-austin/floor-plans#/detail/685-3bed-3bathsuitesingle-fall2026_academicterm_08_2026-05_2027"
   },
   {
     id: 17,
