@@ -51,18 +51,16 @@ function UnitCard({ listing, matchScore, onPress }) {
       <View style={styles.unitCardContent}>
         {/* Top Row: Unit Number and Match Badge */}
         <View style={styles.unitCardTop}>
+          {/* Wrap container for the text */}
           <View style={{ flex: 1, marginRight: 8 }}> 
-            <Text 
-              style={styles.unitNumber} 
-              numberOfLines={1} 
-              ellipsizeMode="tail"
-            >
+            <Text style={styles.unitNumber}>
               {listing.unitNumber}
             </Text>
           </View>
 
+          {/* Badge stays anchored to the top right */}
           {matchScore !== undefined && (
-            <View style={{ flexShrink: 0 }}> {/* Prevents the badge from shrinking */}
+            <View style={{ alignSelf: 'flex-start' }}> 
               <LinearGradient
                 colors={['#FF8C42', '#BF5700', '#994400']}
                 start={{ x: 0, y: 1 }}
@@ -500,7 +498,7 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     marginTop: 5,
     marginBottom: 10,
-    gap: 10,
+    gap: 0,
   },
   chip: {
     width: '31%',
@@ -585,7 +583,8 @@ const styles = StyleSheet.create({
   },
 unitCardContent: {
     padding: 16,
-    flexDirection: 'column', // Ensures rows stack vertically
+    flexDirection: 'column', 
+    gap: 12,
   },
   unitCardTop: {
     flexDirection: 'row',
@@ -594,9 +593,9 @@ unitCardContent: {
   },
   unitDetailsRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between', // Pushes icons left and price right
+    justifyContent: 'space-between', 
     alignItems: 'center',
-    paddingTop: 12, // The padding you requested
+    paddingTop: 12, 
   },
   unitDetails: {
     flexDirection: 'row',
@@ -616,6 +615,7 @@ unitCardContent: {
     fontSize: 16,
     fontWeight: 'bold',
     letterSpacing: -0.2,
+    lineHeight: 22,
   },
   floorPlan: {
     fontSize: 14,
