@@ -49,23 +49,9 @@ function UnitCard({ listing, matchScore, onPress }) {
       activeOpacity={0.9}
     >
       <View style={styles.unitCardContent}>
-        <View style={styles.unitCardLeft}>
+        {/* Top Row: Unit Number and Match Badge */}
+        <View style={styles.unitCardTop}>
           <Text style={styles.unitNumber}>{listing.unitNumber}</Text>
-          <Text style={styles.floorPlan}>{/*{listing.floorPlan}*/}</Text>
-
-          <View style={styles.unitDetails}>
-            <View style={styles.unitDetailItem}>
-              <BedIcon width={14} height={14} />
-              <Text style={styles.unitDetailText}>{listing.bedrooms} Bed</Text>
-            </View>
-            <View style={styles.unitDetailItem}>
-              <BathIcon width={14} height={14} />
-              <Text style={styles.unitDetailText}>{listing.bathrooms} Bath</Text>
-            </View>
-          </View>
-        </View>
-
-        <View style={styles.unitCardRight}>
           {matchScore !== undefined && (
             <LinearGradient
               colors={['#FF8C42', '#BF5700', '#994400']}
@@ -77,8 +63,22 @@ function UnitCard({ listing, matchScore, onPress }) {
               <Text style={styles.unitMatchText}> {matchScore}%</Text>
             </LinearGradient>
           )}
+        </View>
+
+        {/* Bottom Row: Icons on Left, Price on Right */}
+        <View style={styles.unitDetailsRow}>
+          <View style={styles.unitDetails}>
+            <View style={styles.unitDetailItem}>
+              <BedIcon width={14} height={14} />
+              <Text style={styles.unitDetailText}>{listing.bedrooms} Bed</Text>
+            </View>
+            <View style={styles.unitDetailItem}>
+              <BathIcon width={14} height={14} />
+              <Text style={styles.unitDetailText}>{listing.bathrooms} Bath</Text>
+            </View>
+          </View>
+
           <Text style={styles.unitPrice}>${formatPrice(listing.price)}/mo</Text>
-          {/*<Text style={styles.viewDetailsText}>View Details →</Text>*/}
         </View>
       </View>
     </TouchableOpacity>
@@ -572,13 +572,34 @@ const styles = StyleSheet.create({
     borderColor: '#e5e7eb',
     elevation: 3,
   },
-  unitCardContent: {
-    flexDirection: 'row',
+unitCardContent: {
     padding: 16,
-    justifyContent: 'space-between',
+    flexDirection: 'column', // Ensures rows stack vertically
   },
-  unitCardLeft: {
-    flex: 1,
+  unitCardTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  unitDetailsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between', // Pushes icons left and price right
+    alignItems: 'center',
+    paddingTop: 12, // The padding you requested
+  },
+  unitDetails: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  unitDetailItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  unitPrice: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#BF5700',
   },
   unitNumber: {
     fontSize: 18,
@@ -589,14 +610,6 @@ const styles = StyleSheet.create({
     color: '#BF5700',
     fontWeight: '600',
     marginBottom: 8,
-  },
-  unitDetails: {
-    flexDirection: 'row',
-  },
-  unitDetailItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginRight: 16,
   },
   unitDetailText: {
     fontSize: 12,
