@@ -37,6 +37,10 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 import ImageCarousel from '../navigation/ImageCarousel';
 
+function formatPrice(price) {
+  return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
 function UnitCard({ listing, matchScore, onPress }) {
   return (
     <TouchableOpacity
@@ -73,7 +77,7 @@ function UnitCard({ listing, matchScore, onPress }) {
               <Text style={styles.unitMatchText}> {matchScore}%</Text>
             </LinearGradient>
           )}
-          <Text style={styles.unitPrice}>${listing.price}/mo</Text>
+          <Text style={styles.unitPrice}>${formatPrice(listing.price)}/mo</Text>
           {/*<Text style={styles.viewDetailsText}>View Details →</Text>*/}
         </View>
       </View>
