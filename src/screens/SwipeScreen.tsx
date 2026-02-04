@@ -8,6 +8,8 @@ import {
   Image,
   ScrollView,
   Alert,
+  Linking,
+  Platform
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
