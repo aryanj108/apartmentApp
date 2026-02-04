@@ -97,15 +97,21 @@ function ApartmentCard({ listing, matchScore, onPress, isSaved, onSavePress }) {
 
         {/* Card Content */}
         <View style={styles.cardContent}>
-          <Text style={styles.cardTitle} numberOfLines={1}>
-            {listing.name}
-          </Text>
-          <Text style={styles.unitNumber}>
-            {listing.unitNumber} {/*• {listing.floorPlan}*/}
-          </Text>
-          <Text style={styles.cardAddress} numberOfLines={1}>
-            {listing.address}
-          </Text>
+          <View>
+            <Text style={styles.cardTitle} numberOfLines={1}>
+              {listing.name}
+            </Text>
+            <Text style={styles.unitNumber}>{listing.unitNumber}</Text>
+
+            <Text
+              style={styles.cardAddress}
+              numberOfLines={2}
+              ellipsizeMode="tail"
+            >
+              {listing.address}
+            </Text>
+          </View>
+
           <View style={styles.cardDetailsRow}>
             <View style={styles.leftDetails}>
               <View style={styles.cardDetailItem}>
@@ -448,6 +454,7 @@ const styles = StyleSheet.create({
   cardInner: {
     borderRadius: 16,
     overflow: 'hidden',
+    flex: 1,
   },
   cardImageContainer: {
     position: 'relative',
@@ -485,6 +492,7 @@ const styles = StyleSheet.create({
   },
   cardContent: {
     padding: 16,
+    flex: 1,
   },
   cardTitle: {
     fontSize: 18,
@@ -507,6 +515,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginTop: 'auto'
   },
   leftDetails: {
     flexDirection: 'row',
