@@ -320,12 +320,32 @@ export default function SwipeScreen({ navigation, route }: any) {
 
                       {/* Details Chips (Bed, Bath, Distance) */}
                       <View style={styles.chipsContainer}>
-                        {details.map(detail => (
-                          <View key={detail.id} style={styles.chip}>
-                            <detail.icon width={25} height={25} />
-                            <Text style={styles.chipText}>{detail.label}</Text>
-                          </View>
-                        ))}
+                        {details.map(detail => {
+                          const Icon = detail.icon;
+                          
+                          // Make distance chip pressable
+                          if (detail.id === 'distance') {
+                            return (
+                              <TouchableOpacity
+                                key={detail.id}
+                                style={styles.chip}
+                                onPress={() => openMaps(currentListing.address)}
+                                activeOpacity={0.7}
+                              >
+                                <Icon width={25} height={25} />
+                                <Text style={styles.chipText}>{detail.label}</Text>
+                              </TouchableOpacity>
+                            );
+                          }
+                          
+                          // Other chips remain non-pressable
+                          return (
+                            <View key={detail.id} style={styles.chip}>
+                              <Icon width={25} height={25} />
+                              <Text style={styles.chipText}>{detail.label}</Text>
+                            </View>
+                          );
+                        })}
                       </View>
 
                       {/* Amenities */}
