@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { useState, useEffect } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
-
+import * as Clipboard from 'expo-clipboard';
 import Stars from '../../assets/stars.svg';
 import { buildingsData } from '../data/buildings';
 import { listingsData } from '../data/listings';
@@ -93,6 +93,11 @@ function UnitCard({ listing, matchScore, onPress }) {
     </TouchableOpacity>
   );
 }
+
+const copyToClipboard = async (text, label) => {
+  await Clipboard.setStringAsync(text);
+  Alert.alert('Copied!', `${label} has been copied to your clipboard.`);
+};
 
 export default function ApartmentListingDetailsScreen({ navigation, visible, onClose, route }) {
 
@@ -254,6 +259,8 @@ useEffect(() => {
               <Text style={styles.contactLabel}>Phone:</Text>
               <TouchableOpacity 
                 onPress={() => Linking.openURL(`tel:${apartment.contact.phone}`)}
+                onLongPress={() => copyToClipboard(apartment.contact.phone, 'Phone number')} 
+                delayLongPress={500} 
                 activeOpacity={0.7}
               >
                 <Text style={styles.contactValueClickable}>{apartment.contact.phone}</Text>
@@ -265,6 +272,8 @@ useEffect(() => {
               <Text style={styles.contactLabel}>Email:</Text>
               <TouchableOpacity 
                 onPress={() => Linking.openURL(`mailto:${apartment.contact.email}`)}
+                onLongPress={() => copyToClipboard(apartment.contact.email, 'Email address')} 
+                delayLongPress={500}
                 activeOpacity={0.7}
               >
                 <Text style={styles.contactValueClickable}>{apartment.contact.email}</Text>
