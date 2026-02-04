@@ -252,13 +252,23 @@ useEffect(() => {
           {apartment.contact?.phone && (
             <View style={styles.contactItem}>
               <Text style={styles.contactLabel}>Phone:</Text>
-              <Text style={styles.contactValue}>{apartment.contact.phone}</Text>
+              <TouchableOpacity 
+                onPress={() => Linking.openURL(`tel:${apartment.contact.phone}`)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.contactValueClickable}>{apartment.contact.phone}</Text>
+              </TouchableOpacity>
             </View>
           )}
           {apartment.contact?.email && (
             <View style={styles.contactItem}>
               <Text style={styles.contactLabel}>Email:</Text>
-              <Text style={styles.contactValue}>{apartment.contact.email}</Text>
+              <TouchableOpacity 
+                onPress={() => Linking.openURL(`mailto:${apartment.contact.email}`)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.contactValueClickable}>{apartment.contact.email}</Text>
+              </TouchableOpacity>
             </View>
           )}
           {apartment.contact?.hours && (
@@ -670,5 +680,11 @@ unitCardContent: {
     fontSize: 16,
     color: '#374151',
     lineHeight: 24,
+  },
+  contactValueClickable: {
+  fontSize: 16,
+  color: '#BF5700',  
+  lineHeight: 24,
+  textDecorationLine: 'underline', 
   },
 });
