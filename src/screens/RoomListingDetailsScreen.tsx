@@ -712,4 +712,23 @@ const styles = StyleSheet.create({
     tintColor: '#ffffff',
     marginTop: -3 
   },
+    viewDetailsText: {
+    fontSize: 12,
+    color: '#6b7280',
+    fontWeight: '600',
+  },
+  contactItem: {
+  marginBottom: 12,
+  },
+  contactLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000000',
+    marginBottom: 4,
+  },
+  contactValue: {
+    fontSize: 16,
+    color: '#374151',
+    lineHeight: 24,
+  },
 });

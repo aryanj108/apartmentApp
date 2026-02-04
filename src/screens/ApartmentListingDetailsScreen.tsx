@@ -659,16 +659,16 @@ unitCardContent: {
   },
   contactItem: {
   marginBottom: 12,
-},
-contactLabel: {
-  fontSize: 14,
-  fontWeight: '600',
-  color: '#374151',
-  marginBottom: 4,
-},
-contactValue: {
-  fontSize: 16,
-  color: '#6b7280',
-  lineHeight: 24,
-},
+  },
+  contactLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000000',
+    marginBottom: 4,
+  },
+  contactValue: {
+    fontSize: 16,
+    color: '#374151',
+    lineHeight: 24,
+  },
 });
