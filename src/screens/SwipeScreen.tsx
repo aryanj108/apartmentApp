@@ -60,8 +60,8 @@ function formatPrice(price) {
   // Helper function to open maps with directions
   const openMaps = (destinationAddress: string) => {
     // UT Austin coordinates
-    const utLatitude = 30.2849;
-    const utLongitude = -97.7341;
+    const utLatitude = 30.285340698031447;
+    const utLongitude = -97.73208396036748;
     
     // Encode the address for URL
     const encodedAddress = encodeURIComponent(destinationAddress);
@@ -328,7 +328,7 @@ export default function SwipeScreen({ navigation, route }: any) {
                             return (
                               <TouchableOpacity
                                 key={detail.id}
-                                style={styles.chip}
+                                style={styles.distanceChip}
                                 onPress={() => openMaps(currentListing.address)}
                                 activeOpacity={0.7}
                               >
@@ -638,4 +638,16 @@ const styles = StyleSheet.create({
   sideSpacer: {
     width: 40, 
   },
+  // Add to your styles object
+distanceChip: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  gap: 6,
+  backgroundColor: '#FFF5E6', // Slightly different background to indicate it's pressable
+  paddingHorizontal: 12,
+  paddingVertical: 8,
+  borderRadius: 16,
+  borderWidth: 1,
+  borderColor: '#BF5700',
+},
 });
