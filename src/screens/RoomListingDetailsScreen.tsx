@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Dimensions, ScrollView, TouchableOpacity, Alert, Animated, Linking } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, ScrollView, TouchableOpacity, Alert, Animated, Linking, Platform} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import BedIcon from '../../assets/bedIcon.svg';
 import DistanceIcon from '../../assets/distanceIcon(2).svg';
