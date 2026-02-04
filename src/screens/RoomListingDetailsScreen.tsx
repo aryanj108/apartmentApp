@@ -18,9 +18,15 @@ import SaveFilledIconHeart from '../../assets/heart.svg';
 import StarIcon from '../../assets/stars.svg';
 import ExternalLinkIcon from '../../assets/shareIcon2.svg'; 
 import { buildingsData } from '../data/buildings';
+import * as Clipboard from 'expo-clipboard';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 import ImageCarousel from '../navigation/ImageCarousel';
+
+  const copyToClipboard = async (text, label) => {
+    await Clipboard.setStringAsync(text);
+    Alert.alert('Copied!', `${label} has been copied to your clipboard.`);
+  };
 
   // Helper function to open maps with directions
   const openMaps = (destinationAddress: string) => {
@@ -327,6 +333,8 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
               <Text style={styles.contactLabel}>Phone:</Text>
               <TouchableOpacity 
                 onPress={() => Linking.openURL(`tel:${roomData.contact.phone}`)}
+                onLongPress={() => copyToClipboard(roomData.contact.phone, 'Phone number')} 
+                delayLongPress={500} 
                 activeOpacity={0.7}
               >
                 <Text style={styles.contactValueClickable}>{roomData.contact.phone}</Text>
@@ -338,6 +346,8 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
               <Text style={styles.contactLabel}>Email:</Text>
               <TouchableOpacity 
                 onPress={() => Linking.openURL(`mailto:${roomData.contact.email}`)}
+                onLongPress={() => copyToClipboard(roomData.contact.email, 'Email address')} 
+                delayLongPress={500}
                 activeOpacity={0.7}
               >
                 <Text style={styles.contactValueClickable}>{roomData.contact.email}</Text>
