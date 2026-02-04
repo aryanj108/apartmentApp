@@ -468,15 +468,27 @@ imageGalleryContainer: {
   borderTopLeftRadius: 24,
   borderTopRightRadius: 24,
   overflow: 'hidden',
-},
-
-dragHandle: {
-  width: 40,
-  height: 5,
-  backgroundColor: '#d1d5db',
-  borderRadius: 3,
-  alignSelf: 'center',
-  marginVertical: 10,
-},
-
+  },
+  dragHandle: {
+    width: 40,
+    height: 5,
+    backgroundColor: '#d1d5db',
+    borderRadius: 3,
+    alignSelf: 'center',
+    marginVertical: 10,
+  },
+    contactItem: {
+    marginBottom: 12,
+    },
+    contactLabel: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: '#000000',
+      marginBottom: 4,
+    },
+    contactValue: {
+      fontSize: 16,
+      color: '#374151',
+      lineHeight: 24,
+    },
 });

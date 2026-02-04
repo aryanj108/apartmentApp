@@ -319,17 +319,26 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
         {/* Contact */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <ContactIcon width={22} height={22} style={styles.sectionIcon} />
+            <ContactIcon width={24} height={24} style={styles.sectionIcon} />
             <Text style={styles.sectionTitle}>Contact</Text>
           </View>
           {roomData.contact?.phone && (
-            <Text style={styles.featureItem}>• Phone Number: {roomData.contact.phone}</Text>
+            <View style={styles.contactItem}>
+              <Text style={styles.contactLabel}>Phone:</Text>
+              <Text style={styles.contactValue}>{roomData.contact.phone}</Text>
+            </View>
           )}
           {roomData.contact?.email && (
-            <Text style={styles.featureItem}>• Email: {roomData.contact.email}</Text>
+            <View style={styles.contactItem}>
+              <Text style={styles.contactLabel}>Email:</Text>
+              <Text style={styles.contactValue}>{roomData.contact.email}</Text>
+            </View>
           )}
           {roomData.contact?.hours && (
-            <Text style={styles.featureItem}>• Hours: {roomData.contact.hours}</Text>
+            <View style={styles.contactItem}>
+              <Text style={styles.contactLabel}>Hours:</Text>
+              <Text style={styles.contactValue}>{roomData.contact.hours}</Text>
+            </View>
           )}
           {!roomData.contact?.phone && !roomData.contact?.email && !roomData.contact?.hours && (
             <Text style={styles.featureItem}>• Contact information not available</Text>
