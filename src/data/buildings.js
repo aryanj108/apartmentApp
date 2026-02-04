@@ -43,7 +43,7 @@ export const buildingsData = [
       "24-hour on-call staff and professional management provide peace of mind."
     ],
     contact: {
-      phone: "(512)-582-0200",
+      phone: "(512) 582-0200",
       email: "TheCallawayHouseAustin@AmericanCampus.com",
       hours: "Mon-Fri 9AM-6PM, Sat 10AM-4PM, Sun 12PM-4PM"
     },

@@ -325,13 +325,23 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
           {roomData.contact?.phone && (
             <View style={styles.contactItem}>
               <Text style={styles.contactLabel}>Phone:</Text>
-              <Text style={styles.contactValue}>{roomData.contact.phone}</Text>
+              <TouchableOpacity 
+                onPress={() => Linking.openURL(`tel:${roomData.contact.phone}`)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.contactValueClickable}>{roomData.contact.phone}</Text>
+              </TouchableOpacity>
             </View>
           )}
           {roomData.contact?.email && (
             <View style={styles.contactItem}>
               <Text style={styles.contactLabel}>Email:</Text>
-              <Text style={styles.contactValue}>{roomData.contact.email}</Text>
+              <TouchableOpacity 
+                onPress={() => Linking.openURL(`mailto:${roomData.contact.email}`)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.contactValueClickable}>{roomData.contact.email}</Text>
+              </TouchableOpacity>
             </View>
           )}
           {roomData.contact?.hours && (
@@ -739,5 +749,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#374151',
     lineHeight: 24,
+  },
+    contactValueClickable: {
+  fontSize: 16,
+  color: '#BF5700',  
+  lineHeight: 24,
+  textDecorationLine: 'underline', 
   },
 });

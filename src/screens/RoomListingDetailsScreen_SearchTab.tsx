@@ -318,17 +318,36 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
         {/* Contact */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <ContactIcon width={22} height={22} style={styles.sectionIcon} />
+            <ContactIcon width={24} height={24} style={styles.sectionIcon} />
             <Text style={styles.sectionTitle}>Contact</Text>
           </View>
           {roomData.contact?.phone && (
-            <Text style={styles.featureItem}>• Phone Number: {roomData.contact.phone}</Text>
+            <View style={styles.contactItem}>
+              <Text style={styles.contactLabel}>Phone:</Text>
+              <TouchableOpacity 
+                onPress={() => Linking.openURL(`tel:${roomData.contact.phone}`)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.contactValueClickable}>{roomData.contact.phone}</Text>
+              </TouchableOpacity>
+            </View>
           )}
           {roomData.contact?.email && (
-            <Text style={styles.featureItem}>• Email: {roomData.contact.email}</Text>
+            <View style={styles.contactItem}>
+              <Text style={styles.contactLabel}>Email:</Text>
+              <TouchableOpacity 
+                onPress={() => Linking.openURL(`mailto:${roomData.contact.email}`)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.contactValueClickable}>{roomData.contact.email}</Text>
+              </TouchableOpacity>
+            </View>
           )}
           {roomData.contact?.hours && (
-            <Text style={styles.featureItem}>• Hours: {roomData.contact.hours}</Text>
+            <View style={styles.contactItem}>
+              <Text style={styles.contactLabel}>Hours:</Text>
+              <Text style={styles.contactValue}>{roomData.contact.hours}</Text>
+            </View>
           )}
           {!roomData.contact?.phone && !roomData.contact?.email && !roomData.contact?.hours && (
             <Text style={styles.featureItem}>• Contact information not available</Text>
@@ -689,5 +708,25 @@ const styles = StyleSheet.create({
   sqftText: {
     fontSize: 14,
     color: '#6b7280',
+  },
+    contactItem: {
+  marginBottom: 12,
+  },
+  contactLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000000',
+    marginBottom: 4,
+  },
+  contactValue: {
+    fontSize: 16,
+    color: '#374151',
+    lineHeight: 24,
+  },
+  contactValueClickable: {
+  fontSize: 16,
+  color: '#BF5700',  
+  lineHeight: 24,
+  textDecorationLine: 'underline', 
   },
 });
