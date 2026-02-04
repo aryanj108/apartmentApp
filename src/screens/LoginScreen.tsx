@@ -116,15 +116,17 @@ export default function LoginScreen({ navigation }: any) {
       style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-     <LinearGradient
-        colors={['#BF5700', '#FF8C42', '#FFFFFF']} 
+     {/*<LinearGradient
+        colors={['#FF8C42', '#BF5700', '#994400']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }} 
         style={styles.gradient}
-      >
-          {/*<ImageBackground
-    source={require('../../assets/skyBackground.png')}
+      >*/}
+          <ImageBackground
+    source={require('../../assets/ChatGPT Image Feb 3, 2026, 10_23_47 PM.png')}
     style={styles.backgroundImage}
     resizeMode="cover"
-  >*/}
+  >
         <View style={styles.centerContainer}>
           <BlurView intensity={80} tint="light" style={styles.blurCard}>
             <View style={styles.cardContent}>
@@ -216,8 +218,8 @@ export default function LoginScreen({ navigation }: any) {
             </View>
           </BlurView>
         </View>
-        {/*</ImageBackground>*/}
-      </LinearGradient>
+        </ImageBackground>
+      {/*</LinearGradient>*/}
     </KeyboardAvoidingView>
   );
 }
