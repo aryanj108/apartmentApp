@@ -15,8 +15,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../context/AuthContext';
 import EyeOffOutline from '../../assets/eye-off-outline.svg';
 import EyeOpenOutline from '../../assets/eye-open.svg';
-import { BlurView } from 'expo-blur';
-import { ImageBackground } from 'react-native';
 
 const { width } = Dimensions.get('window');
 const scale = (size: number) => (width / 375) * size;
@@ -116,33 +114,34 @@ export default function LoginScreen({ navigation }: any) {
       style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-     {/*<LinearGradient
+      <LinearGradient
         colors={['#FF8C42', '#BF5700', '#994400']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }} 
         style={styles.gradient}
-      >*/}
-          <ImageBackground
-    source={require('../../assets/ChatGPT Image Feb 3, 2026, 10_23_47 PM.png')}
-    style={styles.backgroundImage}
-    resizeMode="cover"
-  >
+      >
         <View style={styles.centerContainer}>
-          <BlurView intensity={80} tint="light" style={styles.blurCard}>
-            <View style={styles.cardContent}>
-              <Text style={styles.title} allowFontScaling={false}>
-                {isSignUp ? 'Create your account' : 'Sign in with email'}
-              </Text>
-              
-              <Text style={styles.subtitle}>
-                {isSignUp 
-                  ? 'Join Longhorn Living to find your perfect home' 
-                  : 'Welcome back to Longhorn Living'}
-              </Text>
-              
+          {/* Brand/Logo Section */}
+          <View style={styles.brandSection}>
+            <Text style={styles.brandTitle} allowFontScaling={false}>
+              Longhorn Living
+            </Text>
+            <Text style={styles.infoTitle} allowFontScaling={false}>
+              Find your perfect apartment
+            </Text>
+            <View style={styles.brandDivider} />
+          </View>
+
+          {/* Card */}
+          <View style={styles.card}>
+            <Text style={styles.title} allowFontScaling={false}>
+              {isSignUp ? 'Create Account' : 'Welcome Back'}
+            </Text>
+            
+            <View style={styles.inputGroup}>
               <TextInput
                 placeholder="Email"
-                placeholderTextColor="#999"
+                placeholderTextColor="#9CA3AF"
                 style={styles.input}
                 autoCapitalize="none"
                 keyboardType="email-address"
@@ -151,11 +150,10 @@ export default function LoginScreen({ navigation }: any) {
                 autoComplete="email"
               />
 
-              {/* Password Input with Toggle */}
               <View style={styles.passwordContainer}>
                 <TextInput
                   placeholder="Password"
-                  placeholderTextColor="#999"
+                  placeholderTextColor="#9CA3AF"
                   style={styles.passwordInput}
                   secureTextEntry={!showPassword}
                   autoCapitalize="none"
@@ -166,143 +164,161 @@ export default function LoginScreen({ navigation }: any) {
                 <Pressable 
                   style={styles.eyeButton}
                   onPress={() => setShowPassword(!showPassword)}
+                  hitSlop={8}
                 >
                   {showPassword ? (
-                    <EyeOffOutline width={25} height={25} />
+                    <EyeOffOutline width={20} height={20} fill="#6B7280" />
                   ) : (
-                    <EyeOpenOutline width={25} height={25} />
+                    <EyeOpenOutline width={20} height={20} fill="#6B7280" />
                   )}
                 </Pressable>
               </View>
+            </View>
 
-              <Pressable
-                style={[styles.button, loading && styles.buttonDisabled]}
-                onPress={handleConfirm}
-                disabled={loading}
-              >
-                {loading ? (
-                  <ActivityIndicator color="#fff" />
-                ) : (
-                  <Text style={styles.buttonText} allowFontScaling={false}>
-                    {isSignUp ? 'Sign Up' : 'Get Started'}
-                  </Text>
-                )}
-              </Pressable>
-
-              {/* Toggle between Sign In and Sign Up */}
-              <Pressable
-                style={styles.toggleButton}
-                onPress={() => {
-                  setIsSignUp(!isSignUp);
-                  setError(null);
-                }}
-              >
-                <Text style={styles.toggleText}>
-                  {isSignUp 
-                    ? 'Already have an account? Sign In' 
-                    : "Don't have an account? Sign Up"}
+            <Pressable
+              style={[styles.button, loading && styles.buttonDisabled]}
+              onPress={handleConfirm}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.buttonText} allowFontScaling={false}>
+                  {isSignUp ? 'Sign Up' : 'Sign In'}
                 </Text>
-              </Pressable>
+              )}
+            </Pressable>
 
-              {/* Forgot Password Link - only show on Sign In */}
+            {/* Footer Links */}
+            <View style={styles.footer}>
               {!isSignUp && (
                 <Pressable
-                  style={styles.forgotPasswordButton}
                   onPress={() => navigation.navigate('ForgotPassword')}
+                  hitSlop={8}
                 >
-                  <Text style={styles.forgotPasswordText}>
+                  <Text style={styles.linkText}>
                     Forgot Password?
                   </Text>
                 </Pressable>
               )}
+              
+              <Pressable
+                onPress={() => {
+                  setIsSignUp(!isSignUp);
+                  setError(null);
+                }}
+                hitSlop={8}
+              >
+                <Text style={styles.linkText}>
+                  {isSignUp 
+                    ? 'Already have an account?' 
+                    : "Don't have an account?"}
+                </Text>
+              </Pressable>
             </View>
-          </BlurView>
+          </View>
         </View>
-        </ImageBackground>
-      {/*</LinearGradient>*/}
+      </LinearGradient>
     </KeyboardAvoidingView>
   );
 }
 
-
 const styles = StyleSheet.create({
   gradient: {
-      flex: 1,
-    },
-  centerContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      paddingHorizontal: scale(24),
-    },
-    backgroundImage: {
     flex: 1,
   },
-  blurCard: {
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: scale(24),
+  },
+  brandSection: {
+    alignItems: 'center',
+    marginBottom: scale(40),
+  },
+  brandTitle: {
+    fontSize: scale(32),
+    fontWeight: '700',
+    color: '#fff',
+    letterSpacing: -0.5,
+    marginBottom: scale(12),
+  },
+  infoTitle: {
+    fontSize: scale(16),
+    fontWeight: '700',
+    color: '#fff',
+    letterSpacing: -0.5,
+    marginBottom: scale(12),
+  },
+  brandDivider: {
+    width: scale(60),
+    height: 3,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: 2,
+  },
+  card: {
     width: '100%',
     maxWidth: 400,
-    borderRadius: scale(24),
-    overflow: 'hidden',
-    backgroundColor: 'rgba(255, 255, 255, 0.6)', 
-    borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.5)',
+    backgroundColor: '#fff',
+    borderRadius: scale(20),
+    padding: scale(32),
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.2,
-    shadowRadius: 20,
+    shadowOpacity: 0.15,
+    shadowRadius: 25,
     elevation: 10,
   },
-  cardContent: {
-    padding: scale(32),
-  },
   title: {
-    fontSize: scale(22),
-    fontWeight: '700',
-    marginBottom: scale(8),
+    fontSize: scale(26),
+    fontWeight: '600',
+    color: '#111827',
+    marginBottom: scale(28),
     textAlign: 'center',
-    color: '#1f2937',
   },
-  subtitle: {
-    fontSize: scale(14),
-    color: '#6b7280',
-    textAlign: 'center',
+  inputGroup: {
     marginBottom: scale(24),
+    gap: scale(14),
   },
   input: {
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
+    borderWidth: 1.5,
+    borderColor: '#E5E7EB',
     borderRadius: scale(12),
-    paddingVertical: scale(14),
-    paddingHorizontal: scale(16),
+    paddingVertical: scale(16),
+    paddingHorizontal: scale(18),
     fontSize: scale(16),
-    marginBottom: scale(16),
-    backgroundColor: '#fff',
+    backgroundColor: '#F9FAFB',
+    color: '#111827',
   },
   passwordContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
+    borderWidth: 1.5,
+    borderColor: '#E5E7EB',
     borderRadius: scale(12),
-    backgroundColor: '#fff',
-    marginBottom: scale(16),
+    backgroundColor: '#F9FAFB',
   },
   passwordInput: {
     flex: 1,
-    paddingVertical: scale(14),
-    paddingHorizontal: scale(16),
+    paddingVertical: scale(16),
+    paddingHorizontal: scale(18),
     fontSize: scale(16),
+    color: '#111827',
   },
   eyeButton: {
-    padding: scale(10),
-    paddingRight: scale(16),
+    padding: scale(12),
+    paddingRight: scale(18),
   },
   button: {
-    backgroundColor: '#1f2937',
-    paddingVertical: scale(14),
+    backgroundColor: '#BF5700',
+    paddingVertical: scale(16),
     borderRadius: scale(12),
     alignItems: 'center',
-    marginTop: scale(8),
+    shadowColor: '#BF5700',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   buttonDisabled: {
     opacity: 0.6,
@@ -311,23 +327,16 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: scale(16),
     fontWeight: '600',
+    letterSpacing: 0.3,
   },
-  toggleButton: {
-    marginTop: scale(16),
+  footer: {
+    marginTop: scale(24),
+    gap: scale(12),
     alignItems: 'center',
   },
-  toggleText: {
+  linkText: {
     fontSize: scale(14),
-    color: '#BF5700',
-    fontWeight: '500',
-  },
-  forgotPasswordButton: {
-    marginTop: scale(8),
-    alignItems: 'center',
-  },
-  forgotPasswordText: {
-    fontSize: scale(13),
-    color: '#6b7280',
+    color: '#6B7280',
     fontWeight: '500',
   },
 });
