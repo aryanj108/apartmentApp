@@ -260,14 +260,34 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
         </View>
 
         <View style={styles.chipsContainer}>
-          {details.map((detail) => (
-            <View key={detail.id} style={styles.chip}>
-              <View style={styles.chipContent}>
-                <detail.icon width={24} height={24} />
-                <Text style={styles.chipText}>{detail.label}</Text>
+          {details.map((detail) => {
+            // Make distance chip pressable
+            if (detail.id === 'distance') {
+              return (
+                <TouchableOpacity 
+                  key={detail.id} 
+                  style={styles.chip}
+                  onPress={() => openMaps(roomData.address)}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.chipContent}>
+                    <detail.icon width={24} height={24} />
+                    <Text style={styles.chipText}>{detail.label}</Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            }
+            
+            // Other chips remain non-pressable
+            return (
+              <View key={detail.id} style={styles.chip}>
+                <View style={styles.chipContent}>
+                  <detail.icon width={24} height={24} />
+                  <Text style={styles.chipText}>{detail.label}</Text>
+                </View>
               </View>
-            </View>
-          ))}
+            );
+          })}
         </View>
 
         {/* Description */}
