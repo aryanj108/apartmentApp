@@ -22,6 +22,44 @@ import { buildingsData } from '../data/buildings';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 import ImageCarousel from '../navigation/ImageCarousel';
 
+  // Helper function to open maps with directions
+  const openMaps = (destinationAddress: string) => {
+    // UT Austin coordinates
+    const utLatitude = 30.285340698031447;
+    const utLongitude = -97.73208396036748;
+    
+    // Encode the address for URL
+    const encodedAddress = encodeURIComponent(destinationAddress);
+    
+    let url = '';
+    
+    if (Platform.OS === 'ios') {
+      // Apple Maps URL scheme
+      url = `maps://app?saddr=${utLatitude},${utLongitude}&daddr=${encodedAddress}`;
+      
+      // Fallback to Google Maps on iOS if Apple Maps fails
+      const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${utLatitude},${utLongitude}&destination=${encodedAddress}`;
+      
+      Linking.canOpenURL(url).then(supported => {
+        if (supported) {
+          Linking.openURL(url);
+        } else {
+          Linking.openURL(googleMapsUrl);
+        }
+      }).catch(() => {
+        Linking.openURL(googleMapsUrl);
+      });
+    } else {
+      // Google Maps for Android
+      url = `https://www.google.com/maps/dir/?api=1&origin=${utLatitude},${utLongitude}&destination=${encodedAddress}`;
+      
+      Linking.openURL(url).catch(err => {
+        Alert.alert('Error', 'Unable to open maps. Please make sure you have a maps app installed.');
+        console.error('Error opening maps:', err);
+      });
+    }
+  };
+
 export default function RoomListingDetailsScreen({ navigation, route }) {
   const { savedIds, toggleSave } = usePreferences();
   const { listing, matchScore } = route.params;
