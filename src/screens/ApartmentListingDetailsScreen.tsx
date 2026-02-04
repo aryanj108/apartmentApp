@@ -250,13 +250,22 @@ useEffect(() => {
             <Text style={styles.sectionTitle}>Contact</Text>
           </View>
           {apartment.contact?.phone && (
-            <Text style={styles.featureItem}>• Phone Number: {apartment.contact.phone}</Text>
+            <View style={styles.contactItem}>
+              <Text style={styles.contactLabel}>Phone:</Text>
+              <Text style={styles.contactValue}>{apartment.contact.phone}</Text>
+            </View>
           )}
           {apartment.contact?.email && (
-            <Text style={styles.featureItem}>• Email: {apartment.contact.email}</Text>
+            <View style={styles.contactItem}>
+              <Text style={styles.contactLabel}>Email:</Text>
+              <Text style={styles.contactValue}>{apartment.contact.email}</Text>
+            </View>
           )}
           {apartment.contact?.hours && (
-            <Text style={styles.featureItem}>• Hours: {apartment.contact.hours}</Text>
+            <View style={styles.contactItem}>
+              <Text style={styles.contactLabel}>Hours:</Text>
+              <Text style={styles.contactValue}>{apartment.contact.hours}</Text>
+            </View>
           )}
           {!apartment.contact?.phone && !apartment.contact?.email && !apartment.contact?.hours && (
             <Text style={styles.featureItem}>• Contact information not available</Text>
@@ -643,14 +652,23 @@ unitCardContent: {
     fontSize: 12,
     fontWeight: 'bold',
   },
-  unitPrice: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#BF5700',
-  },
   viewDetailsText: {
     fontSize: 12,
     color: '#6b7280',
     fontWeight: '600',
   },
+  contactItem: {
+  marginBottom: 12,
+},
+contactLabel: {
+  fontSize: 14,
+  fontWeight: '600',
+  color: '#374151',
+  marginBottom: 4,
+},
+contactValue: {
+  fontSize: 16,
+  color: '#6b7280',
+  lineHeight: 24,
+},
 });
