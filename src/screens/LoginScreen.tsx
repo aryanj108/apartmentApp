@@ -116,15 +116,15 @@ export default function LoginScreen({ navigation }: any) {
       style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      {/*<LinearGradient
+     <LinearGradient
         colors={['#BF5700', '#FF8C42', '#FFFFFF']} 
         style={styles.gradient}
-      >*/}
-         <ImageBackground
-    source={require('../../assets/background.jpg')}
+      >
+          {/*<ImageBackground
+    source={require('../../assets/skyBackground.png')}
     style={styles.backgroundImage}
     resizeMode="cover"
-  >
+  >*/}
         <View style={styles.centerContainer}>
           <BlurView intensity={80} tint="light" style={styles.blurCard}>
             <View style={styles.cardContent}>
@@ -216,8 +216,8 @@ export default function LoginScreen({ navigation }: any) {
             </View>
           </BlurView>
         </View>
-        </ImageBackground>
-      {/*</LinearGradient>*/}
+        {/*</ImageBackground>*/}
+      </LinearGradient>
     </KeyboardAvoidingView>
   );
 }
