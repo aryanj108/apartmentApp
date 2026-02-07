@@ -30,8 +30,8 @@ function formatPrice(price) {
 // Default UT Austin coordinates
 const DEFAULT_LOCATION = {
   name: 'University of Texas at Austin',
-  lat: 30.2849,
-  lon: -97.7341
+  lat: 30.285340698031447,
+  lon: -97.73208396036748
 };
 
 export default function PreferencesScreen({ navigation, route }) {
@@ -515,13 +515,13 @@ export default function PreferencesScreen({ navigation, route }) {
                 gym: localPreferences.gym,
                 pool: localPreferences.pool,
                 petFriendly: localPreferences.petFriendly,
-                location: selectedLocation || null, // Save null if no location selected
+                location: selectedLocation || DEFAULT_LOCATION, // Save default location if no location selected
               });
               
               // Update context state AFTER successful save
               setPreferences({
                 ...localPreferences,
-                location: selectedLocation
+                location: selectedLocation || DEFAULT_LOCATION
               });
               
               console.log('Saved preferences:', localPreferences);
