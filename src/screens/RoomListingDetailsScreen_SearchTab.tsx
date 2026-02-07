@@ -31,8 +31,8 @@ import ImageCarousel from '../navigation/ImageCarousel';
   // Helper function to open maps with directions
   const openMaps = (destinationAddress: string) => {
     // UT Austin coordinates
-    const utLatitude = 30.285340698031447;
-    const utLongitude = -97.73208396036748;
+    const originLatitude = preferences.location?.lat || 30.285340698031447;
+    const originLongitude = preferences.location?.lon || -97.73208396036748;
     
     // Encode the address for URL
     const encodedAddress = encodeURIComponent(destinationAddress);
@@ -99,7 +99,7 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
     // Round to 1 decimal place
     calculatedDistance = Math.round(calculatedDistance * 10) / 10;
   }
-  
+
   // Merge listing and building data
   const roomData = {
     id: listing.id,
@@ -109,7 +109,7 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
     price: listing.price || 0,
     bedrooms: listing.bedrooms || 0,
     bathrooms: listing.bathrooms || 0,
-    distance: building.distance || 0,
+    distance: calculateDistance,
     description: (listing.description && listing.description.trim()) 
       ? listing.description 
       : (building.description || 'No description available.'),
