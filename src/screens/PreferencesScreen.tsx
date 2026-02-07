@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, ActivityIndicator, TextInput, FlatList, Keyboard } from 'react-native';
 import { Image } from 'react-native';
 import { usePreferences } from '../context/PreferencesContext';
 import { useAuth } from '../context/AuthContext';  
@@ -27,6 +27,13 @@ function formatPrice(price) {
   return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
+// Default UT Austin coordinates
+const DEFAULT_LOCATION = {
+  name: 'University of Texas at Austin',
+  lat: 30.2849,
+  lon: -97.7341
+};
+
 export default function PreferencesScreen({ navigation, route }) {
   const { user } = useAuth();
   const { preferences, setPreferences, loading } = usePreferences();
@@ -51,6 +58,13 @@ export default function PreferencesScreen({ navigation, route }) {
     pool: false,
     petFriendly: false,
   });
+
+  // Location search states
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showResults, setShowResults] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState(null); // null = no location set
 
   const [amenities, setAmenities] = useState([
     { id: 'wifi', label: 'WiFi', selected: false, icon: WifiIcon },
@@ -77,8 +91,69 @@ export default function PreferencesScreen({ navigation, route }) {
         pool: preferences.pool,
         petFriendly: preferences.petFriendly,
       });
+      
+      // Load saved location if exists
+      if (preferences.location) {
+        setSelectedLocation(preferences.location);
+      }
     }
   }, [loading, preferences]);
+
+  // Search location using Nominatim API
+  const searchLocation = async (query) => {
+    if (!query || query.length < 3) {
+      setSearchResults([]);
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      // Search within Austin, TX area for better results
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?` +
+        `q=${encodeURIComponent(query + ', Austin, TX')}&` +
+        `format=json&` +
+        `limit=5&` +
+        `bounded=1&` +
+        `viewbox=-97.9,30.5,-97.5,30.1` // Austin bounding box
+      );
+      
+      const data = await response.json();
+      setSearchResults(data);
+      setShowResults(true);
+    } catch (error) {
+      console.error('Error searching location:', error);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  // Debounced search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchQuery) {
+        searchLocation(searchQuery);
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  const selectLocation = (location) => {
+    setSelectedLocation({
+      name: location.display_name.split(',')[0], // Get just the building/place name
+      lat: parseFloat(location.lat),
+      lon: parseFloat(location.lon)
+    });
+    setSearchQuery('');
+    setShowResults(false);
+    Keyboard.dismiss();
+  };
+
+  const resetToDefaultLocation = () => {
+    setSelectedLocation(null);
+    setSearchQuery('');
+  };
 
   if (loading) {
     return (
@@ -134,10 +209,12 @@ export default function PreferencesScreen({ navigation, route }) {
       { id: 'furnished', label: 'Furnished', selected: false, icon: FurnishedIcon },
       { id: 'petFriendly', label: 'Pet Friendly', selected: false, icon: PetIcon },
     ]);
+    
+    resetToDefaultLocation();
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} keyboardShouldPersistTaps="handled">
       {/* Section 1 */}
       <View style={[styles.section, styles.firstSection]}>
         <View style={styles.header}>
@@ -151,7 +228,7 @@ export default function PreferencesScreen({ navigation, route }) {
         </View>
       </View>
 
-      {/* Section 2 */}
+      {/* Section 2 - Location Search */}
       <View style={[styles.section]}>
         <View style={styles.header}>
           <View style={styles.iconContainer}>
@@ -159,10 +236,67 @@ export default function PreferencesScreen({ navigation, route }) {
           </View>
           <View style={styles.headerText}>
             <Text style={styles.title}>Location (Optional)</Text>
-            <Text style={styles.content}>University of Texas at Austin</Text>
-            <Text style={styles.disclaimer}>*Automatically set to UT Austin</Text>
+            
+            {/* Show selected location name OR search input */}
+            {selectedLocation && !searchQuery ? (
+              <Text style={styles.content}>{selectedLocation.name}</Text>
+            ) : (
+              <TextInput
+                style={styles.inlineSearchInput}
+                placeholder="e.g., University of Texas at Austin"
+                placeholderTextColor="#d1d5db"
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                onFocus={() => setShowResults(true)}
+              />
+            )}
+            
+            {isSearching && (
+              <ActivityIndicator 
+                style={styles.inlineSearchLoader} 
+                size="small" 
+                color="#6b7280" 
+              />
+            )}
           </View>
         </View>
+        
+        {/* Info text */}
+        <View style={styles.infoContainer}>
+          <Text style={styles.infoIcon}>ⓘ</Text>
+          <Text style={styles.infoText}>Automatically set to UT Austin if left blank</Text>
+        </View>
+
+        {/* Search Results Dropdown */}
+        {showResults && searchResults.length > 0 && (
+          <View style={styles.resultsContainer}>
+            <FlatList
+              data={searchResults}
+              keyExtractor={(item) => item.place_id.toString()}
+              scrollEnabled={false}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.resultItem}
+                  onPress={() => selectLocation(item)}
+                >
+                  <Text style={styles.resultText} numberOfLines={2}>
+                    {item.display_name}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+        )}
+
+        {/* Reset to Default Button */}
+        {selectedLocation && (
+          <TouchableOpacity
+            style={styles.resetLocationButton}
+            onPress={resetToDefaultLocation}
+          >
+            <Text style={styles.resetLocationText}>Clear location</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Section 3 */}
@@ -381,12 +515,17 @@ export default function PreferencesScreen({ navigation, route }) {
                 gym: localPreferences.gym,
                 pool: localPreferences.pool,
                 petFriendly: localPreferences.petFriendly,
+                location: selectedLocation || null, // Save null if no location selected
               });
               
               // Update context state AFTER successful save
-              setPreferences(localPreferences);
+              setPreferences({
+                ...localPreferences,
+                location: selectedLocation
+              });
               
               console.log('Saved preferences:', localPreferences);
+              console.log('Saved location:', selectedLocation);
               navigation.navigate('SwipeSearch', { isRedo: isRedoingPreferences });
             }
           } catch (error) {
@@ -507,6 +646,89 @@ const styles = StyleSheet.create({
   headerText: {
     flex: 1,
   }, 
+  // Location Search Styles
+  inlineSearchInput: {
+    fontSize: 18,
+    color: '#000000ff',
+    fontWeight: '400',
+    padding: 0,
+    margin: 0,
+    minHeight: 28,
+  },
+  inlineSearchLoader: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
+  },
+  infoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  infoIcon: {
+    fontSize: 14,
+    color: '#9ca3af',
+    marginRight: 6,
+  },
+  infoText: {
+    fontSize: 13,
+    color: '#9ca3af',
+  },
+  searchContainer: {
+    marginTop: 16,
+    position: 'relative',
+  },
+  searchInput: {
+    backgroundColor: '#f3f4f6',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 15,
+    color: '#000000',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  searchLoader: {
+    position: 'absolute',
+    right: 16,
+    top: 12,
+  },
+  resultsContainer: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    maxHeight: 200,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  resultItem: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f3f4f6',
+  },
+  resultText: {
+    fontSize: 14,
+    color: '#000000',
+  },
+  resetLocationButton: {
+    marginTop: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: '#f9fafb',
+    borderRadius: 8,
+    alignSelf: 'flex-start',
+  },
+  resetLocationText: {
+    fontSize: 13,
+    color: '#6b7280',
+    fontWeight: '500',
+  },
   sliderContainer: {
     marginTop: 20,
   },
