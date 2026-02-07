@@ -32,6 +32,8 @@ import { setUserOnboardingComplete } from '../services/userService';
 import {
   calculateMatchScore,
 } from '../data/matchingAlgorithm';
+// Import the distance calculation utility
+import { calculateDistance, filterApartmentsByDistance } from '../navigation/locationUtils';
 
 import SwipeCard from '../navigation/SwipeCard';
 import CustomLoadingScreen from './CustomLoadingScreen';
@@ -57,53 +59,30 @@ function formatPrice(price) {
   return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
-  // Helper function to open maps with directions
-  const openMaps = (destinationAddress: string) => {
-    // UT Austin coordinates
-    const utLatitude = 30.285340698031447;
-    const utLongitude = -97.73208396036748;
-    
-    // Encode the address for URL
-    const encodedAddress = encodeURIComponent(destinationAddress);
-    
-    let url = '';
-    
-    if (Platform.OS === 'ios') {
-      // Apple Maps URL scheme
-      url = `maps://app?saddr=${utLatitude},${utLongitude}&daddr=${encodedAddress}`;
-      
-      // Fallback to Google Maps on iOS if Apple Maps fails
-      const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${utLatitude},${utLongitude}&destination=${encodedAddress}`;
-      
-      Linking.canOpenURL(url).then(supported => {
-        if (supported) {
-          Linking.openURL(url);
-        } else {
-          Linking.openURL(googleMapsUrl);
-        }
-      }).catch(() => {
-        Linking.openURL(googleMapsUrl);
-      });
-    } else {
-      // Google Maps for Android
-      url = `https://www.google.com/maps/dir/?api=1&origin=${utLatitude},${utLongitude}&destination=${encodedAddress}`;
-      
-      Linking.openURL(url).catch(err => {
-        Alert.alert('Error', 'Unable to open maps. Please make sure you have a maps app installed.');
-        console.error('Error opening maps:', err);
-      });
-    }
-  };
-
 // Helper function to combine listing with building data
-function getEnrichedListings() {
+// NOW ACCEPTS CUSTOM LOCATION TO CALCULATE DISTANCES
+function getEnrichedListings(customLocation?: {lat: number, lon: number} | null) {
   return listingsData.map(listing => {
     const building = buildingsData.find(b => b.id === listing.buildingId);
+    
+    // Calculate distance from custom location if provided
+    let calculatedDistance = building?.distance || 0;
+    if (customLocation && building?.latitude && building?.longitude) {
+      calculatedDistance = calculateDistance(
+        customLocation.lat,
+        customLocation.lon,
+        building.latitude,
+        building.longitude
+      );
+      // Round to 1 decimal place
+      calculatedDistance = Math.round(calculatedDistance * 10) / 10;
+    }
+    
     return {
       ...listing,
       name: building?.name || 'Unknown',
       address: building?.address || 'Unknown Address',
-      distance: building?.distance || 0,
+      distance: calculatedDistance,
       amenities: building?.amenities || [],
       images: building?.images || [],
       description: listing.description || building?.description || '',
@@ -112,6 +91,8 @@ function getEnrichedListings() {
       contact: building?.contact || {},
       leaseDetails: building?.leaseDetails || {},
       website: listing.website || building?.website || '',
+      latitude: building?.latitude,
+      longitude: building?.longitude,
     };
   });
 }
@@ -127,6 +108,44 @@ export default function SwipeScreen({ navigation, route }: any) {
   const [selectedAmenities, setSelectedAmenities] = useState<any[]>([]);
   const [enrichedListings, setEnrichedListings] = useState<any[]>([]);
   const [minLoadingTime, setMinLoadingTime] = useState(true);
+
+  // HELPER FUNCTION TO OPEN MAPS - NOW USES CUSTOM LOCATION
+  const openMaps = (destinationAddress: string) => {
+    // Use custom location if set in preferences, otherwise default to UT Austin
+    const originLatitude = preferences.location?.lat || 30.285340698031447;
+    const originLongitude = preferences.location?.lon || -97.73208396036748;
+    
+    // Encode the address for URL
+    const encodedAddress = encodeURIComponent(destinationAddress);
+    
+    let url = '';
+    
+    if (Platform.OS === 'ios') {
+      // Apple Maps URL scheme
+      url = `maps://app?saddr=${originLatitude},${originLongitude}&daddr=${encodedAddress}`;
+      
+      // Fallback to Google Maps on iOS if Apple Maps fails
+      const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${originLatitude},${originLongitude}&destination=${encodedAddress}`;
+      
+      Linking.canOpenURL(url).then(supported => {
+        if (supported) {
+          Linking.openURL(url);
+        } else {
+          Linking.openURL(googleMapsUrl);
+        }
+      }).catch(() => {
+        Linking.openURL(googleMapsUrl);
+      });
+    } else {
+      // Google Maps for Android
+      url = `https://www.google.com/maps/dir/?api=1&origin=${originLatitude},${originLongitude}&destination=${encodedAddress}`;
+      
+      Linking.openURL(url).catch(err => {
+        Alert.alert('Error', 'Unable to open maps. Please make sure you have a maps app installed.');
+        console.error('Error opening maps:', err);
+      });
+    }
+  };
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -145,16 +164,16 @@ export default function SwipeScreen({ navigation, route }: any) {
   }, [preferences]);
 
   useEffect(() => {
-    // Get all listings with building data combined
-    const listings = getEnrichedListings();
+    // Get all listings with building data combined and recalculated distances
+    const listings = getEnrichedListings(preferences.location);
     setEnrichedListings(listings);
-  }, []);
+  }, [preferences.location]); // Re-run when location changes
 
   // Handle completing onboarding when all cards are swiped
   const handleFinishSwiping = async () => {
     try {
       // Only mark onboarding complete if this is NOT a redo
-      if (user?.uid) {
+      if (user?.uid && !isRedoingPreferences) {
         await setUserOnboardingComplete(user.uid);
         setHasCompletedOnboarding(true);
         
