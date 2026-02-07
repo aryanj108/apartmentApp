@@ -24,7 +24,13 @@ import { calculateDistance } from '../navigation/locationUtils';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 import ImageCarousel from '../navigation/ImageCarousel';
 
-  const copyToClipboard = async (text, label) => {
+export default function RoomListingDetailsScreen({ navigation, route }) {
+  const { savedIds, toggleSave, preferences } = usePreferences();
+  const { listing, matchScore } = route.params;
+  const scoreValue = matchScore || 0;
+  const animatedWidth = useRef(new Animated.Value(0)).current;
+
+    const copyToClipboard = async (text, label) => {
     await Clipboard.setStringAsync(text);
     Alert.alert('Copied!', `${label} has been copied to your clipboard.`);
   };
@@ -41,10 +47,10 @@ import ImageCarousel from '../navigation/ImageCarousel';
     
     if (Platform.OS === 'ios') {
       // Apple Maps URL scheme
-      url = `maps://app?saddr=${utLatitude},${utLongitude}&daddr=${encodedAddress}`;
+      url = `maps://app?saddr=${originLatitude},${originLongitude}&daddr=${encodedAddress}`;
       
       // Fallback to Google Maps on iOS if Apple Maps fails
-      const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${utLatitude},${utLongitude}&destination=${encodedAddress}`;
+      const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${originLatitude},${originLongitude}&destination=${encodedAddress}`;
       
       Linking.canOpenURL(url).then(supported => {
         if (supported) {
@@ -57,7 +63,7 @@ import ImageCarousel from '../navigation/ImageCarousel';
       });
     } else {
       // Google Maps for Android
-      url = `https://www.google.com/maps/dir/?api=1&origin=${utLatitude},${utLongitude}&destination=${encodedAddress}`;
+      url = `https://www.google.com/maps/dir/?api=1&origin=${originLatitude},${originLongitude}&destination=${encodedAddress}`;
       
       Linking.openURL(url).catch(err => {
         Alert.alert('Error', 'Unable to open maps. Please make sure you have a maps app installed.');
@@ -65,12 +71,6 @@ import ImageCarousel from '../navigation/ImageCarousel';
       });
     }
   };
-
-export default function RoomListingDetailsScreen({ navigation, route }) {
-  const { savedIds, toggleSave, preferences } = usePreferences();
-  const { listing, matchScore } = route.params;
-  const scoreValue = matchScore || 0;
-  const animatedWidth = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.timing(animatedWidth, {
@@ -109,7 +109,7 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
     price: listing.price || 0,
     bedrooms: listing.bedrooms || 0,
     bathrooms: listing.bathrooms || 0,
-    distance: calculateDistance,
+    distance: calculatedDistance,
     description: (listing.description && listing.description.trim()) 
       ? listing.description 
       : (building.description || 'No description available.'),
