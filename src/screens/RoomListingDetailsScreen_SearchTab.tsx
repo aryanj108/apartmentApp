@@ -19,6 +19,7 @@ import StarIcon from '../../assets/stars.svg';
 import ExternalLinkIcon from '../../assets/shareIcon2.svg'; 
 import { buildingsData } from '../data/buildings';
 import * as Clipboard from 'expo-clipboard';
+import { calculateDistance } from '../navigation/locationUtils';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 import ImageCarousel from '../navigation/ImageCarousel';
@@ -66,7 +67,7 @@ import ImageCarousel from '../navigation/ImageCarousel';
   };
 
 export default function RoomListingDetailsScreen({ navigation, route }) {
-  const { savedIds, toggleSave } = usePreferences();
+  const { savedIds, toggleSave, preferences } = usePreferences();
   const { listing, matchScore } = route.params;
   const scoreValue = matchScore || 0;
   const animatedWidth = useRef(new Animated.Value(0)).current;
@@ -87,6 +88,18 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
   // Get the building data for this listing
   const building = buildingsData.find(b => b.id === listing.buildingId) || {};
 
+  let calculatedDistance = building.distance || 0;
+  if (preferences.location && building.latitude && building.longitude) {
+    calculatedDistance = calculateDistance(
+      preferences.location.lat,
+      preferences.location.lon,
+      building.latitude,
+      building.longitude
+    );
+    // Round to 1 decimal place
+    calculatedDistance = Math.round(calculatedDistance * 10) / 10;
+  }
+  
   // Merge listing and building data
   const roomData = {
     id: listing.id,

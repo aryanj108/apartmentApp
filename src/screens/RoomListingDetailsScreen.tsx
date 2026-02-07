@@ -19,6 +19,8 @@ import StarIcon from '../../assets/stars.svg';
 import ExternalLinkIcon from '../../assets/shareIcon2.svg'; 
 import { buildingsData } from '../data/buildings';
 import * as Clipboard from 'expo-clipboard';
+// Import the distance calculation utility
+import { calculateDistance } from '../navigation/locationUtils';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 import ImageCarousel from '../navigation/ImageCarousel';
@@ -28,46 +30,8 @@ import ImageCarousel from '../navigation/ImageCarousel';
     Alert.alert('Copied!', `${label} has been copied to your clipboard.`);
   };
 
-  // Helper function to open maps with directions
-  const openMaps = (destinationAddress: string) => {
-    // UT Austin coordinates
-    const utLatitude = 30.285340698031447;
-    const utLongitude = -97.73208396036748;
-    
-    // Encode the address for URL
-    const encodedAddress = encodeURIComponent(destinationAddress);
-    
-    let url = '';
-    
-    if (Platform.OS === 'ios') {
-      // Apple Maps URL scheme
-      url = `maps://app?saddr=${utLatitude},${utLongitude}&daddr=${encodedAddress}`;
-      
-      // Fallback to Google Maps on iOS if Apple Maps fails
-      const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${utLatitude},${utLongitude}&destination=${encodedAddress}`;
-      
-      Linking.canOpenURL(url).then(supported => {
-        if (supported) {
-          Linking.openURL(url);
-        } else {
-          Linking.openURL(googleMapsUrl);
-        }
-      }).catch(() => {
-        Linking.openURL(googleMapsUrl);
-      });
-    } else {
-      // Google Maps for Android
-      url = `https://www.google.com/maps/dir/?api=1&origin=${utLatitude},${utLongitude}&destination=${encodedAddress}`;
-      
-      Linking.openURL(url).catch(err => {
-        Alert.alert('Error', 'Unable to open maps. Please make sure you have a maps app installed.');
-        console.error('Error opening maps:', err);
-      });
-    }
-  };
-
 export default function RoomListingDetailsScreen({ navigation, route }) {
-  const { savedIds, toggleSave } = usePreferences();
+  const { savedIds, toggleSave, preferences } = usePreferences();
   const { listing, matchScore } = route.params;
   const scoreValue = matchScore || 0;
   const animatedWidth = useRef(new Animated.Value(0)).current;
@@ -88,6 +52,19 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
   // Get the building data for this listing
   const building = buildingsData.find(b => b.id === listing.buildingId) || {};
 
+  // Calculate distance from custom location if set
+  let calculatedDistance = building.distance || 0;
+  if (preferences.location && building.latitude && building.longitude) {
+    calculatedDistance = calculateDistance(
+      preferences.location.lat,
+      preferences.location.lon,
+      building.latitude,
+      building.longitude
+    );
+    // Round to 1 decimal place
+    calculatedDistance = Math.round(calculatedDistance * 10) / 10;
+  }
+
   // Merge listing and building data
   const roomData = {
     id: listing.id,
@@ -97,7 +74,7 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
     price: listing.price || 0,
     bedrooms: listing.bedrooms || 0,
     bathrooms: listing.bathrooms || 0,
-    distance: building.distance || 0,
+    distance: calculatedDistance, // Use calculated distance
     // Use listing description if it exists, otherwise use building description
     description: (listing.description && listing.description.trim()) 
       ? listing.description 
@@ -121,6 +98,44 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
     sqft: listing.sqft,
     floorPlan: listing.floorPlan,
     smartHousing: listing.smartHousing
+  };
+
+  // Helper function to open maps with directions
+  const openMaps = (destinationAddress: string) => {
+    // Use custom location if set in preferences, otherwise default to UT Austin
+    const originLatitude = preferences.location?.lat || 30.285340698031447;
+    const originLongitude = preferences.location?.lon || -97.73208396036748;
+    
+    // Encode the address for URL
+    const encodedAddress = encodeURIComponent(destinationAddress);
+    
+    let url = '';
+    
+    if (Platform.OS === 'ios') {
+      // Apple Maps URL scheme
+      url = `maps://app?saddr=${originLatitude},${originLongitude}&daddr=${encodedAddress}`;
+      
+      // Fallback to Google Maps on iOS if Apple Maps fails
+      const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${originLatitude},${originLongitude}&destination=${encodedAddress}`;
+      
+      Linking.canOpenURL(url).then(supported => {
+        if (supported) {
+          Linking.openURL(url);
+        } else {
+          Linking.openURL(googleMapsUrl);
+        }
+      }).catch(() => {
+        Linking.openURL(googleMapsUrl);
+      });
+    } else {
+      // Google Maps for Android
+      url = `https://www.google.com/maps/dir/?api=1&origin=${originLatitude},${originLongitude}&destination=${encodedAddress}`;
+      
+      Linking.openURL(url).catch(err => {
+        Alert.alert('Error', 'Unable to open maps. Please make sure you have a maps app installed.');
+        console.error('Error opening maps:', err);
+      });
+    }
   };
 
   const isSaved = savedIds.includes(roomData.id);
