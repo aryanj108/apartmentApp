@@ -40,7 +40,7 @@ export default function AppNavigator() {
       {!user ? (
         // User is NOT signed in - show auth screens
         <>
-          <Stack.Screen name="Welcome" component={WelcomeScreen} />
+          {/*<Stack.Screen name="Welcome" component={WelcomeScreen} /> // Temporarily skip welcome screen for faster testing*/}
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
         </>

@@ -669,7 +669,7 @@ export const listingsData = [
   id: 20,
   buildingId: 2,
   unitNumber: "S1 Studio",
-  smartHousing: false,
+  smartHousing: true,
   description: "The S1 Studio Apartment at Torre Student Living is a fully furnished studio designed for students seeking privacy, comfort, and luxury in the heart of West Campus. This one-bedroom, one-bath layout features modern finishes, smart-home technology, and access to Torre’s expansive rooftop and community amenities, including a resort-style pool, fitness center, and private study spaces.",
   features: [
       "Private studio apartment",
@@ -705,7 +705,7 @@ export const listingsData = [
   id: 21,
   buildingId: 2,
   unitNumber: "S2 Studio",
-  smartHousing: false,
+  smartHousing: true,
   description: "The S2 Studio Apartment at Torre Student Living offers a sleek, fully furnished studio designed for students who value privacy and modern convenience in West Campus. This one-bedroom, one-bath layout features upscale finishes, smart-home technology, and access to Torre’s extensive community amenities, including rooftop lounges, a resort-style pool, and dedicated study and fitness spaces.",
   features: [
       "Private studio apartment",
