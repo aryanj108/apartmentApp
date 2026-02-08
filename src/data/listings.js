@@ -666,7 +666,7 @@ export const listingsData = [
 
   // Torre Student Living
   {
-  id: 1,
+  id: 20,
   buildingId: 2,
   unitNumber: "S1 Studio",
   smartHousing: false,
@@ -701,36 +701,41 @@ export const listingsData = [
   leaseTerm: "Academic year leases",
   website: "https://torreatx.com/floor-plans/s1/"
   },
-  // North Loop Flats (buildingId: 10)
   {
-    id: 20,
-    buildingId: 10,
-    unitNumber: "N1",
-    price: 1250,
-    bedrooms: 1,
-    bathrooms: 1,
-    sqft: 650,
-    floorPlan: "One Bedroom",
-    available: true,
-    availableDate: "Available now",
-    deposit: 1250,
-    leaseTerm: "6 or 12-month"
-  },
-
-  // Tech Ridge Residences (buildingId: 11)
-  {
-    id: 21,
-    buildingId: 11,
-    unitNumber: "TR4",
-    price: 2700,
-    bedrooms: 4,
-    bathrooms: 3,
-    sqft: 2000,
-    floorPlan: "Four Bedroom",
-    available: true,
-    availableDate: "Available now",
-    deposit: 2700,
-    leaseTerm: "12-month"
+  id: 21,
+  buildingId: 2,
+  unitNumber: "S2 Studio",
+  smartHousing: false,
+  description: "The S2 Studio Apartment at Torre Student Living offers a sleek, fully furnished studio designed for students who value privacy and modern convenience in West Campus. This one-bedroom, one-bath layout features upscale finishes, smart-home technology, and access to Torre’s extensive community amenities, including rooftop lounges, a resort-style pool, and dedicated study and fitness spaces.",
+  features: [
+      "Private studio apartment",
+      "Fully furnished with modern designer finishes",
+      "Private bedroom and bathroom",
+      "Hardwood-style flooring",
+      "Quartz countertops",
+      "Upgraded stainless steel appliances",
+      "55-inch wall-mounted TV included",
+      "In-unit front-loading washer and dryer",
+      "Whole-home smart automation",
+      "High-speed internet included",
+      "Pet-friendly community",
+      "Access to rooftop pool, hot tub, and lounge areas",
+      "State-of-the-art fitness center",
+      "Private study pods with smartboards",
+      "Recording room and computer lab with complimentary printing",
+      "Academic year leasing available"
+    ],
+  price: 0,
+  bedrooms: 1,
+  bathrooms: 1,
+  sqft: 0,
+  floorPlan: "Studio",
+  available: false,
+  availableDate: "Sold Out",
+  moveInFee: 0,
+  deposit: 0,
+  leaseTerm: "Academic year leases",
+  website: "https://torreatx.com/floor-plans/s2/"
   },
 
   // Downtown Micro Units (buildingId: 12)

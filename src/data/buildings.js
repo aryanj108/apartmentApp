@@ -105,23 +105,6 @@ export const buildingsData = [
     website: "https://torreatx.com/"
   },
   {
-    id: 2,
-    name: "The Pearl Residences",
-    address: "3200 Pearl St, Austin, TX",
-    latitude: 30.3052,
-    longitude: -97.7329,
-    distance: 1.1,
-    amenities: ["wifi", "gym", "parking", "petFriendly"],
-    images: [
-      require('../data/images/apartmentTestImage1.jpg'),
-    ],
-    description: "Modern apartments with a quiet neighborhood feel.",
-    features: ["Updated Kitchen", "Balcony"],
-    reviews: ["Clean and well managed."],
-    contact: { phone: "555-1002", email: "leasing@pearlres.com", hours: "Mon-Sat 10AM-6PM" },
-    website: "https://pearlresidences.com"
-  },
-  {
     id: 3,
     name: "Skyline Tower",
     address: "1100 Guadalupe St, Austin, TX",
