@@ -14,6 +14,7 @@ export type Preferences = {
   gym: boolean;
   pool: boolean;
   petFriendly: boolean;
+  location?: { name: string; lat: number; lon: number };
 };
 
 type PreferencesContextType = {
@@ -74,6 +75,7 @@ export const PreferencesProvider = ({ children }: PreferencesProviderProps) => {
               pool: userProfile.preferences.pool ?? false,
               petFriendly: userProfile.preferences.petFriendly ?? false,
               furnished: userProfile.preferences.furnished ?? false,
+              location: userProfile.preferences.location ?? null,
             });
           }
 
@@ -87,6 +89,21 @@ export const PreferencesProvider = ({ children }: PreferencesProviderProps) => {
           setLoading(false);
         }
       } else {
+          setPreferences({
+          minPrice: 0,
+          maxPrice: 5000,
+          beds: 1,
+          bathrooms: 1,
+          distance: 0.5,
+          parking: false,
+          wifi: false,
+          gym: false,
+          pool: false,
+          petFriendly: false,
+          furnished: false,
+          location: undefined, 
+        });
+        setSavedIds([]);
         setLoading(false);
       }
     };

@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { LinearGradient } from 'expo-linear-gradient';
+import { calculateDistance } from '../navigation/locationUtils';
 
 import { buildingsData } from '../data/buildings';
 import { listingsData } from '../data/listings';
@@ -45,14 +46,27 @@ function formatPrice(price) {
 }
 
 // Helper function to combine listing with building data
-function getEnrichedListings() {
+function getEnrichedListings(customLocation?: {lat: number, lon: number} | null) {
   return listingsData.map(listing => {
     const building = buildingsData.find(b => b.id === listing.buildingId);
+    // Calculate distance from custom location if provided
+    let calculatedDistance = building?.distance || 0;
+    if (customLocation && building?.latitude && building?.longitude) {
+      calculatedDistance = calculateDistance(
+        customLocation.lat,
+        customLocation.lon,
+        building.latitude,
+        building.longitude
+      );
+      // Round to 1 decimal place
+      calculatedDistance = Math.round(calculatedDistance * 10) / 10;
+    }
+
     return {
       ...listing,
       name: building?.name || 'Unknown',
       address: building?.address || 'Unknown Address',
-      distance: building?.distance || 0,
+      distance: calculatedDistance,  
       amenities: building?.amenities || [],
       images: building?.images || [],
       description: listing.description || building?.description || '',
@@ -61,6 +75,8 @@ function getEnrichedListings() {
       contact: building?.contact || {},
       leaseDetails: building?.leaseDetails || {},
       website: listing.website || building?.website || '',
+      latitude: building?.latitude,
+      longitude: building?.longitude,
     };
   });
 }
@@ -293,8 +309,9 @@ export default function Search({ navigation }) {
     
     setLoading(true);
     
+    const userLoc = preferences.location || { lat: 30.2853, lon: -97.7320 };
     // Get enriched listings
-    const enrichedListings = getEnrichedListings();
+    const enrichedListings = getEnrichedListings(userLoc);
     
     // Calculate match scores and sort
     const listingsWithScores = enrichedListings.map(listing => {
@@ -310,7 +327,7 @@ export default function Search({ navigation }) {
     
     setSortedListings(sorted);
     setLoading(false);
-  }, [preferences, prefsLoading]);
+  }, [preferences, prefsLoading, preferences.location]);
 
   const handleCardPress = (listing) => {
     // List view: go to individual unit details first

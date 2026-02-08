@@ -515,7 +515,7 @@ export default function PreferencesScreen({ navigation, route }) {
                 gym: localPreferences.gym,
                 pool: localPreferences.pool,
                 petFriendly: localPreferences.petFriendly,
-                location: selectedLocation || DEFAULT_LOCATION, // Save default location if no location selected
+                location: selectedLocation || DEFAULT_LOCATION, 
               });
               
               // Update context state AFTER successful save

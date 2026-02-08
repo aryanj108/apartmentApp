@@ -187,7 +187,7 @@ export default function SwipeScreen({ navigation, route }: any) {
             }
           ]
         );
-      } if (isRedoingPreferences) {
+        if (isRedoingPreferences) {
         // If redoing, just go back to main tabs
         Alert.alert(
           'Preferences Updated',
@@ -203,6 +203,7 @@ export default function SwipeScreen({ navigation, route }: any) {
         // Fallback - just navigate
         navigation.navigate('MainTabs');
       }
+    }
     } catch (error) {
       console.error('Error completing swiping:', error);
       Alert.alert('Error', 'Something went wrong. Please try again.');
