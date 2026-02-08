@@ -42,8 +42,8 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 const CARD_HEIGHT = SCREEN_HEIGHT * 0.85;
 const CARD_WIDTH = SCREEN_WIDTH * 0.92;
-const IMAGE_HEIGHT = CARD_HEIGHT * 0.55;
-const INFO_HEIGHT = CARD_HEIGHT * 0.45;
+const IMAGE_HEIGHT = CARD_HEIGHT * 0.50;
+const INFO_HEIGHT = CARD_HEIGHT * 0.50;
 const AMENITY_WIDTH = (CARD_WIDTH - 32 - 16) / 3;
 
 const allAmenities = [
