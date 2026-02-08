@@ -689,15 +689,15 @@ export const listingsData = [
       "Recording room and computer lab with complimentary printing",
       "Academic year leasing available"
     ],
-  price: null,
+  price: 0,
   bedrooms: 1,
   bathrooms: 1,
   sqft: 0,
   floorPlan: "Studio",
   available: false,
   availableDate: "Sold Out",
-  moveInFee: null,
-  deposit: null,
+  moveInFee: 0,
+  deposit: 0,
   leaseTerm: "Academic year leases",
   website: "https://torreatx.com/floor-plans/s1/"
   },

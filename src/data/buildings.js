@@ -58,8 +58,8 @@ export const buildingsData = [
     id: 2,
     name: "Torre Student Living",
     address: "2020 Nueces St, Austin, TX 78705",
-    latitude: 30.28399102737878,
-    longitude: -97.74420032698426,
+    latitude: 30.28385437235069,
+    longitude: -97.74428883988092,
     distance: 0.4,
     amenities: ["wifi", "pool", "gym", "parking", "furnished", "petFriendly"],
     images: [
