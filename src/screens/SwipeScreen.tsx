@@ -173,7 +173,7 @@ export default function SwipeScreen({ navigation, route }: any) {
   const handleFinishSwiping = async () => {
     try {
       // Only mark onboarding complete if this is NOT a redo
-      if (user?.uid && !isRedoingPreferences) {
+      if (user?.uid) {
         await setUserOnboardingComplete(user.uid);
         setHasCompletedOnboarding(true);
         
@@ -187,7 +187,7 @@ export default function SwipeScreen({ navigation, route }: any) {
             }
           ]
         );
-      } else if (isRedoingPreferences) {
+      } if (isRedoingPreferences) {
         // If redoing, just go back to main tabs
         Alert.alert(
           'Preferences Updated',
