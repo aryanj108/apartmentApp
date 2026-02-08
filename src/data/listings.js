@@ -192,7 +192,7 @@ export const listingsData = [
   {
   id: 6,
   buildingId: 1,
-  unitNumber: "2 Bed - 2 Bath Corner Unit",
+  unitNumber: "2 Bed - 2 Bath Apartment - Corner Unit + Floors 16-17",
   smartHousing: false,
   description: "The 2 Bed - 2 Bath Corner Unit at The Callaway House Austin offers fully furnished private bedrooms and a shared living space, designed for students seeking comfort, convenience, and premium amenities. Each bedroom includes a full-sized, extra long bed, nightstand, study desk and chair. The living room features a leather-style sofa, coffee and end tables, entertainment system, and counter stools. The kitchen offers granite counters and stainless steel appliances, while the apartment also includes premium features such as hardwood-style floors, full-sized washer and dryer, and granite bathroom counters. Residents enjoy an all-inclusive utility package, high-speed internet, biweekly housekeeping, and an unlimited meal plan.",
   features: [
