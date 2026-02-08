@@ -56,6 +56,56 @@ export const buildingsData = [
   },
   {
     id: 2,
+    name: "Torre Student Living",
+    address: "2020 Nueces St, Austin, TX 78705",
+    latitude: 30.28399102737878,
+    longitude: -97.74420032698426,
+    distance: 0.4,
+    amenities: ["wifi", "pool", "gym", "parking", "furnished", "petFriendly"],
+    images: [
+        require('../data/images/apartmentTestImage1.jpg'),
+        require('../data/images/apartmentTestImage2.jpg'),
+        require('../data/images/apartmentTestImage3.jpg'),
+        require('../data/images/apartmentTestImage4.jpg'),
+        require('../data/images/testApartmentImage5.jpg'),
+      ],
+      description: "Torre Student Living is a luxury high-rise community in the heart of West Campus, offering modern student apartments with upscale finishes, smart-home technology, and the largest amenity space in the area. From fully furnished studios to six-person townhomes, Torre blends premium design with lifestyle-enhancing features, rooftop spaces, and panoramic views of campus and downtown Austin.",
+      features: [
+        "Located in West Campus near UT Austin",
+        "Luxury high-rise with campus & downtown views",
+        "Fully furnished apartments with designer finishes",
+        "Townhome-style floor plans available",
+        "Private & shared bedrooms with en-suite bathrooms",
+        "Quartz countertops & hardwood-style flooring",
+        "55-inch wall-mounted TVs included",
+        "In-unit front-loading washer & dryer",
+        "Whole-home smart automation",
+        "High-speed internet included",
+        "Pet-friendly community",
+        "Deferred rent option available"
+      ],
+    reviews: [
+        "Amazing rooftop amenities with incredible views of Austin.",
+        "Modern, fully furnished apartments that feel high-end.",
+        "Great location in West Campus, close to UT classes.",
+        "Study pods and private spaces make schoolwork easier.",
+        "Friendly staff and well-maintained common areas.",
+        "Smart-home features are super convenient for students."
+      ],
+    contact: {
+        phone: "(737) 355-9145",
+        email: "contact@torrestudentliving.com",
+        hours: "Mon-Fri 10AM-6PM, Sat 10AM-4PM, Sun Closed"
+      },
+    leaseDetails: {
+        term: "Academic year",
+        deposit: "Contact office for details",
+        availability: "Contact office for current availability"
+      },
+    website: "https://torreatx.com/"
+  },
+  {
+    id: 2,
     name: "The Pearl Residences",
     address: "3200 Pearl St, Austin, TX",
     latitude: 30.3052,

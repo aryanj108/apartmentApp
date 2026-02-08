@@ -664,6 +664,43 @@ export const listingsData = [
   website: "https://www.americancampus.com/student-apartments/tx/austin/the-callaway-house-austin/floor-plans#/detail/685-4bed-4bathsuitesingle-cornerunit-privatebedroom_privatebathroom-cornerunit-fall2026_academicterm_08_2026-05_2027"
   },
 
+  // Torre Student Living
+  {
+  id: 1,
+  buildingId: 2,
+  unitNumber: "S1 Studio",
+  smartHousing: false,
+  description: "The S1 Studio Apartment at Torre Student Living is a fully furnished studio designed for students seeking privacy, comfort, and luxury in the heart of West Campus. This one-bedroom, one-bath layout features modern finishes, smart-home technology, and access to Torre’s expansive rooftop and community amenities, including a resort-style pool, fitness center, and private study spaces.",
+  features: [
+      "Private studio apartment",
+      "Fully furnished with modern designer finishes",
+      "Private bedroom and bathroom",
+      "Hardwood-style flooring",
+      "Quartz countertops",
+      "Upgraded stainless steel appliances",
+      "55-inch wall-mounted TV included",
+      "In-unit front-loading washer and dryer",
+      "Whole-home smart automation",
+      "High-speed internet included",
+      "Pet-friendly community",
+      "Access to rooftop pool, hot tub, and lounge areas",
+      "State-of-the-art fitness center",
+      "Private study pods with smartboards",
+      "Recording room and computer lab with complimentary printing",
+      "Academic year leasing available"
+    ],
+  price: null,
+  bedrooms: 1,
+  bathrooms: 1,
+  sqft: 0,
+  floorPlan: "Studio",
+  available: false,
+  availableDate: "Sold Out",
+  moveInFee: null,
+  deposit: null,
+  leaseTerm: "Academic year leases",
+  website: "https://torreatx.com/floor-plans/s1/"
+  },
   // North Loop Flats (buildingId: 10)
   {
     id: 20,
