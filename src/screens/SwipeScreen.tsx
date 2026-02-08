@@ -176,17 +176,7 @@ export default function SwipeScreen({ navigation, route }: any) {
       if (user?.uid) {
         await setUserOnboardingComplete(user.uid);
         setHasCompletedOnboarding(true);
-        
-        Alert.alert(
-          'Setup Complete!',
-          'Your preferences have been saved. You can now browse apartments.',
-          [
-            {
-              text: 'Start Browsing',
-              onPress: () => navigation.navigate('MainTabs')
-            }
-          ]
-        );
+
         if (isRedoingPreferences) {
         // If redoing, just go back to main tabs
         Alert.alert(
@@ -199,8 +189,17 @@ export default function SwipeScreen({ navigation, route }: any) {
             }
           ]
         );
-      } else {
-        // Fallback - just navigate
+      } else {                
+        Alert.alert(
+          'Setup Complete!',
+          'Your preferences have been saved. You can now browse apartments.',
+          [
+            {
+              text: 'Start Browsing',
+              onPress: () => navigation.navigate('MainTabs')
+            }
+          ]
+        );
         navigation.navigate('MainTabs');
       }
     }
