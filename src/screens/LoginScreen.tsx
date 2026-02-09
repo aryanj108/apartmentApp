@@ -127,13 +127,13 @@ const AnimatedInput = ({
         autoComplete={autoComplete}
       />
 
-      {/* Clear Button - ADD THIS BLOCK */}
+      {/* Clear Button */}
       {showClearButton && value.length > 0 && isFocused && (
         <Pressable 
           style={styles.clearButton}
           onPress={onClear}
         >
-          <CancelIcon width={18} height={18} fill="#8e8e8e" />
+          <CancelIcon width={22} height={22} fill="#8e8e8e" />
         </Pressable>
       )}
 
@@ -291,6 +291,8 @@ export default function LoginScreen({ navigation }: any) {
             onPress={() => {
               setIsSignUp(!isSignUp);
               setError(null);
+              setEmail('');      
+              setPassword('');
             }}
           >
             <Text style={styles.createAccountText}>
