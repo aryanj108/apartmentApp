@@ -17,6 +17,7 @@ import { useAuth } from '../context/AuthContext';
 import EyeOffOutline from '../../assets/eye-off-outline.svg';
 import EyeOpenOutline from '../../assets/eye-open.svg';
 import LoginLogo from '../../assets/loginLogo.svg'; 
+import CancelIcon from '../../assets/cancel-svg.svg';
 
 const { width, height } = Dimensions.get('window');
 const scale = (size: number) => (width / 375) * size;
@@ -62,6 +63,8 @@ const AnimatedInput = ({
   showPasswordToggle = false,
   showPassword,
   onTogglePassword,
+  showClearButton = false,  
+  onClear,
 }: any) => {
   const [isFocused, setIsFocused] = useState(false);
   const animatedValue = useRef(new Animated.Value(value ? 1 : 0)).current;
@@ -99,7 +102,7 @@ const AnimatedInput = ({
     }),
     top: animatedValue.interpolate({
       inputRange: [0, 1],
-      outputRange: [scale(14), scale(8)],
+      outputRange: [scale(16), scale(8)],
     }),
   };
 
@@ -370,9 +373,9 @@ const styles = StyleSheet.create({
     marginTop: scale(20),
   },
   createAccountText: {
-    color: '#ff9f5a',
+    color: '#ff9f5aea',
     fontSize: scale(14),
-    fontWeight: '600',
+    fontWeight: '500',
   },
   spacer: {
     flex: 1,
