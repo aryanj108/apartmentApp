@@ -175,36 +175,38 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
             </View>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            onPress={() => {
-              const wasSaved = isSaved;
-              Alert.alert(
-                wasSaved ? 'Listing Unsaved' : 'Listing Saved',
-                wasSaved
-                  ? 'This listing has been removed from your saved listings.'
-                  : 'This listing has been added to your saved listings.'
-              );
-              toggleSave(roomData.id);
-            }}
-            style={styles.saveButtonContainer}
-          >
-            {isSaved ? (
-              <LinearGradient
-                colors={['#FF8C42', '#BF5700', '#994400']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.saveButtonContent}
-              >
-                <SaveFilledIconHeart width={20} height={20} fill="#ffffff"/>
-                <Text style={[styles.saveButtonText, { color: '#ffffff' }]}>Saved</Text>
-              </LinearGradient>
-            ) : (
-              <View style={[styles.saveButtonContent, { backgroundColor: '#ffffff' }]}>
-                <SaveOutlineIconHeart width={20} height={20} />
-                <Text style={[styles.saveButtonText, { color: '#000000' }]}>Save Listing</Text>
-              </View>
-            )}
-          </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => {
+            const wasSaved = isSaved;
+            Alert.alert(
+              wasSaved ? 'Listing Unsaved' : 'Listing Saved',
+              wasSaved
+                ? 'This listing has been removed from your saved listings.'
+                : 'This listing has been added to your saved listings.'
+            );
+            toggleSave(roomData.id);
+          }}
+          style={styles.saveButtonContainer}
+          activeOpacity={0.8}
+          delayPressIn={0}
+        >
+          {isSaved ? (
+            <LinearGradient
+              colors={['#FF8C42', '#BF5700', '#994400']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.saveButtonContent}
+            >
+              <SaveFilledIconHeart width={20} height={20} fill="#ffffff"/>
+              <Text style={[styles.saveButtonText, { color: '#ffffff' }]}>Saved</Text>
+            </LinearGradient>
+          ) : (
+            <View style={[styles.saveButtonContent, { backgroundColor: '#ffffff' }]}>
+              <SaveOutlineIconHeart width={20} height={20} />
+              <Text style={[styles.saveButtonText, { color: '#000000' }]}>Save Listing</Text>
+            </View>
+          )}
+        </TouchableOpacity>
 
           {/* SMART Housing Badge 
           {roomData.smartHousing && (
