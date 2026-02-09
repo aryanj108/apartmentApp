@@ -211,7 +211,7 @@ export default function SwipeScreen({ navigation, route }: any) {
     }
   };
 
-  // UPDATED: Call handleFinishSwiping instead of direct navigation
+  // Call handleFinishSwiping instead of direct navigation
   useEffect(() => {
     if (enrichedListings.length > 0 && currentIndex >= enrichedListings.length - 1) {
       // Finished all listings - complete onboarding
