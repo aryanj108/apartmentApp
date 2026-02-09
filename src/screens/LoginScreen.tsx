@@ -311,7 +311,7 @@ const styles = StyleSheet.create({
     marginBottom: scale(12),
   },
   input: {
-    backgroundColor: 'rgba(28, 28, 30, 0.8)',
+    backgroundColor: 'rgba(28, 28, 30, 0.4)',
     borderWidth: 1,
     borderColor: '#3a3a3c',
     borderRadius: scale(12),
@@ -357,7 +357,7 @@ const styles = StyleSheet.create({
   createAccountButton: {
     borderWidth: 1,
     borderColor: 'rgba(191, 87, 0, 0.5)',
-    backgroundColor: 'rgba(191, 87, 0, 0.1)',
+    backgroundColor: 'rgba(191, 87, 0, 0.05)',
     borderRadius: scale(25),
     paddingVertical: scale(12),
     paddingHorizontal: scale(20),
