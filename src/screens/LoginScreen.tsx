@@ -128,7 +128,7 @@ const AnimatedInput = ({
       />
 
       {/* Clear Button - ADD THIS BLOCK */}
-      {showClearButton && value.length > 0 && (
+      {showClearButton && value.length > 0 && isFocused && (
         <Pressable 
           style={styles.clearButton}
           onPress={onClear}
