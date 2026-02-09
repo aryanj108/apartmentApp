@@ -397,5 +397,11 @@ const styles = StyleSheet.create({
   paddingBottom: scale(90),
   paddingHorizontal: scale(8),
   alignItems: 'center',
-},
+  },
+  clearButton: {  
+    position: 'absolute',
+    right: scale(16),
+    top: scale(14),
+    padding: scale(4),
+  },
 });
