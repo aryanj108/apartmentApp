@@ -213,7 +213,7 @@ export default function LoginScreen({ navigation }: any) {
         <View style={styles.container}>
           {/* Logo */}
           <View style={styles.logoContainer}>
-            <LoginLogo width={scale(220)} height={scale(220)} />
+            <LoginLogo width={scale(200)} height={scale(200)}/>
           </View>
 
           {/* Input Fields */}
