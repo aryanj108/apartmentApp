@@ -112,6 +112,7 @@ const AnimatedInput = ({
         style={[
           styles.input,
           (isFocused || value) && styles.inputWithLabel,
+          isFocused && styles.inputFocused,
         ]}
         value={value}
         onChangeText={onChangeText}
@@ -324,6 +325,9 @@ const styles = StyleSheet.create({
   inputWithLabel: {
     paddingTop: scale(22),
   },
+  inputFocused: { 
+    borderColor: '#cccccc',
+  },
   eyeButton: {
     position: 'absolute',
     right: scale(16),
@@ -357,7 +361,7 @@ const styles = StyleSheet.create({
   createAccountButton: {
     borderWidth: 1,
     borderColor: 'rgba(191, 87, 0, 0.5)',
-    backgroundColor: 'rgba(191, 87, 0, 0.05)',
+    backgroundColor: 'transparent',
     borderRadius: scale(25),
     paddingVertical: scale(12),
     paddingHorizontal: scale(20),
