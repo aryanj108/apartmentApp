@@ -101,7 +101,6 @@ export default function SwipeScreen({ navigation, route }: any) {
   const { preferences } = usePreferences();
   const { user, setHasCompletedOnboarding } = useAuth();  
   
-  // NEW: Check if this is a redo flow
   const isRedoingPreferences = route?.params?.isRedo || false;
   
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -109,23 +108,23 @@ export default function SwipeScreen({ navigation, route }: any) {
   const [enrichedListings, setEnrichedListings] = useState<any[]>([]);
   const [minLoadingTime, setMinLoadingTime] = useState(true);
 
-  // HELPER FUNCTION TO OPEN MAPS - NOW USES CUSTOM LOCATION
+  // Helper funciton to open maps
   const openMaps = (destinationAddress: string) => {
     // Use custom location if set in preferences, otherwise default to UT Austin
-    const originLatitude = preferences.location?.lat || 30.285340698031447;
-    const originLongitude = preferences.location?.lon || -97.73208396036748;
+    const destinationLatitude = preferences.location?.lat || 30.285340698031447;
+    const destinationLongitude = preferences.location?.lon || -97.73208396036748;
     
-    // Encode the address for URL
+    // Encode the apartment address for URL (this is now the ORIGIN)
     const encodedAddress = encodeURIComponent(destinationAddress);
     
     let url = '';
     
     if (Platform.OS === 'ios') {
-      // Apple Maps URL scheme
-      url = `maps://app?saddr=${originLatitude},${originLongitude}&daddr=${encodedAddress}`;
+      // Apple Maps URL scheme - swapped saddr and daddr
+      url = `maps://app?saddr=${encodedAddress}&daddr=${destinationLatitude},${destinationLongitude}`;
       
       // Fallback to Google Maps on iOS if Apple Maps fails
-      const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${originLatitude},${originLongitude}&destination=${encodedAddress}`;
+      const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodedAddress}&destination=${destinationLatitude},${destinationLongitude}`;
       
       Linking.canOpenURL(url).then(supported => {
         if (supported) {
@@ -137,8 +136,8 @@ export default function SwipeScreen({ navigation, route }: any) {
         Linking.openURL(googleMapsUrl);
       });
     } else {
-      // Google Maps for Android
-      url = `https://www.google.com/maps/dir/?api=1&origin=${originLatitude},${originLongitude}&destination=${encodedAddress}`;
+      // Google Maps for Android - swapped origin and destination
+      url = `https://www.google.com/maps/dir/?api=1&origin=${encodedAddress}&destination=${destinationLatitude},${destinationLongitude}`;
       
       Linking.openURL(url).catch(err => {
         Alert.alert('Error', 'Unable to open maps. Please make sure you have a maps app installed.');

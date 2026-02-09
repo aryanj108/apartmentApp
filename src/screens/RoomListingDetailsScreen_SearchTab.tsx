@@ -34,23 +34,24 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
     await Clipboard.setStringAsync(text);
     Alert.alert('Copied!', `${label} has been copied to your clipboard.`);
   };
+  
   // Helper function to open maps with directions
   const openMaps = (destinationAddress: string) => {
-    // UT Austin coordinates
-    const originLatitude = preferences.location?.lat || 30.285340698031447;
-    const originLongitude = preferences.location?.lon || -97.73208396036748;
+    // Use custom location if set in preferences, otherwise default to UT Austin
+    const destinationLatitude = preferences.location?.lat || 30.285340698031447;
+    const destinationLongitude = preferences.location?.lon || -97.73208396036748;
     
-    // Encode the address for URL
+    // Encode the apartment address for URL (this is now the ORIGIN)
     const encodedAddress = encodeURIComponent(destinationAddress);
     
     let url = '';
     
     if (Platform.OS === 'ios') {
-      // Apple Maps URL scheme
-      url = `maps://app?saddr=${originLatitude},${originLongitude}&daddr=${encodedAddress}`;
+      // Apple Maps URL scheme - swapped saddr and daddr
+      url = `maps://app?saddr=${encodedAddress}&daddr=${destinationLatitude},${destinationLongitude}`;
       
       // Fallback to Google Maps on iOS if Apple Maps fails
-      const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${originLatitude},${originLongitude}&destination=${encodedAddress}`;
+      const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodedAddress}&destination=${destinationLatitude},${destinationLongitude}`;
       
       Linking.canOpenURL(url).then(supported => {
         if (supported) {
@@ -62,8 +63,8 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
         Linking.openURL(googleMapsUrl);
       });
     } else {
-      // Google Maps for Android
-      url = `https://www.google.com/maps/dir/?api=1&origin=${originLatitude},${originLongitude}&destination=${encodedAddress}`;
+      // Google Maps for Android - swapped origin and destination
+      url = `https://www.google.com/maps/dir/?api=1&origin=${encodedAddress}&destination=${destinationLatitude},${destinationLongitude}`;
       
       Linking.openURL(url).catch(err => {
         Alert.alert('Error', 'Unable to open maps. Please make sure you have a maps app installed.');
