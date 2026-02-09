@@ -373,4 +373,9 @@ const styles = StyleSheet.create({
   spacer: {
     flex: 1,
   },
+  bottomContainer: {
+  paddingBottom: scale(90),
+  paddingHorizontal: scale(8),
+  alignItems: 'center',
+},
 });
