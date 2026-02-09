@@ -126,6 +126,17 @@ const AnimatedInput = ({
         keyboardType={keyboardType}
         autoComplete={autoComplete}
       />
+
+      {/* Clear Button - ADD THIS BLOCK */}
+      {showClearButton && value.length > 0 && (
+        <Pressable 
+          style={styles.clearButton}
+          onPress={onClear}
+        >
+          <CancelIcon width={18} height={18} fill="#8e8e8e" />
+        </Pressable>
+      )}
+
       {showPasswordToggle && (
         <Pressable 
           style={styles.eyeButton}
@@ -228,6 +239,8 @@ export default function LoginScreen({ navigation }: any) {
               onChangeText={setEmail}
               keyboardType="email-address"
               autoComplete="email"
+              showClearButton={true}        
+              onClear={() => setEmail('')}
             />
 
             <AnimatedInput
