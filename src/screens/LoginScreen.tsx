@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -10,7 +10,9 @@ import {
   Platform,
   ActivityIndicator,
   Alert,
+  Animated,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../context/AuthContext';
 import EyeOffOutline from '../../assets/eye-off-outline.svg';
 import EyeOpenOutline from '../../assets/eye-open.svg';
@@ -46,6 +48,94 @@ const getErrorMessage = (error: any): string => {
     default:
       return error.message || 'Authentication failed. Please try again';
   }
+};
+
+// Animated Input Component
+const AnimatedInput = ({ 
+  placeholder, 
+  value, 
+  onChangeText, 
+  secureTextEntry, 
+  autoCapitalize = 'none',
+  keyboardType = 'default',
+  autoComplete,
+  showPasswordToggle = false,
+  showPassword,
+  onTogglePassword,
+}: any) => {
+  const [isFocused, setIsFocused] = useState(false);
+  const animatedValue = useRef(new Animated.Value(value ? 1 : 0)).current;
+
+  const handleFocus = () => {
+    setIsFocused(true);
+    Animated.timing(animatedValue, {
+      toValue: 1,
+      duration: 150,
+      useNativeDriver: false,
+    }).start();
+  };
+
+  const handleBlur = () => {
+    setIsFocused(false);
+    if (!value) {
+      Animated.timing(animatedValue, {
+        toValue: 0,
+        duration: 150,
+        useNativeDriver: false,
+      }).start();
+    }
+  };
+
+  const labelStyle = {
+    position: 'absolute' as 'absolute',
+    left: scale(16),
+    color: animatedValue.interpolate({
+      inputRange: [0, 1],
+      outputRange: ['#8e8e8e', '#8e8e8e'],
+    }),
+    fontSize: animatedValue.interpolate({
+      inputRange: [0, 1],
+      outputRange: [scale(14), scale(11)],
+    }),
+    top: animatedValue.interpolate({
+      inputRange: [0, 1],
+      outputRange: [scale(14), scale(8)],
+    }),
+  };
+
+  return (
+    <View style={styles.inputWrapper}>
+      <Animated.Text style={labelStyle}>
+        {placeholder}
+      </Animated.Text>
+      <TextInput
+        style={[
+          styles.input,
+          (isFocused || value) && styles.inputWithLabel,
+        ]}
+        value={value}
+        onChangeText={onChangeText}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
+        secureTextEntry={secureTextEntry}
+        autoCapitalize={autoCapitalize}
+        keyboardType={keyboardType}
+        autoComplete={autoComplete}
+      />
+      {showPasswordToggle && (
+        <Pressable 
+          style={styles.eyeButton}
+          onPress={onTogglePassword}
+        >
+          {showPassword ? (
+            <EyeOffOutline width={22} height={22} fill="#8e8e8e" />
+          ) : (
+            <EyeOpenOutline width={22} height={22} fill="#8e8e8e" />
+          )}
+        </Pressable>
+      )}
+    </View>
+  );
 };
 
 export default function LoginScreen({ navigation }: any) {
@@ -114,115 +204,97 @@ export default function LoginScreen({ navigation }: any) {
       style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <View style={styles.container}>
-        {/* Logo */}
-        <View style={styles.logoContainer}>
-          <LoginLogo width={scale(190)} height={scale(190)} />
-        </View>
+      <LinearGradient
+        colors={['#1a1a1a', '#2d1810', '#BF5700']}
+        style={styles.gradient}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
+      >
+        <View style={styles.container}>
+          {/* Logo */}
+          <View style={styles.logoContainer}>
+            <LoginLogo width={scale(190)} height={scale(190)} />
+          </View>
 
-        {/* Input Fields */}
-        <View style={styles.inputContainer}>
-          <TextInput
-            placeholder="Username, email or mobile number"
-            placeholderTextColor="#8e8e8e"
-            style={styles.input}
-            autoCapitalize="none"
-            keyboardType="email-address"
-            value={email}
-            onChangeText={setEmail}
-            autoComplete="email"
-          />
+          {/* Input Fields */}
+          <View style={styles.inputContainer}>
+            <AnimatedInput
+              placeholder="Email"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoComplete="email"
+            />
 
-          {/* Password Input with Toggle */}
-          <View style={styles.passwordInputWrapper}>
-            <TextInput
+            <AnimatedInput
               placeholder="Password"
-              placeholderTextColor="#8e8e8e"
-              style={styles.passwordInput}
-              secureTextEntry={!showPassword}
-              autoCapitalize="none"
               value={password}
               onChangeText={setPassword}
+              secureTextEntry={!showPassword}
               autoComplete={isSignUp ? 'password-new' : 'password'}
+              showPasswordToggle={true}
+              showPassword={showPassword}
+              onTogglePassword={() => setShowPassword(!showPassword)}
             />
-            <Pressable 
-              style={styles.eyeButton}
-              onPress={() => setShowPassword(!showPassword)}
+
+            {/* Login Button */}
+            <Pressable
+              style={[styles.loginButton, loading && styles.buttonDisabled]}
+              onPress={handleConfirm}
+              disabled={loading}
             >
-              {showPassword ? (
-                <EyeOffOutline width={22} height={22} fill="#8e8e8e" />
+              {loading ? (
+                <ActivityIndicator color="#fff" />
               ) : (
-                <EyeOpenOutline width={22} height={22} fill="#8e8e8e" />
+                <Text style={styles.loginButtonText} allowFontScaling={false}>
+                  {isSignUp ? 'Sign up' : 'Log in'}
+                </Text>
               )}
+            </Pressable>
+
+            {/* Forgot Password Link - only show on Sign In */}
+            {!isSignUp && (
+              <Pressable
+                style={styles.forgotPasswordButton}
+                onPress={() => navigation.navigate('ForgotPassword')}
+              >
+                <Text style={styles.forgotPasswordText}>
+                  Forgot password?
+                </Text>
+              </Pressable>
+            )}
+
+            {/* Create Account / Sign In Toggle */}
+            <Pressable
+              style={styles.createAccountButton}
+              onPress={() => {
+                setIsSignUp(!isSignUp);
+                setError(null);
+              }}
+            >
+              <Text style={styles.createAccountText}>
+                {isSignUp 
+                  ? 'Already have an account? Log in' 
+                  : 'Create new account'}
+              </Text>
             </Pressable>
           </View>
 
-          {/* Login Button */}
-          <Pressable
-            style={[styles.loginButton, loading && styles.buttonDisabled]}
-            onPress={handleConfirm}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.loginButtonText} allowFontScaling={false}>
-                {isSignUp ? 'Sign up' : 'Log in'}
-              </Text>
-            )}
-          </Pressable>
-
-          {/* Forgot Password Link - only show on Sign In */}
-          {!isSignUp && (
-            <Pressable
-              style={styles.forgotPasswordButton}
-              onPress={() => navigation.navigate('ForgotPassword')}
-            >
-              <Text style={styles.forgotPasswordText}>
-                Forgot password?
-              </Text>
-            </Pressable>
-          )}
+          {/* Spacer */}
+          <View style={styles.spacer} />
         </View>
-
-        {/* Spacer to push create account button to bottom */}
-        <View style={styles.spacer} />
-
-        {/* Create Account / Sign In Toggle Button */}
-        <View style={styles.bottomContainer}>
-          <Pressable
-            style={styles.createAccountButton}
-            onPress={() => {
-              setIsSignUp(!isSignUp);
-              setError(null);
-            }}
-          >
-            <Text style={styles.createAccountText}>
-              {isSignUp 
-                ? 'Already have an account? Log in' 
-                : 'Create new account'}
-            </Text>
-          </Pressable>
-        </View>
-      </View>
+      </LinearGradient>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
+  gradient: {
+    flex: 1,
+  },
   container: {
     flex: 1,
-    backgroundColor: '#121212', // Dark background like Instagram
     paddingHorizontal: scale(16),
-  },
-  languageContainer: {
-    alignItems: 'center',
-    paddingTop: scale(16),
-    paddingBottom: scale(20),
-  },
-  languageText: {
-    color: '#8e8e8e',
-    fontSize: scale(13),
   },
   logoContainer: {
     alignItems: 'center',
@@ -233,43 +305,36 @@ const styles = StyleSheet.create({
     width: '100%',
     paddingHorizontal: scale(8),
   },
-  input: {
-    backgroundColor: '#1c1c1e',
-    borderWidth: 1,
-    borderColor: '#3a3a3c',
-    borderRadius: scale(12),
-    paddingVertical: scale(14),
-    paddingHorizontal: scale(16),
-    fontSize: scale(14),
+  inputWrapper: {
+    position: 'relative',
     marginBottom: scale(12),
-    color: '#ffffff',
   },
-  passwordInputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#1c1c1e',
+  input: {
+    backgroundColor: 'rgba(28, 28, 30, 0.8)',
     borderWidth: 1,
     borderColor: '#3a3a3c',
     borderRadius: scale(12),
-    marginBottom: scale(16),
-  },
-  passwordInput: {
-    flex: 1,
-    paddingVertical: scale(14),
+    paddingTop: scale(22),
+    paddingBottom: scale(8),
     paddingHorizontal: scale(16),
     fontSize: scale(14),
     color: '#ffffff',
+  },
+  inputWithLabel: {
+    paddingTop: scale(22),
   },
   eyeButton: {
-    padding: scale(10),
-    paddingRight: scale(16),
+    position: 'absolute',
+    right: scale(16),
+    top: scale(14),
+    padding: scale(4),
   },
   loginButton: {
-    backgroundColor: '#0095f6',
+    backgroundColor: '#BF5700',
     paddingVertical: scale(12),
     borderRadius: scale(25),
     alignItems: 'center',
-    marginTop: scale(8),
+    marginTop: scale(16),
   },
   buttonDisabled: {
     opacity: 0.5,
@@ -285,38 +350,26 @@ const styles = StyleSheet.create({
   },
   forgotPasswordText: {
     fontSize: scale(12),
-    color: '#3797f0',
+    color: '#ff9f5a',
     fontWeight: '500',
-  },
-  spacer: {
-    flex: 1,
-  },
-  bottomContainer: {
-    paddingBottom: scale(20),
-    alignItems: 'center',
   },
   createAccountButton: {
     borderWidth: 1,
-    borderColor: '#3a3a3c',
+    borderColor: 'rgba(191, 87, 0, 0.5)',
+    backgroundColor: 'rgba(191, 87, 0, 0.1)',
     borderRadius: scale(25),
     paddingVertical: scale(12),
     paddingHorizontal: scale(20),
     width: '100%',
     alignItems: 'center',
-    marginBottom: scale(24),
+    marginTop: scale(20),
   },
   createAccountText: {
-    color: '#3797f0',
+    color: '#ff9f5a',
     fontSize: scale(14),
     fontWeight: '600',
   },
-  metaContainer: {
-    alignItems: 'center',
-  },
-  metaText: {
-    color: '#8e8e8e',
-    fontSize: scale(13),
-    fontWeight: '600',
-    letterSpacing: 0.5,
+  spacer: {
+    flex: 1,
   },
 });
