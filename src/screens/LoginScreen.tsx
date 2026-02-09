@@ -207,13 +207,13 @@ export default function LoginScreen({ navigation }: any) {
       <LinearGradient
         colors={['#1a1a1a', '#2d1810', '#BF5700']}
         style={styles.gradient}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
+        start={{ x: 0.5, y: 1 }}
+        end={{ x: 0.5, y: 0 }}
       >
         <View style={styles.container}>
           {/* Logo */}
           <View style={styles.logoContainer}>
-            <LoginLogo width={scale(190)} height={scale(190)} />
+            <LoginLogo width={scale(220)} height={scale(220)} />
           </View>
 
           {/* Input Fields */}
@@ -263,25 +263,26 @@ export default function LoginScreen({ navigation }: any) {
                 </Text>
               </Pressable>
             )}
-
-            {/* Create Account / Sign In Toggle */}
-            <Pressable
-              style={styles.createAccountButton}
-              onPress={() => {
-                setIsSignUp(!isSignUp);
-                setError(null);
-              }}
-            >
-              <Text style={styles.createAccountText}>
-                {isSignUp 
-                  ? 'Already have an account? Log in' 
-                  : 'Create new account'}
-              </Text>
-            </Pressable>
           </View>
 
           {/* Spacer */}
           <View style={styles.spacer} />
+
+          <View style={styles.bottomContainer}>
+          <Pressable
+            style={styles.createAccountButton}
+            onPress={() => {
+              setIsSignUp(!isSignUp);
+              setError(null);
+            }}
+          >
+            <Text style={styles.createAccountText}>
+              {isSignUp 
+                ? 'Already have an account? Log in' 
+                : 'Create new account'}
+            </Text>
+          </Pressable>
+        </View>
         </View>
       </LinearGradient>
     </KeyboardAvoidingView>
