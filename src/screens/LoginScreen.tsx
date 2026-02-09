@@ -14,7 +14,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import EyeOffOutline from '../../assets/eye-off-outline.svg';
 import EyeOpenOutline from '../../assets/eye-open.svg';
-import LoginLogo from '../../assets/loginLogo.svg'; // Your custom logo
+import LoginLogo from '../../assets/loginLogo.svg'; 
 
 const { width, height } = Dimensions.get('window');
 const scale = (size: number) => (width / 375) * size;
@@ -117,7 +117,7 @@ export default function LoginScreen({ navigation }: any) {
       <View style={styles.container}>
         {/* Logo */}
         <View style={styles.logoContainer}>
-          <LoginLogo width={scale(80)} height={scale(80)} />
+          <LoginLogo width={scale(190)} height={scale(190)} />
         </View>
 
         {/* Input Fields */}
@@ -203,11 +203,6 @@ export default function LoginScreen({ navigation }: any) {
                 : 'Create new account'}
             </Text>
           </Pressable>
-
-          {/* Meta Logo */}
-          <View style={styles.metaContainer}>
-            <Text style={styles.metaText}>Meta</Text>
-          </View>
         </View>
       </View>
     </KeyboardAvoidingView>
