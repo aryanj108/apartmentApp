@@ -115,11 +115,6 @@ export default function LoginScreen({ navigation }: any) {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <View style={styles.container}>
-        {/* Language Selector */}
-        <View style={styles.languageContainer}>
-          <Text style={styles.languageText}>English (US)</Text>
-        </View>
-
         {/* Logo */}
         <View style={styles.logoContainer}>
           <LoginLogo width={scale(80)} height={scale(80)} />
