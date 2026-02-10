@@ -13,6 +13,7 @@ import {
   UIManager
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { buildingsData } from '../data/buildings';
 import { listingsData } from '../data/listings';
@@ -28,6 +29,11 @@ import Logo from '../../assets/longhornLivingIcon1.png';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH * 0.7;
 const CARD_MARGIN = 12;
+
+// Constants for Recently Viewed
+const RECENTLY_VIEWED_STORAGE_KEY = '@recently_viewed_listings';
+const MAX_RECENTLY_VIEWED = 10; // Max items to store
+const DISPLAY_RECENTLY_VIEWED = 6; // Max items to display
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -57,6 +63,46 @@ function getEnrichedListings() {
     };
   });
 }
+
+// Recently Viewed Helper Functions
+const getRecentlyViewedIds = async () => {
+  try {
+    const stored = await AsyncStorage.getItem(RECENTLY_VIEWED_STORAGE_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch (error) {
+    console.error('Error loading recently viewed:', error);
+    return [];
+  }
+};
+
+const addToRecentlyViewed = async (listingId) => {
+  try {
+    const recentIds = await getRecentlyViewedIds();
+    
+    // Remove if already exists (we'll add it to the front)
+    const filteredIds = recentIds.filter(id => id !== listingId);
+    
+    // Add to front
+    const updatedIds = [listingId, ...filteredIds];
+    
+    // Keep only the most recent MAX_RECENTLY_VIEWED items
+    const trimmedIds = updatedIds.slice(0, MAX_RECENTLY_VIEWED);
+    
+    await AsyncStorage.setItem(RECENTLY_VIEWED_STORAGE_KEY, JSON.stringify(trimmedIds));
+    return trimmedIds;
+  } catch (error) {
+    console.error('Error saving recently viewed:', error);
+    return [];
+  }
+};
+
+const clearRecentlyViewed = async () => {
+  try {
+    await AsyncStorage.removeItem(RECENTLY_VIEWED_STORAGE_KEY);
+  } catch (error) {
+    console.error('Error clearing recently viewed:', error);
+  }
+};
 
 // Apartment Card Component
 function ApartmentCard({ listing, matchScore, onPress, isSaved, onSavePress }) {
@@ -168,6 +214,34 @@ export default function Home({ navigation }) {
     setEnrichedListings(listings);
   }, []);
 
+  // Load recently viewed when screen comes into focus
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', async () => {
+      await loadRecentlyViewed();
+    });
+
+    return unsubscribe;
+  }, [navigation, enrichedListings]);
+
+  const loadRecentlyViewed = async () => {
+    if (enrichedListings.length === 0) return;
+
+    try {
+      const recentIds = await getRecentlyViewedIds();
+      
+      // Get the listings for these IDs, maintaining order
+      const recentListings = recentIds
+        .map(id => enrichedListings.find(listing => listing.id === id))
+        .filter(listing => listing !== undefined)
+        .slice(0, DISPLAY_RECENTLY_VIEWED); // Only display top N items
+      
+      setRecentlyViewed(recentListings);
+    } catch (error) {
+      console.error('Error loading recently viewed:', error);
+      setRecentlyViewed([]);
+    }
+  };
+
   useEffect(() => {
     if (!preferences || !savedIds || enrichedListings.length === 0) return;
 
@@ -195,17 +269,21 @@ export default function Home({ navigation }) {
     const userBudget = preferences?.maxPrice || 2000;
     const maxDistance = 2;
 
-    setRecentlyViewed(sortByScore(enrichedListings.slice(0, 5)));
+    // Load recently viewed separately (handled by loadRecentlyViewed)
+    
     const saved = enrichedListings.filter((listing) => savedIds.includes(listing.id));
     setSavedListings(sortByScore(saved));
+    
     const budget = enrichedListings.filter(
       (listing) => listing && listing.price !== undefined && listing.price <= userBudget
     );
     setBudgetFriendly(sortByScore(budget));
+    
     const nearby = enrichedListings.filter(
       (listing) => listing && listing.distance !== undefined && listing.distance <= maxDistance
     );
     setCloseToYou(sortByScore(nearby));
+    
     setLonghornFavorites(sortByScore(enrichedListings.slice(0, 6)));
 
     if (selectedAmenities.length > 0) {
@@ -219,13 +297,17 @@ export default function Home({ navigation }) {
     }
   }, [preferences, savedIds, enrichedListings]);
 
-  const handleCardPress = (listing) => {
+  const handleCardPress = async (listing) => {
     const score = calculateMatchScore(
       listing,
       preferences,
       selectedAmenities.map((id) => ({ id, selected: true }))
     );
-    // Home screen: go to individual unit details first
+    
+    // Add to recently viewed BEFORE navigating
+    await addToRecentlyViewed(listing.id);
+    
+    // Navigate to details
     navigation.navigate('RoomListingDetailsScreen_SearchVersion', {
       listing: listing,
       matchScore: score,
@@ -236,17 +318,32 @@ export default function Home({ navigation }) {
     setVisibleSections((prev) => ({ ...prev, [sectionKey]: !prev[sectionKey] }));
   };
 
+  const handleClearRecentlyViewed = async () => {
+    await clearRecentlyViewed();
+    setRecentlyViewed([]);
+  };
+
   const renderSection = (title, data, sectionKey) => {
-    if (data.length === 0 || !visibleSections[sectionKey]) {
-      if (sectionKey === 'savedListings') {
-        return null;
-      }
+    // Don't render empty sections (except saved listings which is handled separately)
+    if (data.length === 0) {
+      return null;
+    }
+
+    // Don't render hidden sections
+    if (!visibleSections[sectionKey]) {
       return null;
     }
 
     return (
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{title}</Text>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>{title}</Text>
+          {sectionKey === 'recentlyViewed' && data.length > 0 && (
+            <TouchableOpacity onPress={handleClearRecentlyViewed}>
+              <Text style={styles.clearButton}>Clear</Text>
+            </TouchableOpacity>
+          )}
+        </View>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -376,10 +473,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-  padding: 20,
-  paddingTop: 60,
-  backgroundColor: '#ffffff',
-  marginBottom: 10,
+    padding: 20,
+    paddingTop: 60,
+    backgroundColor: '#ffffff',
+    marginBottom: 10,
   },
   headerContent: {
     flexDirection: 'row',
@@ -425,11 +522,22 @@ const styles = StyleSheet.create({
   section: {
     marginBottom: 30,
   },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    marginBottom: 4,
+  },
   sectionTitle: {
     fontSize: 22,
     fontWeight: 'bold',
     color: '#000000',
-    paddingHorizontal: 20,
+  },
+  clearButton: {
+    fontSize: 14,
+    color: '#BF5700',
+    fontWeight: '600',
   },
   carouselContainer: {
     paddingLeft: 20,
