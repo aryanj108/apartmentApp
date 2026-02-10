@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Dimensions, ScrollView, TouchableOpacity, Alert, Animated, Linking, Platform} from 'react-native';
+import { View, Text, StyleSheet, Dimensions, ScrollView, TouchableOpacity, Alert, Animated, Linking, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import BedIcon from '../../assets/bedIcon.svg';
 import DistanceIcon from '../../assets/distanceIcon(2).svg';
 import BathIcon from '../../assets/bathIcon.svg';
@@ -19,16 +20,37 @@ import StarIcon from '../../assets/stars.svg';
 import ExternalLinkIcon from '../../assets/shareIcon2.svg'; 
 import { buildingsData } from '../data/buildings';
 import * as Clipboard from 'expo-clipboard';
-// Import the distance calculation utility
 import { calculateDistance } from '../navigation/locationUtils';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 import ImageCarousel from '../navigation/ImageCarousel';
 
-  const copyToClipboard = async (text, label) => {
-    await Clipboard.setStringAsync(text);
-    Alert.alert('Copied!', `${label} has been copied to your clipboard.`);
-  };
+// Recently Viewed Constants
+const RECENTLY_VIEWED_STORAGE_KEY = '@recently_viewed_listings';
+const MAX_RECENTLY_VIEWED = 10;
+
+// Recently Viewed Helper Functions
+const addToRecentlyViewed = async (listingId) => {
+  try {
+    const stored = await AsyncStorage.getItem(RECENTLY_VIEWED_STORAGE_KEY);
+    const recentIds = stored ? JSON.parse(stored) : [];
+    
+    // Remove if already exists (we'll add it to the front)
+    const filteredIds = recentIds.filter(id => id !== listingId);
+    
+    // Add to front
+    const updatedIds = [listingId, ...filteredIds];
+    
+    // Keep only the most recent MAX_RECENTLY_VIEWED items
+    const trimmedIds = updatedIds.slice(0, MAX_RECENTLY_VIEWED);
+    
+    await AsyncStorage.setItem(RECENTLY_VIEWED_STORAGE_KEY, JSON.stringify(trimmedIds));
+    return trimmedIds;
+  } catch (error) {
+    console.error('Error saving recently viewed:', error);
+    return [];
+  }
+};
 
 export default function RoomListingDetailsScreen({ navigation, route }) {
   const { savedIds, toggleSave, preferences } = usePreferences();
@@ -36,70 +58,19 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
   const scoreValue = matchScore || 0;
   const animatedWidth = useRef(new Animated.Value(0)).current;
 
+  // Track this listing as recently viewed when component mounts
   useEffect(() => {
-    Animated.timing(animatedWidth, {
-      toValue: scoreValue,
-      duration: 1000,
-      useNativeDriver: false,
-    }).start();
-  }, [scoreValue]);
+    if (listing?.id) {
+      addToRecentlyViewed(listing.id);
+    }
+  }, [listing?.id]);
 
-  const widthInterpolate = animatedWidth.interpolate({
-    inputRange: [0, 100],
-    outputRange: ['0%', '100%'],
-  });
-
-  // Get the building data for this listing
-  const building = buildingsData.find(b => b.id === listing.buildingId) || {};
-
-  // Calculate distance from custom location if set
-  let calculatedDistance = building.distance || 0;
-  if (preferences.location && building.latitude && building.longitude) {
-    calculatedDistance = calculateDistance(
-      preferences.location.lat,
-      preferences.location.lon,
-      building.latitude,
-      building.longitude
-    );
-    // Round to 1 decimal place
-    calculatedDistance = Math.round(calculatedDistance * 10) / 10;
-  }
-
-  // Merge listing and building data
-  const roomData = {
-    id: listing.id,
-    buildingName: building.name,
-    unitNumber: listing.unitNumber,
-    address: building.address || 'Address not available',
-    price: listing.price || 0,
-    bedrooms: listing.bedrooms || 0,
-    bathrooms: listing.bathrooms || 0,
-    distance: calculatedDistance, // Use calculated distance
-    // Use listing description if it exists, otherwise use building description
-    description: (listing.description && listing.description.trim()) 
-      ? listing.description 
-      : (building.description || 'No description available.'),
-    // Use listing features if they exist, otherwise use building features
-    features: (listing.features && listing.features.length > 0) 
-      ? listing.features 
-      : (building.features || []),
-    images: building.images || [],
-    contact: building.contact || {
-      phone: '',
-      email: '',
-      hours: ''
-    },
-    leaseDetails: {
-      term: listing.leaseTerm || '',
-      deposit: listing.deposit ? `${listing.deposit}` : '',
-      availability: listing.availableDate || ''
-    },
-    website: listing.website || building.website || '',
-    sqft: listing.sqft,
-    floorPlan: listing.floorPlan,
-    smartHousing: listing.smartHousing
+    const copyToClipboard = async (text, label) => {
+    await Clipboard.setStringAsync(text);
+    Alert.alert('Copied!', `${label} has been copied to your clipboard.`);
   };
-
+  
+  // Helper function to open maps with directions
   const openMaps = (destinationAddress: string) => {
     // Use custom location if set in preferences, otherwise default to UT Austin
     const destinationLatitude = preferences.location?.lat || 30.285340698031447;
@@ -135,6 +106,68 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
         console.error('Error opening maps:', err);
       });
     }
+  };
+
+  useEffect(() => {
+    Animated.timing(animatedWidth, {
+      toValue: scoreValue,
+      duration: 1000,
+      useNativeDriver: false,
+    }).start();
+  }, [scoreValue]);
+
+  const widthInterpolate = animatedWidth.interpolate({
+    inputRange: [0, 100],
+    outputRange: ['0%', '100%'],
+  });
+
+  // Get the building data for this listing
+  const building = buildingsData.find(b => b.id === listing.buildingId) || {};
+
+  let calculatedDistance = building.distance || 0;
+  if (preferences.location && building.latitude && building.longitude) {
+    calculatedDistance = calculateDistance(
+      preferences.location.lat,
+      preferences.location.lon,
+      building.latitude,
+      building.longitude
+    );
+    // Round to 1 decimal place
+    calculatedDistance = Math.round(calculatedDistance * 10) / 10;
+  }
+
+  // Merge listing and building data
+  const roomData = {
+    id: listing.id,
+    buildingName: building.name,
+    unitNumber: listing.unitNumber,
+    address: building.address || 'Address not available',
+    price: listing.price || 0,
+    bedrooms: listing.bedrooms || 0,
+    bathrooms: listing.bathrooms || 0,
+    distance: calculatedDistance,
+    description: (listing.description && listing.description.trim()) 
+      ? listing.description 
+      : (building.description || 'No description available.'),
+    features: (listing.features && listing.features.length > 0) 
+      ? listing.features 
+      : (building.features || []),
+    images: building.images || [],
+    contact: building.contact || {
+      phone: '',
+      email: '',
+      hours: ''
+    },
+    leaseDetails: {
+      term: listing.leaseTerm || '',
+      deposit: listing.deposit ? `${listing.deposit}` : '',
+      availability: listing.availableDate || ''
+    },
+    website: listing.website || building.website || '',
+    sqft: listing.sqft,
+    floorPlan: listing.floorPlan,
+    smartHousing: listing.smartHousing,
+    moveInFee: listing.moveInFee  
   };
 
   const isSaved = savedIds.includes(roomData.id);
@@ -401,19 +434,36 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
           )}
         </View>
 
-        {/* View Original Listing Button - Only show if website exists */}
+        {/* View Apartment Details Button */}
         {roomData.website && (
-          <View style={styles.websiteButtonContainer}>
-            <TouchableOpacity onPress={handleOpenWebsite}>
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity onPress={handleViewApartmentDetails}>
               <LinearGradient
                 colors={['#FF8C42', '#BF5700', '#994400']} 
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
-                style={styles.contactButton}
+                style={styles.apartmentButton}
+              >
+                <Text style={styles.apartmentButtonText}>View Apartment Details</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+
+            {/* View Original Listing Button */}
+            <TouchableOpacity 
+              onPress={() => {
+              handleOpenWebsite();
+              }}
+              style={{ marginTop: 16 }}
+            >
+              <LinearGradient
+                colors={['#FF8C42', '#BF5700', '#994400']} 
+                start={{ x: 0, y: 1 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.apartmentButton}
               >
                 <View style={styles.websiteButtonContent}>
-                  <ExternalLinkIcon width={27} height={27} color="#ffffff" style={styles.externalLinkIcon} />
-                  <Text style={styles.contactButtonText}>View Original Listing</Text>
+                  <ExternalLinkIcon width={24} height={24} color="#ffffff" />
+                  <Text style={styles.apartmentButtonText}>View Original Listing</Text>
                 </View>
               </LinearGradient>
             </TouchableOpacity>
@@ -511,20 +561,21 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   contactButton: {
-    paddingVertical: 16,
-    paddingHorizontal: 32,
-    borderRadius: 12,
+    backgroundColor: '#f3f4f6',
+    width: '95%',
+    paddingVertical: 10,
     alignItems: 'center',
+    alignSelf: 'center',
+    padding: 24,
+    marginBottom: 30,
+    marginTop: 5,
+    borderRadius: 16,
     elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
   },
   contactButtonText: {
-    color: '#ffffff',
-    fontSize: 18,
-    fontWeight: '600',
+    color: '#000000ff',
+    fontSize: 23,
+    fontWeight: '500',
   },
   infoSection: {
     backgroundColor: '#ffffff',
@@ -544,32 +595,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: '#000000',
-    marginBottom: 2,
+    marginBottom: 4,
   },
   address: {
-    fontSize: 14,
-    color: '#6b7280',
-    marginBottom: 2,
-  },
-  unitNumberText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#000000',
-    marginBottom: 2, 
-  },
-  smartHousingLine: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#BF5700', 
-    marginTop: 2,
-  },
-  sqftText: {
     fontSize: 14,
     color: '#6b7280',
   },
   rightInfo: {
     marginLeft: 16,
-    alignItems: 'flex-end',
   },
   price: {
     fontSize: 18,
@@ -629,33 +662,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
   },
-  apartmentLinkSection: {
-    padding: 20,
-    backgroundColor: '#f9fafb',
-    marginHorizontal: 20,
-    borderRadius: 12,
-    marginTop: 10,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-  },
-  subHeaderText: {
-    fontSize: 14,
-    color: '#6b7280',
-    marginBottom: 8,
+  buttonContainer: {
+    paddingHorizontal: 20,
+    paddingVertical: 24,
   },
   apartmentButton: {
     backgroundColor: '#BF5700',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 25,
-    width: '100%',
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    borderRadius: 12,
     alignItems: 'center',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   apartmentButtonText: {
     color: '#ffffff',
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: 18,
+    fontWeight: '600',
   },
   matchScoreSection: {
     marginTop: 15,
@@ -698,7 +724,7 @@ const styles = StyleSheet.create({
     marginLeft: 4,
     textAlign: 'right',
   },
-  saveButtonContainer: {
+    saveButtonContainer: {
     position: 'absolute',
     top: 50,
     right: 20,
@@ -723,47 +749,29 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginLeft: 6,
   },
-  smartHousingBadgeContainer: {
-    position: 'absolute',
-    top: 100,
-    right: 20,
-    zIndex: 100,
-  },
-  smartHousingBadge: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  smartHousingBadgeText: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#ffffff',
-  },
-  websiteButtonContainer: {
-    paddingHorizontal: 20,
-    paddingVertical: 24,
-  },
   websiteButtonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 10,
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: 10,
+},
+  unitNumberText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#000000',
+    marginBottom: 2, 
   },
-  externalLinkIcon: {
-    tintColor: '#ffffff',
-    marginTop: -3 
-  },
-    viewDetailsText: {
-    fontSize: 12,
-    color: '#6b7280',
+  smartHousingLine: {
+    fontSize: 14,
     fontWeight: '600',
+    color: '#BF5700', 
+    marginTop: 2,
   },
-  contactItem: {
+  sqftText: {
+    fontSize: 14,
+    color: '#6b7280',
+  },
+    contactItem: {
   marginBottom: 12,
   },
   contactLabel: {
@@ -777,7 +785,7 @@ const styles = StyleSheet.create({
     color: '#374151',
     lineHeight: 24,
   },
-    contactValueClickable: {
+  contactValueClickable: {
   fontSize: 16,
   color: '#BF5700',  
   lineHeight: 24,
