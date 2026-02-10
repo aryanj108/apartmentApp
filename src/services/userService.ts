@@ -20,6 +20,7 @@ preferences?: {
   petFriendly?: boolean;
 };
   savedApartments?: string[];
+  recentlyViewed?: string[];
   createdAt?: any;
   updatedAt?: any;
 }

@@ -13,7 +13,6 @@ import {
   UIManager
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { buildingsData } from '../data/buildings';
 import { listingsData } from '../data/listings';
@@ -30,9 +29,6 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH * 0.7;
 const CARD_MARGIN = 12;
 
-// Constants for Recently Viewed
-const RECENTLY_VIEWED_STORAGE_KEY = '@recently_viewed_listings';
-const MAX_RECENTLY_VIEWED = 10; // Max items to store
 const DISPLAY_RECENTLY_VIEWED = 6; // Max items to display
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -63,46 +59,6 @@ function getEnrichedListings() {
     };
   });
 }
-
-// Recently Viewed Helper Functions
-const getRecentlyViewedIds = async () => {
-  try {
-    const stored = await AsyncStorage.getItem(RECENTLY_VIEWED_STORAGE_KEY);
-    return stored ? JSON.parse(stored) : [];
-  } catch (error) {
-    console.error('Error loading recently viewed:', error);
-    return [];
-  }
-};
-
-const addToRecentlyViewed = async (listingId) => {
-  try {
-    const recentIds = await getRecentlyViewedIds();
-    
-    // Remove if already exists (we'll add it to the front)
-    const filteredIds = recentIds.filter(id => id !== listingId);
-    
-    // Add to front
-    const updatedIds = [listingId, ...filteredIds];
-    
-    // Keep only the most recent MAX_RECENTLY_VIEWED items
-    const trimmedIds = updatedIds.slice(0, MAX_RECENTLY_VIEWED);
-    
-    await AsyncStorage.setItem(RECENTLY_VIEWED_STORAGE_KEY, JSON.stringify(trimmedIds));
-    return trimmedIds;
-  } catch (error) {
-    console.error('Error saving recently viewed:', error);
-    return [];
-  }
-};
-
-const clearRecentlyViewed = async () => {
-  try {
-    await AsyncStorage.removeItem(RECENTLY_VIEWED_STORAGE_KEY);
-  } catch (error) {
-    console.error('Error clearing recently viewed:', error);
-  }
-};
 
 // Apartment Card Component
 function ApartmentCard({ listing, matchScore, onPress, isSaved, onSavePress }) {
@@ -183,7 +139,7 @@ export default function Home({ navigation }) {
     toggleSave(id);
   };
 
-  const { preferences, savedIds, toggleSave } = usePreferences();
+  const { preferences, savedIds, toggleSave, recentlyViewedIds, addToRecentlyViewed, clearRecentlyViewed, loading } = usePreferences();
 
   const [enrichedListings, setEnrichedListings] = useState([]);
   const [recentlyViewed, setRecentlyViewed] = useState([]);
@@ -214,36 +170,21 @@ export default function Home({ navigation }) {
     setEnrichedListings(listings);
   }, []);
 
-  // Load recently viewed when screen comes into focus
+  // Update recently viewed when recentlyViewedIds changes
   useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', async () => {
-      await loadRecentlyViewed();
-    });
+    if (enrichedListings.length === 0 || loading) return;
 
-    return unsubscribe;
-  }, [navigation, enrichedListings]);
-
-  const loadRecentlyViewed = async () => {
-    if (enrichedListings.length === 0) return;
-
-    try {
-      const recentIds = await getRecentlyViewedIds();
-      
-      // Get the listings for these IDs, maintaining order
-      const recentListings = recentIds
-        .map(id => enrichedListings.find(listing => listing.id === id))
-        .filter(listing => listing !== undefined)
-        .slice(0, DISPLAY_RECENTLY_VIEWED); // Only display top N items
-      
-      setRecentlyViewed(recentListings);
-    } catch (error) {
-      console.error('Error loading recently viewed:', error);
-      setRecentlyViewed([]);
-    }
-  };
+    // Get the listings for these IDs, maintaining order
+    const recentListings = recentlyViewedIds
+      .map(id => enrichedListings.find(listing => listing.id === id))
+      .filter(listing => listing !== undefined)
+      .slice(0, DISPLAY_RECENTLY_VIEWED); // Only display top N items
+    
+    setRecentlyViewed(recentListings);
+  }, [recentlyViewedIds, enrichedListings, loading]);
 
   useEffect(() => {
-    if (!preferences || !savedIds || enrichedListings.length === 0) return;
+    if (!preferences || !savedIds || enrichedListings.length === 0 || loading) return;
 
     const sortByScore = (listings) => {
       return [...listings].sort((a, b) => {
@@ -269,8 +210,6 @@ export default function Home({ navigation }) {
     const userBudget = preferences?.maxPrice || 2000;
     const maxDistance = 2;
 
-    // Load recently viewed separately (handled by loadRecentlyViewed)
-    
     const saved = enrichedListings.filter((listing) => savedIds.includes(listing.id));
     setSavedListings(sortByScore(saved));
     
@@ -295,7 +234,7 @@ export default function Home({ navigation }) {
       );
       setHasAllAmenities(sortByScore(withAmenities));
     }
-  }, [preferences, savedIds, enrichedListings]);
+  }, [preferences, savedIds, enrichedListings, loading]);
 
   const handleCardPress = async (listing) => {
     const score = calculateMatchScore(
@@ -320,11 +259,10 @@ export default function Home({ navigation }) {
 
   const handleClearRecentlyViewed = async () => {
     await clearRecentlyViewed();
-    setRecentlyViewed([]);
   };
 
   const renderSection = (title, data, sectionKey) => {
-    // Don't render empty sections (except saved listings which is handled separately)
+    // Don't render empty sections
     if (data.length === 0) {
       return null;
     }

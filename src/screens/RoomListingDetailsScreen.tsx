@@ -1,7 +1,6 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Dimensions, ScrollView, TouchableOpacity, Alert, Animated, Linking, Platform } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, ScrollView, TouchableOpacity, Alert, Animated, Linking, Platform} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import BedIcon from '../../assets/bedIcon.svg';
 import DistanceIcon from '../../assets/distanceIcon(2).svg';
 import BathIcon from '../../assets/bathIcon.svg';
@@ -25,35 +24,13 @@ import { calculateDistance } from '../navigation/locationUtils';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 import ImageCarousel from '../navigation/ImageCarousel';
 
-// Recently Viewed Constants
-const RECENTLY_VIEWED_STORAGE_KEY = '@recently_viewed_listings';
-const MAX_RECENTLY_VIEWED = 10;
-
-// Recently Viewed Helper Functions
-const addToRecentlyViewed = async (listingId) => {
-  try {
-    const stored = await AsyncStorage.getItem(RECENTLY_VIEWED_STORAGE_KEY);
-    const recentIds = stored ? JSON.parse(stored) : [];
-    
-    // Remove if already exists (we'll add it to the front)
-    const filteredIds = recentIds.filter(id => id !== listingId);
-    
-    // Add to front
-    const updatedIds = [listingId, ...filteredIds];
-    
-    // Keep only the most recent MAX_RECENTLY_VIEWED items
-    const trimmedIds = updatedIds.slice(0, MAX_RECENTLY_VIEWED);
-    
-    await AsyncStorage.setItem(RECENTLY_VIEWED_STORAGE_KEY, JSON.stringify(trimmedIds));
-    return trimmedIds;
-  } catch (error) {
-    console.error('Error saving recently viewed:', error);
-    return [];
-  }
+const copyToClipboard = async (text, label) => {
+  await Clipboard.setStringAsync(text);
+  Alert.alert('Copied!', `${label} has been copied to your clipboard.`);
 };
 
 export default function RoomListingDetailsScreen({ navigation, route }) {
-  const { savedIds, toggleSave, preferences } = usePreferences();
+  const { savedIds, toggleSave, preferences, addToRecentlyViewed } = usePreferences();
   const { listing, matchScore } = route.params;
   const scoreValue = matchScore || 0;
   const animatedWidth = useRef(new Animated.Value(0)).current;
@@ -64,49 +41,6 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
       addToRecentlyViewed(listing.id);
     }
   }, [listing?.id]);
-
-    const copyToClipboard = async (text, label) => {
-    await Clipboard.setStringAsync(text);
-    Alert.alert('Copied!', `${label} has been copied to your clipboard.`);
-  };
-  
-  // Helper function to open maps with directions
-  const openMaps = (destinationAddress: string) => {
-    // Use custom location if set in preferences, otherwise default to UT Austin
-    const destinationLatitude = preferences.location?.lat || 30.285340698031447;
-    const destinationLongitude = preferences.location?.lon || -97.73208396036748;
-    
-    // Encode the apartment address for URL (this is now the ORIGIN)
-    const encodedAddress = encodeURIComponent(destinationAddress);
-    
-    let url = '';
-    
-    if (Platform.OS === 'ios') {
-      // Apple Maps URL scheme - swapped saddr and daddr
-      url = `maps://app?saddr=${encodedAddress}&daddr=${destinationLatitude},${destinationLongitude}`;
-      
-      // Fallback to Google Maps on iOS if Apple Maps fails
-      const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodedAddress}&destination=${destinationLatitude},${destinationLongitude}`;
-      
-      Linking.canOpenURL(url).then(supported => {
-        if (supported) {
-          Linking.openURL(url);
-        } else {
-          Linking.openURL(googleMapsUrl);
-        }
-      }).catch(() => {
-        Linking.openURL(googleMapsUrl);
-      });
-    } else {
-      // Google Maps for Android - swapped origin and destination
-      url = `https://www.google.com/maps/dir/?api=1&origin=${encodedAddress}&destination=${destinationLatitude},${destinationLongitude}`;
-      
-      Linking.openURL(url).catch(err => {
-        Alert.alert('Error', 'Unable to open maps. Please make sure you have a maps app installed.');
-        console.error('Error opening maps:', err);
-      });
-    }
-  };
 
   useEffect(() => {
     Animated.timing(animatedWidth, {
@@ -124,6 +58,7 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
   // Get the building data for this listing
   const building = buildingsData.find(b => b.id === listing.buildingId) || {};
 
+  // Calculate distance from custom location if set
   let calculatedDistance = building.distance || 0;
   if (preferences.location && building.latitude && building.longitude) {
     calculatedDistance = calculateDistance(
@@ -168,6 +103,38 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
     floorPlan: listing.floorPlan,
     smartHousing: listing.smartHousing,
     moveInFee: listing.moveInFee  
+  };
+
+  const openMaps = (destinationAddress: string) => {
+    const destinationLatitude = preferences.location?.lat || 30.285340698031447;
+    const destinationLongitude = preferences.location?.lon || -97.73208396036748;
+    
+    const encodedAddress = encodeURIComponent(destinationAddress);
+    
+    let url = '';
+    
+    if (Platform.OS === 'ios') {
+      url = `maps://app?saddr=${encodedAddress}&daddr=${destinationLatitude},${destinationLongitude}`;
+      
+      const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodedAddress}&destination=${destinationLatitude},${destinationLongitude}`;
+      
+      Linking.canOpenURL(url).then(supported => {
+        if (supported) {
+          Linking.openURL(url);
+        } else {
+          Linking.openURL(googleMapsUrl);
+        }
+      }).catch(() => {
+        Linking.openURL(googleMapsUrl);
+      });
+    } else {
+      url = `https://www.google.com/maps/dir/?api=1&origin=${encodedAddress}&destination=${destinationLatitude},${destinationLongitude}`;
+      
+      Linking.openURL(url).catch(err => {
+        Alert.alert('Error', 'Unable to open maps. Please make sure you have a maps app installed.');
+        console.error('Error opening maps:', err);
+      });
+    }
   };
 
   const isSaved = savedIds.includes(roomData.id);
@@ -243,20 +210,6 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
             </View>
           )}
         </TouchableOpacity>
-
-          {/* SMART Housing Badge 
-          {roomData.smartHousing && (
-            <View style={styles.smartHousingBadgeContainer}>
-              <LinearGradient
-                colors={['#FF8C42', '#BF5700', '#994400']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.smartHousingBadge}
-              >
-                <Text style={styles.smartHousingBadgeText}>SMART Housing</Text>
-              </LinearGradient>
-            </View>
-          )}*/}
         </View>
 
         {/* Basic Info */}
@@ -316,7 +269,6 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
 
         <View style={styles.chipsContainer}>
           {details.map((detail) => {
-            // Make distance chip pressable
             if (detail.id === 'distance') {
               return (
                 <TouchableOpacity 
@@ -333,7 +285,6 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
               );
             }
             
-            // Other chips remain non-pressable
             return (
               <View key={detail.id} style={styles.chip}>
                 <View style={styles.chipContent}>
@@ -482,27 +433,6 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-    backgroundColor: '#ffffff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
-  },
-  backButton: {
-    padding: 5,
-  },
-  backButtonText: {
-    fontSize: 18,
-    color: '#000000',
-    fontWeight: '600',
-  },
-  placeholder: {
-    width: 60,
-  },
   imageGalleryContainer: {
     position: 'relative',
     height: 400,
@@ -524,16 +454,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 5,
-  },
-  saveText: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#000000',
-  },
-  placeholderText: {
-    fontSize: 18,
-    color: '#6b7280',
-    fontWeight: '600',
   },
   section: {
     paddingVertical: 20,
@@ -559,23 +479,6 @@ const styles = StyleSheet.create({
     color: '#374151',
     marginBottom: 8,
     lineHeight: 24,
-  },
-  contactButton: {
-    backgroundColor: '#f3f4f6',
-    width: '95%',
-    paddingVertical: 10,
-    alignItems: 'center',
-    alignSelf: 'center',
-    padding: 24,
-    marginBottom: 30,
-    marginTop: 5,
-    borderRadius: 16,
-    elevation: 2,
-  },
-  contactButtonText: {
-    color: '#000000ff',
-    fontSize: 23,
-    fontWeight: '500',
   },
   infoSection: {
     backgroundColor: '#ffffff',
@@ -637,25 +540,6 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     alignItems: 'center',
     gap: 8,
-  },
-  chipIconLeft: {
-    width: 20,
-    height: 20,
-  },
-  icon: {
-    width: 22,
-    height: 22,
-    resizeMode: 'contain',
-  },
-  iconContainerDistance: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#dfdfdfff',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 15,
-    marginLeft: -5,
   },
   sectionHeader: {
     flexDirection: 'row',
