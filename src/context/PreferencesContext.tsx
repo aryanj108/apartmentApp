@@ -22,6 +22,9 @@ type PreferencesContextType = {
   setPreferences: (prefs: Preferences) => void;
   savedIds: number[]; 
   toggleSave: (id: number) => void;
+  recentlyViewedIds: number[];
+  addToRecentlyViewed: (id: number) => Promise<void>;
+  clearRecentlyViewed: () => Promise<void>;
   loading: boolean;
 };
 
@@ -32,6 +35,9 @@ const PreferencesContext = createContext<PreferencesContextType | undefined>(
 type PreferencesProviderProps = {
   children: ReactNode;
 };
+
+// Constants for Recently Viewed
+const MAX_RECENTLY_VIEWED = 10;
 
 export const PreferencesProvider = ({ children }: PreferencesProviderProps) => {
   const { user } = useAuth();
@@ -52,6 +58,7 @@ export const PreferencesProvider = ({ children }: PreferencesProviderProps) => {
   });
 
   const [savedIds, setSavedIds] = useState<number[]>([]);
+  const [recentlyViewedIds, setRecentlyViewedIds] = useState<number[]>([]);
 
   // Load preferences from Firestore when user signs in
   useEffect(() => {
@@ -83,6 +90,11 @@ export const PreferencesProvider = ({ children }: PreferencesProviderProps) => {
           if (userProfile?.savedApartments) {
             setSavedIds(userProfile.savedApartments.map(id => parseInt(id)));
           }
+
+          // Load recently viewed
+          if (userProfile?.recentlyViewed) {
+            setRecentlyViewedIds(userProfile.recentlyViewed.map(id => parseInt(id)));
+          }
         } catch (error) {
           console.error('Error loading user data:', error);
         } finally {
@@ -104,6 +116,7 @@ export const PreferencesProvider = ({ children }: PreferencesProviderProps) => {
           location: undefined, 
         });
         setSavedIds([]);
+        setRecentlyViewedIds([]);
         setLoading(false);
       }
     };
@@ -138,6 +151,52 @@ export const PreferencesProvider = ({ children }: PreferencesProviderProps) => {
     }
   };
 
+  // Add to recently viewed with Firestore sync
+  const addToRecentlyViewed = async (id: number) => {
+    // Remove if already exists (we'll add it to the front)
+    const filteredIds = recentlyViewedIds.filter(viewedId => viewedId !== id);
+    
+    // Add to front
+    const updatedIds = [id, ...filteredIds];
+    
+    // Keep only the most recent MAX_RECENTLY_VIEWED items
+    const trimmedIds = updatedIds.slice(0, MAX_RECENTLY_VIEWED);
+    
+    // Update local state immediately
+    setRecentlyViewedIds(trimmedIds);
+
+    // Save to Firestore if user is logged in
+    if (user?.uid) {
+      try {
+        await updateUserProfile(user.uid, {
+          recentlyViewed: trimmedIds.map(id => id.toString()),
+        });
+        console.log('Recently viewed synced to Firestore');
+      } catch (error) {
+        console.error('Error syncing recently viewed:', error);
+        // Revert on error
+        setRecentlyViewedIds(recentlyViewedIds);
+      }
+    }
+  };
+
+  // Clear recently viewed
+  const clearRecentlyViewed = async () => {
+    setRecentlyViewedIds([]);
+
+    // Clear in Firestore if user is logged in
+    if (user?.uid) {
+      try {
+        await updateUserProfile(user.uid, {
+          recentlyViewed: [],
+        });
+        console.log('Recently viewed cleared in Firestore');
+      } catch (error) {
+        console.error('Error clearing recently viewed:', error);
+      }
+    }
+  };
+
   return (
     <PreferencesContext.Provider 
       value={{ 
@@ -145,6 +204,9 @@ export const PreferencesProvider = ({ children }: PreferencesProviderProps) => {
         setPreferences: handleSetPreferences, 
         savedIds, 
         toggleSave,
+        recentlyViewedIds,
+        addToRecentlyViewed,
+        clearRecentlyViewed,
         loading,
       }}
     >
