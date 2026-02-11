@@ -195,46 +195,78 @@ function SearchModal({ visible, onClose, buildings, onSelectBuilding }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredBuildings, setFilteredBuildings] = useState([]);
   const translateY = useRef(new Animated.Value(0)).current;
+  const opacity = useRef(new Animated.Value(0)).current;
 
-  // Reset animation when modal becomes visible
+  // Fade in animation when modal becomes visible
   useEffect(() => {
     if (visible) {
       translateY.setValue(0);
+      Animated.timing(opacity, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    } else {
+      opacity.setValue(0);
     }
   }, [visible]);
 
   // Create pan responder for drag gesture
   const panResponder = useRef(
     PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
+      onStartShouldSetPanResponder: () => false,
+      onStartShouldSetPanResponderCapture: () => false,
       onMoveShouldSetPanResponder: (_, gestureState) => {
-        // Only respond to downward drags
-        return gestureState.dy > 5;
+        // Only respond to downward drags with significant movement
+        return gestureState.dy > 10 && Math.abs(gestureState.dy) > Math.abs(gestureState.dx);
+      },
+      onMoveShouldSetPanResponderCapture: (_, gestureState) => {
+        // Only capture if it's clearly a downward drag
+        return gestureState.dy > 10 && Math.abs(gestureState.dy) > Math.abs(gestureState.dx);
       },
       onPanResponderMove: (_, gestureState) => {
         // Only allow dragging down (positive dy)
         if (gestureState.dy > 0) {
           translateY.setValue(gestureState.dy);
+          // Smoothly fade out background as modal is dragged down
+          // Fade starts immediately and completes around 400px
+          const newOpacity = Math.max(0, 1 - (gestureState.dy / 400));
+          opacity.setValue(newOpacity);
         }
       },
       onPanResponderRelease: (_, gestureState) => {
         // If dragged down more than 150px, close the modal
         if (gestureState.dy > 150) {
-          Animated.timing(translateY, {
-            toValue: SCREEN_HEIGHT,
-            duration: 200,
-            useNativeDriver: true,
-          }).start(() => {
+          Animated.parallel([
+            Animated.timing(translateY, {
+              toValue: SCREEN_HEIGHT,
+              duration: 250,
+              useNativeDriver: true,
+            }),
+            Animated.timing(opacity, {
+              toValue: 0,
+              duration: 250,
+              useNativeDriver: true,
+            })
+          ]).start(() => {
             onClose();
           });
         } else {
           // Otherwise, spring back to original position
-          Animated.spring(translateY, {
-            toValue: 0,
-            useNativeDriver: true,
-            tension: 50,
-            friction: 8,
-          }).start();
+          Animated.parallel([
+            Animated.spring(translateY, {
+              toValue: 0,
+              useNativeDriver: true,
+              tension: 65,
+              friction: 10,
+            }),
+            Animated.spring(opacity, {
+              toValue: 1,
+              useNativeDriver: true,
+              tension: 65,
+              friction: 10,
+            })
+          ]).start();
         }
       },
     })
@@ -279,15 +311,41 @@ useEffect(() => {
     onClose();
   };
 
+  const handleClose = () => {
+    Animated.parallel([
+      Animated.timing(translateY, {
+        toValue: SCREEN_HEIGHT,
+        duration: 250,
+        useNativeDriver: true,
+      }),
+      Animated.timing(opacity, {
+        toValue: 0,
+        duration: 250,
+        useNativeDriver: true,
+      })
+    ]).start(() => {
+      onClose();
+    });
+  };
+
   return (
     <Modal
       visible={visible}
-      animationType="slide"
+      animationType="fade"
       transparent={true}
       onRequestClose={onClose}
       statusBarTranslucent={true}
     >
       <View style={styles.modalOverlay}>
+        {/* Fixed background overlay that only fades */}
+        <Animated.View 
+          style={[
+            StyleSheet.absoluteFill,
+            { backgroundColor: 'rgba(0, 0, 0, 0.5)', opacity }
+          ]} 
+        />
+        
+        {/* Modal content that slides down */}
         <Animated.View 
           style={[
             styles.modalContent,
@@ -301,7 +359,7 @@ useEffect(() => {
 
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>Search Apartments</Text>
-            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+            <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
               <Text style={styles.closeButtonText}>✕</Text>
             </TouchableOpacity>
           </View>
@@ -582,7 +640,7 @@ header: {
   },
   searchIconButton: {
     position: 'absolute',
-    right: 20,
+    right: 0,
     padding: 4,
     marginTop: 5,
     top: 0
@@ -735,7 +793,6 @@ header: {
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
     justifyContent: 'flex-end',
   },
   modalContent: {
