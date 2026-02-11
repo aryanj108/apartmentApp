@@ -300,6 +300,23 @@ function SearchModal({ visible, onClose, buildings, onSelectBuilding }) {
     onClose();
   };
 
+  const handleBackdropPress = () => {
+    Animated.parallel([
+      Animated.timing(translateY, {
+        toValue: SCREEN_HEIGHT,
+        duration: 250,
+        useNativeDriver: true,
+      }),
+      Animated.timing(opacity, {
+        toValue: 0,
+        duration: 250,
+        useNativeDriver: true,
+      })
+    ]).start(() => {
+      onClose();
+    });
+  };
+
   return (
     <Modal
       visible={visible}
@@ -309,12 +326,18 @@ function SearchModal({ visible, onClose, buildings, onSelectBuilding }) {
       statusBarTranslucent={true}
     >
       <View style={styles.modalOverlay}>
-        <Animated.View 
-          style={[
-            StyleSheet.absoluteFill,
-            { backgroundColor: 'rgba(0, 0, 0, 0.5)', opacity }
-          ]} 
-        />
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={handleBackdropPress}
+          style={StyleSheet.absoluteFill}
+        >
+          <Animated.View 
+            style={[
+              StyleSheet.absoluteFill,
+              { backgroundColor: 'rgba(0, 0, 0, 0.5)', opacity }
+            ]} 
+          />
+        </TouchableOpacity>
         
         <Animated.View 
           style={[
