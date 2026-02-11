@@ -155,19 +155,28 @@ function FilterModal({ visible, onClose, sections, visibleSections, toggleSectio
   // Create pan responder for drag gesture
   const panResponder = useRef(
     PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
+      onStartShouldSetPanResponder: () => false,
+      onStartShouldSetPanResponderCapture: () => false,
       onMoveShouldSetPanResponder: (_, gestureState) => {
+        // Only respond to downward drags
+        return gestureState.dy > 5;
+      },
+      onMoveShouldSetPanResponderCapture: (_, gestureState) => {
+        // Only capture if it's clearly a downward drag
         return gestureState.dy > 5;
       },
       onPanResponderTerminationRequest: () => false,
       onPanResponderMove: (_, gestureState) => {
+        // Only allow dragging down (positive dy)
         if (gestureState.dy > 0) {
           translateY.setValue(gestureState.dy);
+          // Smoothly fade out background as modal is dragged down
           const newOpacity = Math.max(0, 1 - (gestureState.dy / 400));
           opacity.setValue(newOpacity);
         }
       },
       onPanResponderRelease: (_, gestureState) => {
+        // If dragged down more than 150px, close the modal
         if (gestureState.dy > 150) {
           Animated.parallel([
             Animated.timing(translateY, {
@@ -184,6 +193,7 @@ function FilterModal({ visible, onClose, sections, visibleSections, toggleSectio
             onClose();
           });
         } else {
+          // Otherwise, spring back to original position
           Animated.parallel([
             Animated.spring(translateY, {
               toValue: 0,
@@ -222,24 +232,21 @@ function FilterModal({ visible, onClose, sections, visibleSections, toggleSectio
         
         {/* Modal content that slides down */}
         <Animated.View 
+          {...panResponder.panHandlers}
           style={[
             styles.modalContent,
             { transform: [{ translateY }] }
           ]}
         >
-          {/* DRAGGABLE AREA - Only the top section */}
-          <View {...panResponder.panHandlers} style={styles.dragArea}>
-            {/* Drag Handle */}
-            <View style={styles.dragHandleContainer}>
-              <View style={styles.dragHandle} />
-            </View>
-
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Filter Sections</Text>
-            </View>
+          {/* Drag Handle */}
+          <View style={styles.dragHandleContainer}>
+            <View style={styles.dragHandle} />
           </View>
 
-          {/* NON-DRAGGABLE AREA - ScrollView */}
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Filter Sections</Text>
+          </View>
+
           <ScrollView style={styles.filterList}>
             {sections.map((section) => (
               <TouchableOpacity
@@ -745,7 +752,4 @@ const styles = StyleSheet.create({
     marginLeft: 5,
     color: '#1F2937',
   },
-  dragArea: {
-    paddingBottom: 10,
-},
 });

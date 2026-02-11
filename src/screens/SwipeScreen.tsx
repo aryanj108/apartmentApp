@@ -1,59 +1,70 @@
-import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
-import { BlurView } from 'expo-blur';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  FlatList,
+  Dimensions,
   TouchableOpacity,
   Image,
-  Dimensions,
-  ActivityIndicator,
-  Switch,
-  Modal,
-  TextInput,
-  Keyboard,
-  Platform,
-  Animated,
-  PanResponder,
+  ScrollView,
+  Alert,
+  Linking,
+  Platform
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import MapView, { Marker } from 'react-native-maps';
 import { LinearGradient } from 'expo-linear-gradient';
-import { calculateDistance } from '../navigation/locationUtils';
+
+import BedIcon from '../../assets/bedIcon.svg';
+import DistanceIcon from '../../assets/distanceIcon(2).svg';
+import BathIcon from '../../assets/bathIcon.svg';
+import WifiIcon from '../../assets/wifiIcon.svg';
+import GymIcon from '../../assets/gymIcon.svg';
+import PoolIcon from '../../assets/poolIcon.svg';
+import ParkingIcon from '../../assets/parkingIcon.svg';
+import FurnishedIcon from '../../assets/furnishedIcon.svg';
+import PetIcon from '../../assets/petIcon.svg';
+import Stars from '../../assets/stars.svg';
 
 import { buildingsData } from '../data/buildings';
 import { listingsData } from '../data/listings';
 import { usePreferences } from '../context/PreferencesContext';
-import { calculateMatchScore } from '../data/matchingAlgorithm';
-import BedIcon from '../../assets/bedIcon.svg';
-import BathIcon from '../../assets/bathIcon.svg';
-import DistanceIcon from '../../assets/distanceIcon(2).svg';
-import Stars from '../../assets/stars.svg';
-import SaveFilledIconHeart from '../../assets/heart.svg';
-import PinIcon from '../../assets/pinIcon2.svg';
-import SearchIcon from '../../assets/searchIcon.svg'; 
-import ResetIcon from '../../assets/resetIcon.svg';
+import { useAuth } from '../context/AuthContext';  
+import { setUserOnboardingComplete } from '../services/userService'; 
+import {
+  calculateMatchScore,
+} from '../data/matchingAlgorithm';
+// Import the distance calculation utility
+import { calculateDistance, filterApartmentsByDistance } from '../navigation/locationUtils';
+
+import SwipeCard from '../navigation/SwipeCard';
+import CustomLoadingScreen from './CustomLoadingScreen';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-// Austin, TX coordinates
-const AUSTIN_REGION = {
-  latitude: 30.2672,
-  longitude: -97.7431,
-  latitudeDelta: 0.15,
-  longitudeDelta: 0.15,
-};
+const CARD_HEIGHT = SCREEN_HEIGHT * 0.85;
+const CARD_WIDTH = SCREEN_WIDTH * 0.92;
+const IMAGE_HEIGHT = CARD_HEIGHT * 0.50;
+const INFO_HEIGHT = CARD_HEIGHT * 0.50;
+const AMENITY_WIDTH = (CARD_WIDTH - 32 - 16) / 3;
 
-// Helper function to format price with commas
+const allAmenities = [
+  { id: 'wifi', label: 'WiFi', icon: WifiIcon },
+  { id: 'gym', label: 'Gym', icon: GymIcon },
+  { id: 'pool', label: 'Pool', icon: PoolIcon },
+  { id: 'parking', label: 'Parking', icon: ParkingIcon },
+  { id: 'furnished', label: 'Furnished', icon: FurnishedIcon },
+  { id: 'petFriendly', label: 'Pet Friendly', icon: PetIcon },
+];
+
 function formatPrice(price) {
   return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
 // Helper function to combine listing with building data
+// NOW ACCEPTS CUSTOM LOCATION TO CALCULATE DISTANCES
 function getEnrichedListings(customLocation?: {lat: number, lon: number} | null) {
   return listingsData.map(listing => {
     const building = buildingsData.find(b => b.id === listing.buildingId);
+    
     // Calculate distance from custom location if provided
     let calculatedDistance = building?.distance || 0;
     if (customLocation && building?.latitude && building?.longitude) {
@@ -66,12 +77,12 @@ function getEnrichedListings(customLocation?: {lat: number, lon: number} | null)
       // Round to 1 decimal place
       calculatedDistance = Math.round(calculatedDistance * 10) / 10;
     }
-
+    
     return {
       ...listing,
       name: building?.name || 'Unknown',
       address: building?.address || 'Unknown Address',
-      distance: calculatedDistance,  
+      distance: calculatedDistance,
       amenities: building?.amenities || [],
       images: building?.images || [],
       description: listing.description || building?.description || '',
@@ -86,469 +97,332 @@ function getEnrichedListings(customLocation?: {lat: number, lon: number} | null)
   });
 }
 
-// Custom marker component - shows building pins
-const CustomMarker = React.memo(({ building, onPress }) => {
-  const [tracksViewChanges, setTracksViewChanges] = React.useState(true);
+export default function SwipeScreen({ navigation, route }: any) {
+  const { preferences } = usePreferences();
+  const { user, setHasCompletedOnboarding } = useAuth();  
+  
+  const isRedoingPreferences = route?.params?.isRedo || false;
+  
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [selectedAmenities, setSelectedAmenities] = useState<any[]>([]);
+  const [enrichedListings, setEnrichedListings] = useState<any[]>([]);
+  const [minLoadingTime, setMinLoadingTime] = useState(true);
 
-  React.useEffect(() => {
+  // Helper funciton to open maps
+  const openMaps = (destinationAddress: string) => {
+    // Use custom location if set in preferences, otherwise default to UT Austin
+    const destinationLatitude = preferences.location?.lat || 30.285340698031447;
+    const destinationLongitude = preferences.location?.lon || -97.73208396036748;
+    
+    // Encode the apartment address for URL (this is now the ORIGIN)
+    const encodedAddress = encodeURIComponent(destinationAddress);
+    
+    let url = '';
+    
+    if (Platform.OS === 'ios') {
+      // Apple Maps URL scheme - swapped saddr and daddr
+      url = `maps://app?saddr=${encodedAddress}&daddr=${destinationLatitude},${destinationLongitude}`;
+      
+      // Fallback to Google Maps on iOS if Apple Maps fails
+      const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodedAddress}&destination=${destinationLatitude},${destinationLongitude}`;
+      
+      Linking.canOpenURL(url).then(supported => {
+        if (supported) {
+          Linking.openURL(url);
+        } else {
+          Linking.openURL(googleMapsUrl);
+        }
+      }).catch(() => {
+        Linking.openURL(googleMapsUrl);
+      });
+    } else {
+      // Google Maps for Android - swapped origin and destination
+      url = `https://www.google.com/maps/dir/?api=1&origin=${encodedAddress}&destination=${destinationLatitude},${destinationLongitude}`;
+      
+      Linking.openURL(url).catch(err => {
+        Alert.alert('Error', 'Unable to open maps. Please make sure you have a maps app installed.');
+        console.error('Error opening maps:', err);
+      });
+    }
+  };
+
+  useEffect(() => {
     const timer = setTimeout(() => {
-      setTracksViewChanges(false);
-    }, 100);
+      setMinLoadingTime(false);
+    }, 2500); 
+
     return () => clearTimeout(timer);
   }, []);
 
-  return (
-    <Marker
-      coordinate={{
-        latitude: building.latitude,
-        longitude: building.longitude,
-      }}
-      onPress={() => onPress(building)}
-      tracksViewChanges={tracksViewChanges}
-    >
-      <View style={styles.markerContainer}>
-        <PinIcon width={40} height={40} fill="#BF5700" />
-      </View>
-    </Marker>
-  );
-});
-
-// Vertical Listing Card Component
-function ListingVerticalCard({ listing, matchScore, onPress, isSaved }) {
-  const hasImages = listing.images && listing.images.length > 0;
-  
-  return (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={onPress}
-      activeOpacity={0.9}
-    >
-      <View style={styles.cardImageContainer}>
-        {hasImages ? (
-          <Image
-            source={listing.images[0]}
-            style={styles.cardImage}
-            resizeMode="cover"
-          />
-        ) : (
-          <View style={[styles.cardImage, styles.placeholderImage]}>
-            <Text style={styles.placeholderText}>No Image</Text>
-          </View>
-        )}
-        
-        {isSaved && (
-          <View style={styles.saveBadge}>
-            <SaveFilledIconHeart width={25} height={25} fill="#BF5700" />
-          </View>
-        )}
-
-        {matchScore && (
-          <LinearGradient
-            colors={['#FF8C42', '#BF5700', '#994400']}
-            start={{ x: 0, y: 1 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.matchBadge}
-          >
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Stars width={15} height={15} fill={'#ffffff'} />
-              <Text style={styles.matchText}> {matchScore}%</Text>
-            </View>
-          </LinearGradient>
-        )}
-      </View>
-      
-      <View style={styles.cardContent}>
-        <Text style={styles.cardTitle} numberOfLines={1}>
-          {listing.name}
-        </Text>
-        <Text style={styles.unitNumber}>
-          {listing.unitNumber} {/*• {listing.floorPlan}*/}
-        </Text>
-        <Text style={styles.cardAddress} numberOfLines={1}>
-          {listing.address}
-        </Text>
-
-        <View style={styles.cardDetailsRow}>
-          <View style={styles.leftDetails}>
-            <View style={styles.cardDetailItem}>
-              <BedIcon width={16} height={16} />
-              <Text style={styles.cardDetailText}>{listing.bedrooms} Bed</Text>
-            </View>
-            <View style={styles.cardDetailItem}>
-              <BathIcon width={16} height={16} />
-              <Text style={styles.cardDetailText}>{listing.bathrooms} Bath</Text>
-            </View>
-            <View style={styles.cardDetailItem}>
-              <DistanceIcon width={16} height={16} />
-              <Text style={styles.cardDetailText}>{listing.distance} mi</Text>
-            </View>
-          </View>
-          <Text style={styles.cardPrice}>${formatPrice(listing.price)}/mo</Text>
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
-}
-
-// Search Modal Component
-function SearchModal({ visible, onClose, buildings, onSelectBuilding }) {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filteredBuildings, setFilteredBuildings] = useState([]);
-  const translateY = useRef(new Animated.Value(0)).current;
-  const opacity = useRef(new Animated.Value(1)).current;
-
-  // Reset animation when modal becomes visible
   useEffect(() => {
-    if (visible) {
-      translateY.setValue(0);
-      opacity.setValue(1);
-    }
-  }, [visible]);
+    const selected = allAmenities.map(amenity => ({
+      ...amenity,
+      selected: preferences[amenity.id] || false,
+    }));
+    setSelectedAmenities(selected);
+  }, [preferences]);
 
-  // Create pan responder for drag gesture
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: (_, gestureState) => {
-        // Only respond to downward drags
-        return gestureState.dy > 5;
-      },
-      onPanResponderMove: (_, gestureState) => {
-        // Only allow dragging down (positive dy)
-        if (gestureState.dy > 0) {
-          translateY.setValue(gestureState.dy);
-          // Fade out background as modal is dragged down (0 to 300px range)
-          const newOpacity = Math.max(0, 1 - gestureState.dy / 300);
-          opacity.setValue(newOpacity);
-        }
-      },
-      onPanResponderRelease: (_, gestureState) => {
-        // If dragged down more than 150px, close the modal
-        if (gestureState.dy > 150) {
-          Animated.parallel([
-            Animated.timing(translateY, {
-              toValue: SCREEN_HEIGHT,
-              duration: 200,
-              useNativeDriver: true,
-            }),
-            Animated.timing(opacity, {
-              toValue: 0,
-              duration: 200,
-              useNativeDriver: true,
-            })
-          ]).start(() => {
-            onClose();
-          });
-        } else {
-          // Otherwise, spring back to original position
-          Animated.parallel([
-            Animated.spring(translateY, {
-              toValue: 0,
-              useNativeDriver: true,
-              tension: 50,
-              friction: 8,
-            }),
-            Animated.spring(opacity, {
-              toValue: 1,
-              useNativeDriver: true,
-              tension: 50,
-              friction: 8,
-            })
-          ]).start();
-        }
-      },
-    })
-  ).current;
+  useEffect(() => {
+    // Get all listings with building data combined and recalculated distances
+    const listings = getEnrichedListings(preferences.location);
+    setEnrichedListings(listings);
+  }, [preferences.location]); // Re-run when location changes
 
-useEffect(() => {
-  if (searchQuery.trim() === '') {
-    setFilteredBuildings([]);
-  } else {
-    const query = searchQuery.toLowerCase();
-    const filtered = buildings.filter(building =>
-      building.name.toLowerCase().includes(query) ||
-      building.address.toLowerCase().includes(query)
-    );
-    
-    const sorted = filtered.sort((a, b) => {
-      const aName = a.name.toLowerCase();
-      const bName = b.name.toLowerCase();
-      const aAddress = a.address.toLowerCase();
-      const bAddress = b.address.toLowerCase();
-      
-      if (aName === query) return -1;
-      if (bName === query) return 1;
-      
-      if (aName.startsWith(query) && !bName.startsWith(query)) return -1;
-      if (bName.startsWith(query) && !aName.startsWith(query)) return 1;
-      
-      if (aAddress.startsWith(query) && !bAddress.startsWith(query)) return -1;
-      if (bAddress.startsWith(query) && !aAddress.startsWith(query)) return 1;
-      
-      return aName.localeCompare(bName);
-    });
-    
-    setFilteredBuildings(sorted);
-  }
-}, [searchQuery, buildings]);
+  // Handle completing onboarding when all cards are swiped
+  const handleFinishSwiping = async () => {
+    try {
+      // Only mark onboarding complete if this is NOT a redo
+      if (user?.uid) {
+        await setUserOnboardingComplete(user.uid);
+        setHasCompletedOnboarding(true);
 
-  const handleSelectBuilding = (building) => {
-    setSearchQuery('');
-    setFilteredBuildings([]);
-    onSelectBuilding(building);
-    onClose();
-  };
-
-  return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      transparent={true}
-      onRequestClose={onClose}
-      statusBarTranslucent={true}
-    >
-      <Animated.View style={[styles.modalOverlay, { opacity }]}>
-        <Animated.View 
-          style={[
-            styles.modalContent,
-            { transform: [{ translateY }] }
-          ]}
-        >
-          {/* Drag Handle */}
-          <View {...panResponder.panHandlers} style={styles.dragHandleContainer}>
-            <View style={styles.dragHandle} />
-          </View>
-
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Search Apartments</Text>
-            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-              <Text style={styles.closeButtonText}>✕</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.searchInputContainer}>
-            <SearchIcon width={25} height={25}/>
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Search by name or address..."
-              placeholderTextColor="#9ca3af"
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              autoFocus={true}
-            />
-            {searchQuery.length > 0 && (
-              <TouchableOpacity onPress={() => setSearchQuery('')}>
-                <Text style={styles.clearButton}>✕</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-
-          <FlatList
-            data={filteredBuildings}
-            keyExtractor={(item) => item.id.toString()}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={styles.searchResultItem}
-                onPress={() => handleSelectBuilding(item)}
-              >
-                <View style={styles.searchResultContent}>
-                  <Text style={styles.searchResultName}>{item.name}</Text>
-                  <Text style={styles.searchResultAddress}>{item.address}</Text>
-                </View>
-                <Text style={styles.searchResultArrow}>→</Text>
-              </TouchableOpacity>
-            )}
-            ListEmptyComponent={
-              searchQuery.trim() !== '' ? (
-                <View style={styles.emptyState}>
-                  <Text style={styles.emptyStateText}>No apartments found</Text>
-                </View>
-              ) : null
+        if (isRedoingPreferences) {
+        // If redoing, just go back to main tabs
+        Alert.alert(
+          'Preferences Updated',
+          'Your housing preferences have been updated.',
+          [
+            {
+              text: 'Return to Home',
+              onPress: () => navigation.navigate('MainTabs')
             }
-            contentContainerStyle={styles.searchResultsList}
-          />
-        </Animated.View>
-      </Animated.View>
-    </Modal>
-  );
-}
-
-export default function Search({ navigation }) {
-  const insets = useSafeAreaInsets();
-  const { preferences, savedIds, toggleSave, loading: prefsLoading } = usePreferences();
-  const [sortedListings, setSortedListings] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [showMap, setShowMap] = useState(true);
-  const [initialMapRegion] = useState(AUSTIN_REGION);
-  const [searchModalVisible, setSearchModalVisible] = useState(false);
-  const mapRef = useRef(null);
-
-  const allAmenities = ['wifi', 'gym', 'pool', 'parking', 'furnished', 'petFriendly'];
-  const selectedAmenities = allAmenities.filter(amenity => preferences?.[amenity]);
-
-  // Calculate header padding based on platform
-  const headerPaddingTop = Platform.OS === 'ios' ? insets.top + 10 : insets.top || 10;
-  const listPaddingTop = Platform.OS === 'ios' ? insets.top + 110 : (insets.top || 10) + 100;
-
-    useLayoutEffect(() => {
-    navigation.getParent()?.setOptions({
-      tabBarStyle: showMap ? { display: 'none' } : styles.tabBar,
-    });
-    
-    return () => {
-      // Reset when component unmounts
-      navigation.getParent()?.setOptions({
-        tabBarStyle: undefined,
-      });
-    };
-  }, [navigation, showMap]);
-
-  useEffect(() => {
-    if (prefsLoading) return;
-    
-    setLoading(true);
-    
-    const userLoc = preferences.location || { lat: 30.2853, lon: -97.7320 };
-    // Get enriched listings
-    const enrichedListings = getEnrichedListings(userLoc);
-    
-    // Calculate match scores and sort
-    const listingsWithScores = enrichedListings.map(listing => {
-      const score = calculateMatchScore(
-        listing,
-        preferences,
-        selectedAmenities.map(id => ({ id, selected: true }))
-      );
-      return { ...listing, matchScore: score };
-    });
-
-    const sorted = listingsWithScores.sort((a, b) => b.matchScore - a.matchScore);
-    
-    setSortedListings(sorted);
-    setLoading(false);
-  }, [preferences, prefsLoading, preferences.location]);
-
-  const handleCardPress = (listing) => {
-    // List view: go to individual unit details first
-    navigation.navigate('RoomListingDetailsScreen_SearchVersion', {
-      listing: listing,
-      matchScore: listing.matchScore,
-    });
-  };
-
-  const handleMarkerPress = (building) => {
-    // Map view: go directly to building with all units
-    navigation.navigate('ApartmentListingDetails', {
-      listing: building,
-    });
-  };
-
-  const handleSearchSelect = (building) => {
-    // Same as clicking a pin on the map
-    navigation.navigate('ApartmentListingDetails', {
-      listing: building,
-    });
-  };
-
-  const handleResetMap = () => {
-    if (mapRef.current) {
-      mapRef.current.animateToRegion(initialMapRegion, 750);
+          ]
+        );
+      } else {                
+        Alert.alert(
+          'Setup Complete!',
+          'Your preferences have been saved. You can now browse apartments.',
+          [
+            {
+              text: 'Start Browsing',
+              onPress: () => navigation.navigate('MainTabs')
+            }
+          ]
+        );
+        navigation.navigate('MainTabs');
+      }
+    }
+    } catch (error) {
+      console.error('Error completing swiping:', error);
+      Alert.alert('Error', 'Something went wrong. Please try again.');
+      // Still navigate even if there's an error
+      navigation.navigate('MainTabs');
     }
   };
 
-  if (loading || prefsLoading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#BF5700" />
-        <Text style={styles.loadingText}>Loading apartments...</Text>
-      </View>
-    );
+  // Call handleFinishSwiping instead of direct navigation
+  useEffect(() => {
+    if (enrichedListings.length > 0 && currentIndex >= enrichedListings.length - 1) {
+      // Finished all listings - complete onboarding
+      setTimeout(() => {
+        handleFinishSwiping();
+      }, 500);
+    }
+  }, [currentIndex, enrichedListings.length]);
+
+  const currentListing = enrichedListings[currentIndex];
+  
+  if (!currentListing || minLoadingTime) {
+      return <CustomLoadingScreen />;
   }
+
+  const matchScore = calculateMatchScore(currentListing, preferences, selectedAmenities);
+  const matchColor = '#BF5700';
+
+  const details = [
+    {
+      id: 'bath',
+      label: `${currentListing.bathrooms} Bath${currentListing.bathrooms !== 1 ? 's' : ''}`,
+      icon: BathIcon,
+    },
+    {
+      id: 'bed',
+      label: `${currentListing.bedrooms} Bed${currentListing.bedrooms !== 1 ? 's' : ''}`,
+      icon: BedIcon,
+    },
+    {
+      id: 'distance',
+      label: `${currentListing.distance} Mi`,
+      icon: DistanceIcon,
+    },
+  ];
+
+  const listingAmenities = allAmenities.filter(amenity =>
+    currentListing.amenities.includes(amenity.id)
+  );
 
   return (
     <View style={styles.container}>
-      <View style={[styles.header, { paddingTop: headerPaddingTop }]}>
-        {/* The BlurView must be absolute to fill the header background */}
-        <BlurView 
-          intensity={showMap ? 0 : 80} 
-          tint="default" 
-          style={StyleSheet.absoluteFill} 
-        />
-        <View style={styles.headerTitleRow}>
-          <Text style={styles.headerTitle}>Browse Listings</Text>
-          <TouchableOpacity 
-            style={styles.searchIconButton}
-            onPress={() => setSearchModalVisible(true)}
-          >
-            <SearchIcon width={40} height={40}/>
-          </TouchableOpacity>
-        </View>
-        <View style={styles.headerBottom}>
-          <Text style={styles.headerSubtitle}>
-            {sortedListings.length} Listings • {showMap ? 'Map View' : 'List View'}
-          </Text>
-          <Switch
-            value={showMap}
-            onValueChange={setShowMap}
-            trackColor={{ false: '#d1d5db', true: '#FDB863' }}
-            thumbColor={showMap ? '#BF5700' : '#f3f4f6'}
-            ios_backgroundColor="#d1d5db"
-            style={styles.toggle}
-          />
-        </View>
+      <View style={styles.headerRow}>
+  <View style={styles.sideSpacer} />
+
+  <View style={styles.headerCenter}>
+    <Text style={styles.headerTitle}>Your Matches</Text>
+    <Text style={styles.headerSubtitle}>
+      {enrichedListings.length} Listings • Swipe Mode
+    </Text>
+  </View>
+
+  <TouchableOpacity onPress={handleFinishSwiping}
+    style={{ marginLeft: 'auto' }}>
+    <Text style={styles.skipText}>Skip</Text>
+  </TouchableOpacity>
+</View>
+
+
+      <View style={styles.cardStackContainer}>
+        {enrichedListings
+          .slice(currentIndex, currentIndex + 2)
+          .reverse()
+          .map(listing => {
+            const score = calculateMatchScore(listing, preferences, selectedAmenities);
+            const color = '#BF5700';
+            
+            return (
+              <SwipeCard
+                key={listing.id}
+                apartment={listing}
+                navigation={navigation}
+                matchScore={score}
+                matchColor={color}
+                onSwipeLeft={() => setCurrentIndex(i => i + 1)}
+                onSwipeRight={() => setCurrentIndex(i => i + 1)}
+              >
+                <View style={styles.cardContent}>
+                  {/* Picture Section */}
+                  <View style={styles.pictureSection}>
+                    <Image
+                      source={listing.images[0]}
+                      style={styles.apartmentImage}
+                      resizeMode="cover"
+                    />
+                    {/* Match Badge updated with LinearGradient */}
+                    <LinearGradient
+                      colors={['#FF8C42', '#BF5700', '#994400']}
+                      start={{ x: 0, y: 1 }}
+                      end={{ x: 1, y: 1 }}
+                      style={styles.matchBadge}
+                    >
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <Stars width={16} height={16} fill={'#fff'}/>
+                        <Text style={styles.matchScoreText}>{score}%</Text>
+                      </View>
+                    </LinearGradient>
+                  </View>
+
+                  {/* Info Section with ScrollView */}
+                  <View style={styles.infoSection}>
+                    <ScrollView 
+                      showsVerticalScrollIndicator={false}
+                      contentContainerStyle={styles.scrollContent}
+                      style={{ flex: 1 }}
+                    >
+                      {/* Title & Price */}
+                      <View style={styles.infoHeader}>
+                        <View style={styles.leftInfo}>
+                          <Text style={styles.apartmentName} numberOfLines={1}>
+                            {currentListing.name}
+                          </Text>
+                          <Text style={styles.unitNumber}>
+                            {currentListing.unitNumber} {/*• {currentListing.floorPlan}*/}
+                          </Text>
+                          <Text style={styles.address} numberOfLines={1}>
+                            {currentListing.address}
+                          </Text>
+                        </View>
+                        <View style={styles.priceContainer}>
+                          <Text style={styles.price}>${formatPrice(currentListing.price)}</Text>
+                          <Text style={styles.perMonth}>per month</Text>
+                        </View>
+                      </View>
+
+                      {/* Details Chips (Bed, Bath, Distance) */}
+                      <View style={styles.chipsContainer}>
+                        {details.map(detail => {
+                          const Icon = detail.icon;
+                          
+                          // Make distance chip pressable
+                          if (detail.id === 'distance') {
+                            return (
+                              <TouchableOpacity
+                                key={detail.id}
+                                style={styles.chip}
+                                onPress={() => openMaps(currentListing.address)}
+                                activeOpacity={0.7}
+                              >
+                                <Icon width={25} height={25} />
+                                <Text style={styles.chipText}>{detail.label}</Text>
+                              </TouchableOpacity>
+                            );
+                          }
+                          
+                          // Other chips remain non-pressable
+                          return (
+                            <View key={detail.id} style={styles.chip}>
+                              <Icon width={25} height={25} />
+                              <Text style={styles.chipText}>{detail.label}</Text>
+                            </View>
+                          );
+                        })}
+                      </View>
+
+                      {/* Amenities */}
+                      {listingAmenities.length > 0 && (
+                        <View style={styles.amenitiesContainer}>
+                          {listingAmenities.map(amenity => (
+                            <View key={amenity.id} style={styles.amenityChip}>
+                              <amenity.icon width={18} height={18} />
+                              <Text style={styles.amenityText}>{amenity.label}</Text>
+                            </View>
+                          ))}
+                        </View>
+                      )}
+                    </ScrollView>
+
+                    {/* Buttons */}
+                    <View style={styles.buttonsContainer}>
+                      <TouchableOpacity
+                        style={styles.detailsButton}
+                        onPress={() => {
+                          // Find the actual building for apartment details
+                          const building = buildingsData.find(b => b.id === currentListing.buildingId);
+                          navigation.navigate('ApartmentListingDetails', {
+                            listing: building,
+                            matchScore,
+                          });
+                        }}
+                      >
+                        <Text style={styles.buttonText}>Apartment Details</Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={styles.detailsButton}
+                        onPress={() =>
+                          navigation.navigate('RoomListingDetailsScreen', {
+                            listing: currentListing,
+                            matchScore,
+                          })
+                        }
+                      >
+                        <Text style={styles.buttonText}>Room Details</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </View>
+              </SwipeCard>
+            );
+          })}
       </View>
 
-      {showMap ? (
-        <View style={styles.mapWrapper}>
-          <MapView
-            ref={mapRef}
-            style={styles.map}
-            initialRegion={initialMapRegion}
-            showsUserLocation={false}
-            showsMyLocationButton={false}
-          >
-            {buildingsData.map((building) => (
-              <CustomMarker
-                key={building.id}
-                building={building}
-                onPress={handleMarkerPress}
-              />
-            ))}
-          </MapView>
-          
-          <TouchableOpacity 
-            style={styles.resetButton}
-            onPress={handleResetMap}
-          >
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <ResetIcon width={15} height={15} fill={'#ffffff'} />
-            <Text style={styles.resetButtonText}>  Reset View</Text>
-            </View>
-          </TouchableOpacity>
-        </View>
-      ) : (
-        <FlatList
-          data={sortedListings}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={({ item }) => (
-            <ListingVerticalCard
-              listing={item}
-              matchScore={item.matchScore}
-              onPress={() => handleCardPress(item)}
-              isSaved={savedIds.includes(item.id)}
-            />
-          )}
-          contentContainerStyle={[styles.listContainer, { paddingTop: listPaddingTop }]}
-          showsVerticalScrollIndicator={true}
-        />
-      )}
-
-      <SearchModal
-        visible={searchModalVisible}
-        onClose={() => setSearchModalVisible(false)}
-        buildings={buildingsData}
-        onSelectBuilding={handleSearchSelect}
-      />
+      {/* Optional Manual "Done" Button 
+      <TouchableOpacity 
+        style={styles.doneButton}
+        onPress={handleFinishSwiping}
+      >
+        <Text style={styles.doneButtonText}>
+          {isRedoingPreferences ? 'Finish & Return Home' : 'Skip & Complete Setup'}
+        </Text>
+      </TouchableOpacity>*/}
     </View>
   );
 }
@@ -556,310 +430,241 @@ export default function Search({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#f3f4f6',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    paddingVertical: 55,
+  },
+  cardContent: {
+    width: CARD_WIDTH,
+    height: CARD_HEIGHT,
+    borderRadius: 20,
+    overflow: 'hidden',
     backgroundColor: '#ffffff',
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f9fafb',
-  },
-  loadingText: {
-    marginTop: 12,
-    fontSize: 16,
-    color: '#6b7280',
-  },
-header: {
-  position: 'absolute',
-  top: 0,
-  left: 0,
-  right: 0,
-  zIndex: 100,
-  paddingBottom: 20, 
-  alignItems: 'center',
-  backgroundColor: 'transparent', 
-  borderBottomLeftRadius: 30,   
-  borderBottomRightRadius: 30,   
-  overflow: 'hidden',            
-  borderBottomWidth: 1,
-  borderBottomColor: 'rgba(255, 255, 255, 0.2)',
-},
-  listContainer: {
-    padding: 16,
-  },
-  headerTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+  pictureSection: {
+    height: IMAGE_HEIGHT,
     width: '100%',
     position: 'relative',
   },
-  headerTitle: {
-    fontSize: 17,
-    fontWeight: 'bold',
-    color: '#000000',
-    textAlign: 'center',
+  apartmentImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 20,
   },
-  searchIconButton: {
+  matchBadge: {
     position: 'absolute',
-    right: 0,
-    padding: 4,
-    marginTop: 5,
-    top: 0
-  },
-  headerBottom: {
+    top: 12,
+    right: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    height: 25,
-  },
-  headerSubtitle: {
-    fontSize: 12,
-    color: '#000000',
-    fontWeight: '500',
-    textAlign: 'center',
-    marginRight: -5,
-    marginLeft: 5,
-  },
-  toggle: {
-    transform: [{ scale: 0.8 }],
-  },
-  mapWrapper: {
-    flex: 1,
-    position: 'relative',
-  },
-  map: {
-    flex: 1,
-  },
-  resetButton: {
-    position: 'absolute',
-    bottom: 20,
-    right: 20,
-    backgroundColor: '#BF5700',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 25,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 5,
   },
-  resetButtonText: {
-    color: '#ffffff',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  markerContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  card: {
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
-    marginBottom: 16,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 5,
-  },
-  cardImageContainer: {
-    position: 'relative',
-    width: '100%',
-    height: 200,
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
-  },
-  cardImage: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 12,
-  },
-  placeholderImage: {
-    backgroundColor: '#e5e7eb',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  placeholderText: {
-    fontSize: 16,
-    color: '#6b7280',
-    fontWeight: '600',
-  },
-  saveBadge: {
-    position: 'absolute',
-    top: 10,
-    left: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  matchBadge: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
-    backgroundColor: '#BF5700',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 20,
-  },
-  matchText: {
-    color: '#ffffff',
+  matchScoreText: {
     fontSize: 14,
     fontWeight: 'bold',
+    color: '#ffffff',
   },
-  cardContent: {
-    padding: 16,
+  infoSection: {
+    height: INFO_HEIGHT,
+    backgroundColor: '#ffffff',
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 12,
+    flexDirection: 'column',
   },
-  cardTitle: {
-    fontSize: 23,
-    fontWeight: '600',
+  scrollContent: {
+    paddingBottom: 80,
+  },
+  infoHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+  },
+  leftInfo: {
+    flex: 1,
+    marginRight: 12,
+  },
+  apartmentName: {
+    fontSize: 18,
+    fontWeight: 'bold',
     color: '#000000',
     marginBottom: 2,
   },
   unitNumber: {
-    fontSize: 12,
+    fontSize: 13,
     color: '#BF5700',
     fontWeight: '600',
-    marginBottom: 4,
+    marginBottom: 2,
   },
-  cardAddress: {
+  address: {
     fontSize: 14,
     color: '#6b7280',
-    marginBottom: 12,
   },
-  cardDetailsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  leftDetails: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  cardDetailItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  cardDetailText: {
-    fontSize: 12,
-    color: '#374151',
-    fontWeight: '600',
-    marginLeft: 4,
-  },
-  cardPrice: {
-    fontSize: 19,
+  price: {
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#BF5700',
   },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
+  priceContainer: {
+    alignItems: 'flex-end',
   },
-  modalContent: {
+  perMonth: {
+    fontSize: 12,
+    color: '#6b7280',
+    marginTop: -2,
+  },
+  chipsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+    width: '100%',
+  },
+  chip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'transparent',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
+  },
+  chipText: {
+    fontSize: 13,
+    color: '#000000',
+    fontWeight: '700',
+  },
+  amenitiesContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 12,
+  },
+  amenityChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#f9fafb',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 14,
+    width: AMENITY_WIDTH,
+    justifyContent: 'center'
+  },
+  amenityText: {
+    fontSize: 11,
+    color: '#000000',
+    fontWeight: '700',
+  },
+  buttonsContainer: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingTop: 12,
+    borderTopColor: '#f3f4f6',
+    position: 'absolute',
+    bottom: 12,
+    left: 16,
+    right: 16,
     backgroundColor: '#ffffff',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    height: '80%',
-    paddingTop: 8,
   },
-  dragHandleContainer: {
+  detailsButton: {
+    flex: 1,
+    backgroundColor: '#f3f4f6',
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: '#000000',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  headerContainer: {
+    alignItems: 'center',
+    marginBottom: 16,
+    paddingHorizontal: 20,
+    zIndex: 10,         
+    elevation: 10,
+  },
+  headerTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#000000',
+  },
+  headerSubtitle: {
+    fontSize: 10,
+    color: '#6b7280',
+    fontWeight: '500',
+  },
+  cardStackContainer: {
+    flex: 0.95,            
     width: '100%',
     alignItems: 'center',
-    paddingVertical: 12,
+    justifyContent: 'center', 
   },
-  dragHandle: {
-    width: 40,
-    height: 5,
-    backgroundColor: '#d1d5db',
-    borderRadius: 3,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#000000',
-  },
-  closeButton: {
-    padding: 4,
-  },
-  closeButtonText: {
-    fontSize: 24,
-    color: '#6b7280',
-    fontWeight: '300',
-  },
-  searchInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f3f4f6',
+  doneButton: {
+    position: 'absolute',
+    bottom: 20,
+    left: 20,
+    right: 20,
+    backgroundColor: '#BF5700',
+    paddingVertical: 14,
     borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    marginHorizontal: 20,
-    marginTop: 16,
-    marginBottom: 12,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 16,
-    color: '#000000',
-    marginLeft: 12,
-  },
-  clearButton: {
-    fontSize: 18,
-    color: '#6b7280',
-    paddingHorizontal: 8,
-  },
-  searchResultsList: {
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-  },
-  searchResultItem: {
-    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    backgroundColor: '#f9fafb',
-    borderRadius: 12,
-    marginTop: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
   },
-  searchResultContent: {
-    flex: 1,
-  },
-  searchResultName: {
+  doneButtonText: {
+    color: '#ffffff',
     fontSize: 16,
     fontWeight: '600',
-    color: '#000000',
-    marginBottom: 4,
   },
-  searchResultAddress: {
+  skipText: {
     fontSize: 14,
-    color: '#6b7280',
-  },
-  searchResultArrow: {
-    fontSize: 24, 
+    fontWeight: '600',
     color: '#BF5700',
-    marginLeft: 12,
-    fontWeight: 'bold', 
+    paddingVertical: 6,
+    paddingHorizontal: 10,
   },
-  emptyState: {
+  headerRow: {
+    width: '100%',
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 40,
+    paddingHorizontal: 20,
+    marginBottom: 16,
+    position: 'relative',
   },
-  emptyStateText: {
-    fontSize: 16,
-    color: '#9ca3af',
+  headerCenter: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    alignItems: 'center',
   },
+  sideSpacer: {
+    width: 40, 
+  },
+  /*distanceChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#FFF5E6', 
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#BF5700',
+  },*/
 });

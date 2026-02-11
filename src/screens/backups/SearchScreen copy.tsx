@@ -12,6 +12,7 @@ import {
   Switch,
   Modal,
   TextInput,
+  Keyboard,
   Platform,
   Animated,
   PanResponder,
@@ -213,19 +214,27 @@ function SearchModal({ visible, onClose, buildings, onSelectBuilding }) {
   // Create pan responder for drag gesture
   const panResponder = useRef(
     PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
+      onStartShouldSetPanResponder: () => false,
       onMoveShouldSetPanResponder: (_, gestureState) => {
-        return gestureState.dy > 5;
+        // Only respond to downward drags with significant movement
+        // Also check that it's more vertical than horizontal
+        return gestureState.dy > 10 && Math.abs(gestureState.dy) > Math.abs(gestureState.dx);
       },
-      onPanResponderTerminationRequest: () => false,
+      onPanResponderTerminationRequest: () => {
+        // Don't terminate if we're actively dragging
+        return false;
+      },
       onPanResponderMove: (_, gestureState) => {
+        // Only allow dragging down (positive dy)
         if (gestureState.dy > 0) {
           translateY.setValue(gestureState.dy);
+          // Smoothly fade out background as modal is dragged down
           const newOpacity = Math.max(0, 1 - (gestureState.dy / 400));
           opacity.setValue(newOpacity);
         }
       },
       onPanResponderRelease: (_, gestureState) => {
+        // If dragged down more than 150px, close the modal
         if (gestureState.dy > 150) {
           Animated.parallel([
             Animated.timing(translateY, {
@@ -242,6 +251,7 @@ function SearchModal({ visible, onClose, buildings, onSelectBuilding }) {
             onClose();
           });
         } else {
+          // Otherwise, spring back to original position
           Animated.parallel([
             Animated.spring(translateY, {
               toValue: 0,
@@ -309,6 +319,7 @@ function SearchModal({ visible, onClose, buildings, onSelectBuilding }) {
       statusBarTranslucent={true}
     >
       <View style={styles.modalOverlay}>
+        {/* Fixed background overlay that only fades */}
         <Animated.View 
           style={[
             StyleSheet.absoluteFill,
@@ -316,21 +327,21 @@ function SearchModal({ visible, onClose, buildings, onSelectBuilding }) {
           ]} 
         />
         
+        {/* Modal content that slides down - NOW DRAGGABLE FROM ANYWHERE */}
         <Animated.View 
+          {...panResponder.panHandlers}
           style={[
             styles.modalContent,
             { transform: [{ translateY }] }
           ]}
         >
-          {/* DRAGGABLE HEADER AREA */}
-          <View {...panResponder.panHandlers} style={styles.dragArea}>
-            <View style={styles.dragHandleContainer}>
-              <View style={styles.dragHandle} />
-            </View>
+          {/* Drag Handle */}
+          <View style={styles.dragHandleContainer}>
+            <View style={styles.dragHandle} />
+          </View>
 
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Search Apartments</Text>
-            </View>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Search Apartments</Text>
           </View>
 
           <View style={styles.searchInputContainer}>
@@ -393,15 +404,17 @@ export default function Search({ navigation }) {
   const allAmenities = ['wifi', 'gym', 'pool', 'parking', 'furnished', 'petFriendly'];
   const selectedAmenities = allAmenities.filter(amenity => preferences?.[amenity]);
 
+  // Calculate header padding based on platform
   const headerPaddingTop = Platform.OS === 'ios' ? insets.top + 10 : insets.top || 10;
   const listPaddingTop = Platform.OS === 'ios' ? insets.top + 110 : (insets.top || 10) + 100;
 
-  useLayoutEffect(() => {
+    useLayoutEffect(() => {
     navigation.getParent()?.setOptions({
       tabBarStyle: showMap ? { display: 'none' } : styles.tabBar,
     });
     
     return () => {
+      // Reset when component unmounts
       navigation.getParent()?.setOptions({
         tabBarStyle: undefined,
       });
@@ -414,8 +427,10 @@ export default function Search({ navigation }) {
     setLoading(true);
     
     const userLoc = preferences.location || { lat: 30.2853, lon: -97.7320 };
+    // Get enriched listings
     const enrichedListings = getEnrichedListings(userLoc);
     
+    // Calculate match scores and sort
     const listingsWithScores = enrichedListings.map(listing => {
       const score = calculateMatchScore(
         listing,
@@ -432,6 +447,7 @@ export default function Search({ navigation }) {
   }, [preferences, prefsLoading, preferences.location]);
 
   const handleCardPress = (listing) => {
+    // List view: go to individual unit details first
     navigation.navigate('RoomListingDetailsScreen_SearchVersion', {
       listing: listing,
       matchScore: listing.matchScore,
@@ -439,12 +455,14 @@ export default function Search({ navigation }) {
   };
 
   const handleMarkerPress = (building) => {
+    // Map view: go directly to building with all units
     navigation.navigate('ApartmentListingDetails', {
       listing: building,
     });
   };
 
   const handleSearchSelect = (building) => {
+    // Same as clicking a pin on the map
     navigation.navigate('ApartmentListingDetails', {
       listing: building,
     });
@@ -468,6 +486,7 @@ export default function Search({ navigation }) {
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: headerPaddingTop }]}>
+        {/* The BlurView must be absolute to fill the header background */}
         <BlurView 
           intensity={showMap ? 0 : 80} 
           tint="default" 
@@ -521,7 +540,7 @@ export default function Search({ navigation }) {
           >
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <ResetIcon width={15} height={15} fill={'#ffffff'} />
-              <Text style={styles.resetButtonText}>  Reset View</Text>
+            <Text style={styles.resetButtonText}>  Reset View</Text>
             </View>
           </TouchableOpacity>
         </View>
@@ -568,21 +587,21 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#6b7280',
   },
-  header: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 100,
-    paddingBottom: 20, 
-    alignItems: 'center',
-    backgroundColor: 'transparent', 
-    borderBottomLeftRadius: 30,   
-    borderBottomRightRadius: 30,   
-    overflow: 'hidden',            
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.2)',
-  },
+header: {
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  right: 0,
+  zIndex: 100,
+  paddingBottom: 20, 
+  alignItems: 'center',
+  backgroundColor: 'transparent', 
+  borderBottomLeftRadius: 30,   
+  borderBottomRightRadius: 30,   
+  overflow: 'hidden',            
+  borderBottomWidth: 1,
+  borderBottomColor: 'rgba(255, 255, 255, 0.2)',
+},
   listContainer: {
     padding: 16,
   },
@@ -762,9 +781,6 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 20,
     height: '80%',
     paddingTop: 8,
-  },
-  dragArea: {
-    paddingBottom: 10,
   },
   dragHandleContainer: {
     width: '100%',
