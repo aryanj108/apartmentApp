@@ -80,6 +80,13 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
     }).start();
   }, [scoreValue]);
 
+    // Track this listing as recently viewed when component mounts
+  useEffect(() => {
+    if (listing?.id) {
+      addRecentlyViewed(listing.id);
+    }
+  }, [listing?.id]);
+  
   const widthInterpolate = animatedWidth.interpolate({
     inputRange: [0, 100],
     outputRange: ['0%', '100%'],
