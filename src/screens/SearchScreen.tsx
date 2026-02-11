@@ -317,12 +317,29 @@ function SearchModal({ visible, onClose, buildings, onSelectBuilding }) {
     });
   };
 
+  const handleBackButtonPress = () => {
+    Animated.parallel([
+      Animated.timing(translateY, {
+        toValue: SCREEN_HEIGHT,
+        duration: 250,
+        useNativeDriver: true,
+      }),
+      Animated.timing(opacity, {
+        toValue: 0,
+        duration: 250,
+        useNativeDriver: true,
+      })
+    ]).start(() => {
+      onClose();
+    });
+  };
+
   return (
     <Modal
       visible={visible}
       animationType="fade"
       transparent={true}
-      onRequestClose={onClose}
+      onRequestClose={handleBackButtonPress}
       statusBarTranslucent={true}
     >
       <View style={styles.modalOverlay}>
