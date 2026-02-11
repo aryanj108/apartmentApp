@@ -372,7 +372,7 @@ export default function Search({ navigation }) {
       <View style={styles.header}>
         {/* The BlurView must be absolute to fill the header background */}
         <BlurView 
-          intensity={60} 
+          intensity={100} 
           tint="default" 
           style={StyleSheet.absoluteFill} 
         />
@@ -471,20 +471,26 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#6b7280',
   },
-  header: {
-    position: 'absolute', // This lets the map/list slide under the header
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 100,          // Ensures header stays on top of the map
-    paddingTop: 50,       
-    paddingBottom: 12,
-    alignItems: 'center',
-    overflow: 'hidden',   // Keeps the blur effect contained to the header
-  },
+header: {
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  right: 0,
+  zIndex: 100,
+  paddingTop: 50,
+  paddingBottom: 20, 
+  alignItems: 'center',
+  backgroundColor: 'transparent', 
+  borderBottomLeftRadius: 30,   
+  borderBottomRightRadius: 30,   
+  overflow: 'hidden',            
+  borderBottomWidth: 1,
+  borderBottomColor: 'rgba(255, 255, 255, 0.2)',
+  marginHorizontal: 15
+},
   listContainer: {
     padding: 16,
-    paddingTop: 120,      // IMPORTANT: Prevents the first list item from being hidden under the header
+    paddingTop: 120,      
   },
   headerTitleRow: {
     flexDirection: 'row',
@@ -514,7 +520,7 @@ const styles = StyleSheet.create({
   },
   headerSubtitle: {
     fontSize: 12,
-    color: '#6b7280',
+    color: '#000000',
     fontWeight: '500',
     textAlign: 'center',
     marginRight: -5,
