@@ -203,22 +203,61 @@ function FilterModal({ visible, onClose, sections, visibleSections, toggleSectio
     })
   ).current;
 
+  const handleBackdropPress = () => {
+    Animated.parallel([
+      Animated.timing(translateY, {
+        toValue: SCREEN_HEIGHT,
+        duration: 250,
+        useNativeDriver: true,
+      }),
+      Animated.timing(opacity, {
+        toValue: 0,
+        duration: 250,
+        useNativeDriver: true,
+      })
+    ]).start(() => {
+      onClose();
+    });
+  };
+
+  const handleBackButtonPress = () => {
+    Animated.parallel([
+      Animated.timing(translateY, {
+        toValue: SCREEN_HEIGHT,
+        duration: 250,
+        useNativeDriver: true,
+      }),
+      Animated.timing(opacity, {
+        toValue: 0,
+        duration: 250,
+        useNativeDriver: true,
+      })
+    ]).start(() => {
+      onClose();
+    });
+  };
+
   return (
     <Modal
       animationType="fade"
       transparent={true}
       visible={visible}
-      onRequestClose={onClose}
+      onRequestClose={handleBackButtonPress}
       statusBarTranslucent={true}
     >
       <View style={styles.modalOverlay}>
-        {/* Fixed background overlay that only fades */}
-        <Animated.View 
-          style={[
-            StyleSheet.absoluteFill,
-            { backgroundColor: 'rgba(0, 0, 0, 0.5)', opacity }
-          ]} 
-        />
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={handleBackdropPress}
+          style={StyleSheet.absoluteFill}
+        >
+          <Animated.View 
+            style={[
+              StyleSheet.absoluteFill,
+              { backgroundColor: 'rgba(0, 0, 0, 0.5)', opacity }
+            ]} 
+          />
+        </TouchableOpacity>
         
         {/* Modal content that slides down */}
         <Animated.View 
