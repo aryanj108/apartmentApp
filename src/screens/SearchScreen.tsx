@@ -311,23 +311,6 @@ useEffect(() => {
     onClose();
   };
 
-  const handleClose = () => {
-    Animated.parallel([
-      Animated.timing(translateY, {
-        toValue: SCREEN_HEIGHT,
-        duration: 250,
-        useNativeDriver: true,
-      }),
-      Animated.timing(opacity, {
-        toValue: 0,
-        duration: 250,
-        useNativeDriver: true,
-      })
-    ]).start(() => {
-      onClose();
-    });
-  };
-
   return (
     <Modal
       visible={visible}
@@ -359,9 +342,6 @@ useEffect(() => {
 
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>Search Apartments</Text>
-            <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
-              <Text style={styles.closeButtonText}>✕</Text>
-            </TouchableOpacity>
           </View>
 
           <View style={styles.searchInputContainer}>
@@ -814,9 +794,8 @@ header: {
     borderRadius: 3,
   },
   modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    justifyContent: 'center',
     paddingHorizontal: 20,
     paddingBottom: 16,
     borderBottomWidth: 1,
@@ -826,14 +805,6 @@ header: {
     fontSize: 20,
     fontWeight: 'bold',
     color: '#000000',
-  },
-  closeButton: {
-    padding: 4,
-  },
-  closeButtonText: {
-    fontSize: 24,
-    color: '#6b7280',
-    fontWeight: '300',
   },
   searchInputContainer: {
     flexDirection: 'row',
