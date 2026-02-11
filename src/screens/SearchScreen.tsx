@@ -372,7 +372,7 @@ export default function Search({ navigation }) {
       <View style={styles.header}>
         {/* The BlurView must be absolute to fill the header background */}
         <BlurView 
-          intensity={100} 
+          intensity={60} 
           tint="default" 
           style={StyleSheet.absoluteFill} 
         />
@@ -486,7 +486,6 @@ header: {
   overflow: 'hidden',            
   borderBottomWidth: 1,
   borderBottomColor: 'rgba(255, 255, 255, 0.2)',
-  marginHorizontal: 15
 },
   listContainer: {
     padding: 16,
