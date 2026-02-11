@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { BlurView } from 'expo-blur';
 import {
   View,
   Text,
@@ -369,6 +370,12 @@ export default function Search({ navigation }) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
+        {/* The BlurView must be absolute to fill the header background */}
+        <BlurView 
+          intensity={60} 
+          tint="default" 
+          style={StyleSheet.absoluteFill} 
+        />
         <View style={styles.headerTitleRow}>
           <Text style={styles.headerTitle}>Browse Listings</Text>
           <TouchableOpacity 
@@ -465,11 +472,19 @@ const styles = StyleSheet.create({
     color: '#6b7280',
   },
   header: {
-    paddingHorizontal: 20,
-    paddingTop: 50,
+    position: 'absolute', // This lets the map/list slide under the header
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 100,          // Ensures header stays on top of the map
+    paddingTop: 50,       
     paddingBottom: 12,
-    backgroundColor: '#ffffff',
     alignItems: 'center',
+    overflow: 'hidden',   // Keeps the blur effect contained to the header
+  },
+  listContainer: {
+    padding: 16,
+    paddingTop: 120,      // IMPORTANT: Prevents the first list item from being hidden under the header
   },
   headerTitleRow: {
     flexDirection: 'row',
@@ -537,9 +552,6 @@ const styles = StyleSheet.create({
   markerContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  listContainer: {
-    padding: 16,
   },
   card: {
     backgroundColor: '#ffffff',

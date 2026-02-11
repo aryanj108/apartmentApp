@@ -25,7 +25,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 import ImageCarousel from '../navigation/ImageCarousel';
 
 export default function RoomListingDetailsScreen({ navigation, route }) {
-  const { savedIds, toggleSave, preferences, addRecentlyViewed } = usePreferences();
+  const { savedIds, toggleSave, preferences } = usePreferences();
   const { listing, matchScore } = route.params;
   const scoreValue = matchScore || 0;
   const animatedWidth = useRef(new Animated.Value(0)).current;
@@ -80,13 +80,6 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
     }).start();
   }, [scoreValue]);
 
-    // Track this listing as recently viewed when component mounts
-  useEffect(() => {
-    if (listing?.id) {
-      addRecentlyViewed(listing.id);
-    }
-  }, [listing?.id]);
-  
   const widthInterpolate = animatedWidth.interpolate({
     inputRange: [0, 100],
     outputRange: ['0%', '100%'],

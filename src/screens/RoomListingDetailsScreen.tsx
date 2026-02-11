@@ -31,7 +31,7 @@ import ImageCarousel from '../navigation/ImageCarousel';
   };
 
 export default function RoomListingDetailsScreen({ navigation, route }) {
-  const { savedIds, toggleSave, preferences, addRecentlyViewed } = usePreferences();
+  const { savedIds, toggleSave, preferences } = usePreferences();
   const { listing, matchScore } = route.params;
   const scoreValue = matchScore || 0;
   const animatedWidth = useRef(new Animated.Value(0)).current;
@@ -43,12 +43,6 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
       useNativeDriver: false,
     }).start();
   }, [scoreValue]);
-
-  useEffect(() => {
-    if (listing?.id) {
-      addRecentlyViewed(listing.id);
-    }
-  }, [listing?.id]);
 
   const widthInterpolate = animatedWidth.interpolate({
     inputRange: [0, 100],
