@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -10,7 +10,9 @@ import {
   Modal,
   LayoutAnimation,
   Platform,
-  UIManager
+  UIManager,
+  Animated,
+  PanResponder,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -25,7 +27,7 @@ import Stars from '../../assets/stars.svg';
 import Heart from '../../assets/heart.svg';
 import Logo from '../../assets/longhornLivingIcon1.png';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH * 0.7;
 const CARD_MARGIN = 12;
 
@@ -128,6 +130,148 @@ function ApartmentCard({ listing, matchScore, onPress, isSaved, onSavePress }) {
         </View>
       </View>
     </TouchableOpacity>
+  );
+}
+
+// Filter Modal Component
+function FilterModal({ visible, onClose, sections, visibleSections, toggleSection }) {
+  const translateY = useRef(new Animated.Value(0)).current;
+  const opacity = useRef(new Animated.Value(0)).current;
+
+  // Fade in animation when modal becomes visible
+  useEffect(() => {
+    if (visible) {
+      translateY.setValue(0);
+      Animated.timing(opacity, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    } else {
+      opacity.setValue(0);
+    }
+  }, [visible]);
+
+  // Create pan responder for drag gesture
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => false,
+      onStartShouldSetPanResponderCapture: () => false,
+      onMoveShouldSetPanResponder: (_, gestureState) => {
+        // Only respond to downward drags
+        return gestureState.dy > 5;
+      },
+      onMoveShouldSetPanResponderCapture: (_, gestureState) => {
+        // Only capture if it's clearly a downward drag
+        return gestureState.dy > 5;
+      },
+      onPanResponderTerminationRequest: () => false,
+      onPanResponderMove: (_, gestureState) => {
+        // Only allow dragging down (positive dy)
+        if (gestureState.dy > 0) {
+          translateY.setValue(gestureState.dy);
+          // Smoothly fade out background as modal is dragged down
+          const newOpacity = Math.max(0, 1 - (gestureState.dy / 400));
+          opacity.setValue(newOpacity);
+        }
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        // If dragged down more than 150px, close the modal
+        if (gestureState.dy > 150) {
+          Animated.parallel([
+            Animated.timing(translateY, {
+              toValue: SCREEN_HEIGHT,
+              duration: 250,
+              useNativeDriver: true,
+            }),
+            Animated.timing(opacity, {
+              toValue: 0,
+              duration: 250,
+              useNativeDriver: true,
+            })
+          ]).start(() => {
+            onClose();
+          });
+        } else {
+          // Otherwise, spring back to original position
+          Animated.parallel([
+            Animated.spring(translateY, {
+              toValue: 0,
+              useNativeDriver: true,
+              tension: 65,
+              friction: 10,
+            }),
+            Animated.spring(opacity, {
+              toValue: 1,
+              useNativeDriver: true,
+              tension: 65,
+              friction: 10,
+            })
+          ]).start();
+        }
+      },
+    })
+  ).current;
+
+  return (
+    <Modal
+      animationType="fade"
+      transparent={true}
+      visible={visible}
+      onRequestClose={onClose}
+      statusBarTranslucent={true}
+    >
+      <View style={styles.modalOverlay}>
+        {/* Fixed background overlay that only fades */}
+        <Animated.View 
+          style={[
+            StyleSheet.absoluteFill,
+            { backgroundColor: 'rgba(0, 0, 0, 0.5)', opacity }
+          ]} 
+        />
+        
+        {/* Modal content that slides down */}
+        <Animated.View 
+          {...panResponder.panHandlers}
+          style={[
+            styles.modalContent,
+            { transform: [{ translateY }] }
+          ]}
+        >
+          {/* Drag Handle */}
+          <View style={styles.dragHandleContainer}>
+            <View style={styles.dragHandle} />
+          </View>
+
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Filter Sections</Text>
+          </View>
+
+          <ScrollView style={styles.filterList}>
+            {sections.map((section) => (
+              <TouchableOpacity
+                key={section.key}
+                style={styles.filterItem}
+                onPress={() => toggleSection(section.key)}
+              >
+                <View style={styles.checkbox}>
+                  {visibleSections[section.key] && <Text style={styles.checkmark}>✓</Text>}
+                </View>
+                <Text style={styles.filterItemText}>{section.title}</Text>
+                <Text style={styles.filterItemCount}>({section.data.length})</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+
+          <TouchableOpacity
+            style={styles.applyButton}
+            onPress={onClose}
+          >
+            <Text style={styles.applyButtonText}>Apply Filters</Text>
+          </TouchableOpacity>
+        </Animated.View>
+      </View>
+    </Modal>
   );
 }
 
@@ -325,45 +469,13 @@ export default function Home({ navigation }) {
       </ScrollView>
 
       {/* Filter Modal */}
-      <Modal
-        animationType="slide"
-        transparent={true}
+      <FilterModal
         visible={filterModalVisible}
-        onRequestClose={() => setFilterModalVisible(false)}
-        statusBarTranslucent={true}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Filter Sections</Text>
-              <TouchableOpacity onPress={() => setFilterModalVisible(false)}>
-                <Text style={styles.closeButton}>✕</Text>
-              </TouchableOpacity>
-            </View>
-            <ScrollView style={styles.filterList}>
-              {sections.map((section) => (
-                <TouchableOpacity
-                  key={section.key}
-                  style={styles.filterItem}
-                  onPress={() => toggleSection(section.key)}
-                >
-                  <View style={styles.checkbox}>
-                    {visibleSections[section.key] && <Text style={styles.checkmark}>✓</Text>}
-                  </View>
-                  <Text style={styles.filterItemText}>{section.title}</Text>
-                  <Text style={styles.filterItemCount}>({section.data.length})</Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-            <TouchableOpacity
-              style={styles.applyButton}
-              onPress={() => setFilterModalVisible(false)}
-            >
-              <Text style={styles.applyButtonText}>Apply Filters</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+        onClose={() => setFilterModalVisible(false)}
+        sections={sections}
+        visibleSections={visibleSections}
+        toggleSection={toggleSection}
+      />
     </View>
   );
 }
@@ -545,32 +657,38 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'flex-end',
   },
   modalContent: {
     backgroundColor: '#ffffff',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    paddingTop: 20,
+    paddingTop: 8,
     maxHeight: '70%',
   },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  dragHandleContainer: {
+    width: '100%',
     alignItems: 'center',
+    paddingVertical: 12,
+  },
+  dragHandle: {
+    width: 40,
+    height: 5,
+    backgroundColor: '#d1d5db',
+    borderRadius: 3,
+  },
+  modalHeader: {
+    alignItems: 'center',
+    justifyContent: 'center',
     paddingHorizontal: 20,
-    marginBottom: 20,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
   },
   modalTitle: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#000000',
-  },
-  closeButton: {
-    fontSize: 28,
-    color: '#6b7280',
-    fontWeight: '300',
   },
   filterList: {
     paddingHorizontal: 20,

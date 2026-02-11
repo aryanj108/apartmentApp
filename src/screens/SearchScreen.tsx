@@ -215,21 +215,20 @@ function SearchModal({ visible, onClose, buildings, onSelectBuilding }) {
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => false,
-      onStartShouldSetPanResponderCapture: () => false,
       onMoveShouldSetPanResponder: (_, gestureState) => {
         // Only respond to downward drags with significant movement
+        // Also check that it's more vertical than horizontal
         return gestureState.dy > 10 && Math.abs(gestureState.dy) > Math.abs(gestureState.dx);
       },
-      onMoveShouldSetPanResponderCapture: (_, gestureState) => {
-        // Only capture if it's clearly a downward drag
-        return gestureState.dy > 10 && Math.abs(gestureState.dy) > Math.abs(gestureState.dx);
+      onPanResponderTerminationRequest: () => {
+        // Don't terminate if we're actively dragging
+        return false;
       },
       onPanResponderMove: (_, gestureState) => {
         // Only allow dragging down (positive dy)
         if (gestureState.dy > 0) {
           translateY.setValue(gestureState.dy);
           // Smoothly fade out background as modal is dragged down
-          // Fade starts immediately and completes around 400px
           const newOpacity = Math.max(0, 1 - (gestureState.dy / 400));
           opacity.setValue(newOpacity);
         }
@@ -272,37 +271,37 @@ function SearchModal({ visible, onClose, buildings, onSelectBuilding }) {
     })
   ).current;
 
-useEffect(() => {
-  if (searchQuery.trim() === '') {
-    setFilteredBuildings([]);
-  } else {
-    const query = searchQuery.toLowerCase();
-    const filtered = buildings.filter(building =>
-      building.name.toLowerCase().includes(query) ||
-      building.address.toLowerCase().includes(query)
-    );
-    
-    const sorted = filtered.sort((a, b) => {
-      const aName = a.name.toLowerCase();
-      const bName = b.name.toLowerCase();
-      const aAddress = a.address.toLowerCase();
-      const bAddress = b.address.toLowerCase();
+  useEffect(() => {
+    if (searchQuery.trim() === '') {
+      setFilteredBuildings([]);
+    } else {
+      const query = searchQuery.toLowerCase();
+      const filtered = buildings.filter(building =>
+        building.name.toLowerCase().includes(query) ||
+        building.address.toLowerCase().includes(query)
+      );
       
-      if (aName === query) return -1;
-      if (bName === query) return 1;
+      const sorted = filtered.sort((a, b) => {
+        const aName = a.name.toLowerCase();
+        const bName = b.name.toLowerCase();
+        const aAddress = a.address.toLowerCase();
+        const bAddress = b.address.toLowerCase();
+        
+        if (aName === query) return -1;
+        if (bName === query) return 1;
+        
+        if (aName.startsWith(query) && !bName.startsWith(query)) return -1;
+        if (bName.startsWith(query) && !aName.startsWith(query)) return 1;
+        
+        if (aAddress.startsWith(query) && !bAddress.startsWith(query)) return -1;
+        if (bAddress.startsWith(query) && !aAddress.startsWith(query)) return 1;
+        
+        return aName.localeCompare(bName);
+      });
       
-      if (aName.startsWith(query) && !bName.startsWith(query)) return -1;
-      if (bName.startsWith(query) && !aName.startsWith(query)) return 1;
-      
-      if (aAddress.startsWith(query) && !bAddress.startsWith(query)) return -1;
-      if (bAddress.startsWith(query) && !aAddress.startsWith(query)) return 1;
-      
-      return aName.localeCompare(bName);
-    });
-    
-    setFilteredBuildings(sorted);
-  }
-}, [searchQuery, buildings]);
+      setFilteredBuildings(sorted);
+    }
+  }, [searchQuery, buildings]);
 
   const handleSelectBuilding = (building) => {
     setSearchQuery('');
@@ -328,15 +327,16 @@ useEffect(() => {
           ]} 
         />
         
-        {/* Modal content that slides down */}
+        {/* Modal content that slides down - NOW DRAGGABLE FROM ANYWHERE */}
         <Animated.View 
+          {...panResponder.panHandlers}
           style={[
             styles.modalContent,
             { transform: [{ translateY }] }
           ]}
         >
           {/* Drag Handle */}
-          <View {...panResponder.panHandlers} style={styles.dragHandleContainer}>
+          <View style={styles.dragHandleContainer}>
             <View style={styles.dragHandle} />
           </View>
 
