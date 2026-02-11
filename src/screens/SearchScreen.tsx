@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { BlurView } from 'expo-blur';
 import {
   View,
@@ -13,7 +13,9 @@ import {
   Modal,
   TextInput,
   Keyboard,
+  Platform,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MapView, { Marker } from 'react-native-maps';
 import { LinearGradient } from 'expo-linear-gradient';
 import { calculateDistance } from '../navigation/locationUtils';
@@ -236,6 +238,7 @@ useEffect(() => {
       animationType="slide"
       transparent={true}
       onRequestClose={onClose}
+      statusBarTranslucent={true}
     >
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
@@ -294,6 +297,7 @@ useEffect(() => {
 }
 
 export default function Search({ navigation }) {
+  const insets = useSafeAreaInsets();
   const { preferences, savedIds, toggleSave, loading: prefsLoading } = usePreferences();
   const [sortedListings, setSortedListings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -304,6 +308,23 @@ export default function Search({ navigation }) {
 
   const allAmenities = ['wifi', 'gym', 'pool', 'parking', 'furnished', 'petFriendly'];
   const selectedAmenities = allAmenities.filter(amenity => preferences?.[amenity]);
+
+  // Calculate header padding based on platform
+  const headerPaddingTop = Platform.OS === 'ios' ? insets.top + 10 : insets.top || 10;
+  const listPaddingTop = Platform.OS === 'ios' ? insets.top + 110 : (insets.top || 10) + 100;
+
+    useLayoutEffect(() => {
+    navigation.getParent()?.setOptions({
+      tabBarStyle: showMap ? { display: 'none' } : styles.tabBar,
+    });
+    
+    return () => {
+      // Reset when component unmounts
+      navigation.getParent()?.setOptions({
+        tabBarStyle: undefined,
+      });
+    };
+  }, [navigation, showMap]);
 
   useEffect(() => {
     if (prefsLoading) return;
@@ -369,10 +390,10 @@ export default function Search({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: headerPaddingTop }]}>
         {/* The BlurView must be absolute to fill the header background */}
         <BlurView 
-          intensity={60} 
+          intensity={showMap ? 0 : 80} 
           tint="default" 
           style={StyleSheet.absoluteFill} 
         />
@@ -440,7 +461,7 @@ export default function Search({ navigation }) {
               isSaved={savedIds.includes(item.id)}
             />
           )}
-          contentContainerStyle={styles.listContainer}
+          contentContainerStyle={[styles.listContainer, { paddingTop: listPaddingTop }]}
           showsVerticalScrollIndicator={true}
         />
       )}
@@ -477,7 +498,6 @@ header: {
   left: 0,
   right: 0,
   zIndex: 100,
-  paddingTop: 50,
   paddingBottom: 20, 
   alignItems: 'center',
   backgroundColor: 'transparent', 
@@ -489,7 +509,6 @@ header: {
 },
   listContainer: {
     padding: 16,
-    paddingTop: 120,      
   },
   headerTitleRow: {
     flexDirection: 'row',
