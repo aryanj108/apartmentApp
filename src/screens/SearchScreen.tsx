@@ -14,6 +14,8 @@ import {
   TextInput,
   Keyboard,
   Platform,
+  Animated,
+  PanResponder,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MapView, { Marker } from 'react-native-maps';
@@ -192,6 +194,51 @@ function ListingVerticalCard({ listing, matchScore, onPress, isSaved }) {
 function SearchModal({ visible, onClose, buildings, onSelectBuilding }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredBuildings, setFilteredBuildings] = useState([]);
+  const translateY = useRef(new Animated.Value(0)).current;
+
+  // Reset animation when modal becomes visible
+  useEffect(() => {
+    if (visible) {
+      translateY.setValue(0);
+    }
+  }, [visible]);
+
+  // Create pan responder for drag gesture
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (_, gestureState) => {
+        // Only respond to downward drags
+        return gestureState.dy > 5;
+      },
+      onPanResponderMove: (_, gestureState) => {
+        // Only allow dragging down (positive dy)
+        if (gestureState.dy > 0) {
+          translateY.setValue(gestureState.dy);
+        }
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        // If dragged down more than 150px, close the modal
+        if (gestureState.dy > 150) {
+          Animated.timing(translateY, {
+            toValue: SCREEN_HEIGHT,
+            duration: 200,
+            useNativeDriver: true,
+          }).start(() => {
+            onClose();
+          });
+        } else {
+          // Otherwise, spring back to original position
+          Animated.spring(translateY, {
+            toValue: 0,
+            useNativeDriver: true,
+            tension: 50,
+            friction: 8,
+          }).start();
+        }
+      },
+    })
+  ).current;
 
 useEffect(() => {
   if (searchQuery.trim() === '') {
@@ -241,7 +288,17 @@ useEffect(() => {
       statusBarTranslucent={true}
     >
       <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
+        <Animated.View 
+          style={[
+            styles.modalContent,
+            { transform: [{ translateY }] }
+          ]}
+        >
+          {/* Drag Handle */}
+          <View {...panResponder.panHandlers} style={styles.dragHandleContainer}>
+            <View style={styles.dragHandle} />
+          </View>
+
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>Search Apartments</Text>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
@@ -290,7 +347,7 @@ useEffect(() => {
             }
             contentContainerStyle={styles.searchResultsList}
           />
-        </View>
+        </Animated.View>
       </View>
     </Modal>
   );
@@ -525,7 +582,7 @@ header: {
   },
   searchIconButton: {
     position: 'absolute',
-    left: 0,
+    right: 20,
     padding: 4,
     marginTop: 5,
     top: 0
@@ -678,7 +735,7 @@ header: {
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
     justifyContent: 'flex-end',
   },
   modalContent: {
@@ -686,7 +743,18 @@ header: {
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     height: '80%',
-    paddingTop: 20,
+    paddingTop: 8,
+  },
+  dragHandleContainer: {
+    width: '100%',
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  dragHandle: {
+    width: 40,
+    height: 5,
+    backgroundColor: '#d1d5db',
+    borderRadius: 3,
   },
   modalHeader: {
     flexDirection: 'row',

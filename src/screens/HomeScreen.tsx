@@ -330,6 +330,7 @@ export default function Home({ navigation }) {
         transparent={true}
         visible={filterModalVisible}
         onRequestClose={() => setFilterModalVisible(false)}
+        statusBarTranslucent={true}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
