@@ -25,7 +25,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 import ImageCarousel from '../navigation/ImageCarousel';
 
 export default function RoomListingDetailsScreen({ navigation, route }) {
-  const { savedIds, toggleSave, preferences } = usePreferences();
+  const { savedIds, toggleSave, preferences, addRecentlyViewed } = usePreferences();
   const { listing, matchScore } = route.params;
   const scoreValue = matchScore || 0;
   const animatedWidth = useRef(new Animated.Value(0)).current;
