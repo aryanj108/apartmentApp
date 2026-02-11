@@ -19,28 +19,22 @@ import StarIcon from '../../assets/stars.svg';
 import ExternalLinkIcon from '../../assets/shareIcon2.svg'; 
 import { buildingsData } from '../data/buildings';
 import * as Clipboard from 'expo-clipboard';
+// Import the distance calculation utility
 import { calculateDistance } from '../navigation/locationUtils';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 import ImageCarousel from '../navigation/ImageCarousel';
 
-const copyToClipboard = async (text, label) => {
-  await Clipboard.setStringAsync(text);
-  Alert.alert('Copied!', `${label} has been copied to your clipboard.`);
-};
+  const copyToClipboard = async (text, label) => {
+    await Clipboard.setStringAsync(text);
+    Alert.alert('Copied!', `${label} has been copied to your clipboard.`);
+  };
 
 export default function RoomListingDetailsScreen({ navigation, route }) {
-  const { savedIds, toggleSave, preferences, addToRecentlyViewed } = usePreferences();
+  const { savedIds, toggleSave, preferences, addRecentlyViewed } = usePreferences();
   const { listing, matchScore } = route.params;
   const scoreValue = matchScore || 0;
   const animatedWidth = useRef(new Animated.Value(0)).current;
-
-  // Track this listing as recently viewed when component mounts
-  useEffect(() => {
-    if (listing?.id) {
-      addToRecentlyViewed(listing.id);
-    }
-  }, [listing?.id]);
 
   useEffect(() => {
     Animated.timing(animatedWidth, {
@@ -49,6 +43,12 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
       useNativeDriver: false,
     }).start();
   }, [scoreValue]);
+
+  useEffect(() => {
+    if (listing?.id) {
+      addRecentlyViewed(listing.id);
+    }
+  }, [listing?.id]);
 
   const widthInterpolate = animatedWidth.interpolate({
     inputRange: [0, 100],
@@ -80,10 +80,12 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
     price: listing.price || 0,
     bedrooms: listing.bedrooms || 0,
     bathrooms: listing.bathrooms || 0,
-    distance: calculatedDistance,
+    distance: calculatedDistance, // Use calculated distance
+    // Use listing description if it exists, otherwise use building description
     description: (listing.description && listing.description.trim()) 
       ? listing.description 
       : (building.description || 'No description available.'),
+    // Use listing features if they exist, otherwise use building features
     features: (listing.features && listing.features.length > 0) 
       ? listing.features 
       : (building.features || []),
@@ -101,21 +103,24 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
     website: listing.website || building.website || '',
     sqft: listing.sqft,
     floorPlan: listing.floorPlan,
-    smartHousing: listing.smartHousing,
-    moveInFee: listing.moveInFee  
+    smartHousing: listing.smartHousing
   };
 
   const openMaps = (destinationAddress: string) => {
+    // Use custom location if set in preferences, otherwise default to UT Austin
     const destinationLatitude = preferences.location?.lat || 30.285340698031447;
     const destinationLongitude = preferences.location?.lon || -97.73208396036748;
     
+    // Encode the apartment address for URL (this is now the ORIGIN)
     const encodedAddress = encodeURIComponent(destinationAddress);
     
     let url = '';
     
     if (Platform.OS === 'ios') {
+      // Apple Maps URL scheme - swapped saddr and daddr
       url = `maps://app?saddr=${encodedAddress}&daddr=${destinationLatitude},${destinationLongitude}`;
       
+      // Fallback to Google Maps on iOS if Apple Maps fails
       const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodedAddress}&destination=${destinationLatitude},${destinationLongitude}`;
       
       Linking.canOpenURL(url).then(supported => {
@@ -128,6 +133,7 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
         Linking.openURL(googleMapsUrl);
       });
     } else {
+      // Google Maps for Android - swapped origin and destination
       url = `https://www.google.com/maps/dir/?api=1&origin=${encodedAddress}&destination=${destinationLatitude},${destinationLongitude}`;
       
       Linking.openURL(url).catch(err => {
@@ -210,6 +216,20 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
             </View>
           )}
         </TouchableOpacity>
+
+          {/* SMART Housing Badge 
+          {roomData.smartHousing && (
+            <View style={styles.smartHousingBadgeContainer}>
+              <LinearGradient
+                colors={['#FF8C42', '#BF5700', '#994400']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.smartHousingBadge}
+              >
+                <Text style={styles.smartHousingBadgeText}>SMART Housing</Text>
+              </LinearGradient>
+            </View>
+          )}*/}
         </View>
 
         {/* Basic Info */}
@@ -269,6 +289,7 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
 
         <View style={styles.chipsContainer}>
           {details.map((detail) => {
+            // Make distance chip pressable
             if (detail.id === 'distance') {
               return (
                 <TouchableOpacity 
@@ -285,6 +306,7 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
               );
             }
             
+            // Other chips remain non-pressable
             return (
               <View key={detail.id} style={styles.chip}>
                 <View style={styles.chipContent}>
@@ -385,36 +407,19 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
           )}
         </View>
 
-        {/* View Apartment Details Button */}
+        {/* View Original Listing Button - Only show if website exists */}
         {roomData.website && (
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity onPress={handleViewApartmentDetails}>
+          <View style={styles.websiteButtonContainer}>
+            <TouchableOpacity onPress={handleOpenWebsite}>
               <LinearGradient
                 colors={['#FF8C42', '#BF5700', '#994400']} 
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
-                style={styles.apartmentButton}
-              >
-                <Text style={styles.apartmentButtonText}>View Apartment Details</Text>
-              </LinearGradient>
-            </TouchableOpacity>
-
-            {/* View Original Listing Button */}
-            <TouchableOpacity 
-              onPress={() => {
-              handleOpenWebsite();
-              }}
-              style={{ marginTop: 16 }}
-            >
-              <LinearGradient
-                colors={['#FF8C42', '#BF5700', '#994400']} 
-                start={{ x: 0, y: 1 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.apartmentButton}
+                style={styles.contactButton}
               >
                 <View style={styles.websiteButtonContent}>
-                  <ExternalLinkIcon width={24} height={24} color="#ffffff" />
-                  <Text style={styles.apartmentButtonText}>View Original Listing</Text>
+                  <ExternalLinkIcon width={27} height={27} color="#ffffff" style={styles.externalLinkIcon} />
+                  <Text style={styles.contactButtonText}>View Original Listing</Text>
                 </View>
               </LinearGradient>
             </TouchableOpacity>
@@ -432,6 +437,27 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    backgroundColor: '#ffffff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+  },
+  backButton: {
+    padding: 5,
+  },
+  backButtonText: {
+    fontSize: 18,
+    color: '#000000',
+    fontWeight: '600',
+  },
+  placeholder: {
+    width: 60,
   },
   imageGalleryContainer: {
     position: 'relative',
@@ -454,6 +480,16 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 5,
+  },
+  saveText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#000000',
+  },
+  placeholderText: {
+    fontSize: 18,
+    color: '#6b7280',
+    fontWeight: '600',
   },
   section: {
     paddingVertical: 20,
@@ -480,6 +516,22 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     lineHeight: 24,
   },
+  contactButton: {
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    borderRadius: 12,
+    alignItems: 'center',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  contactButtonText: {
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: '600',
+  },
   infoSection: {
     backgroundColor: '#ffffff',
     paddingTop: 20,
@@ -498,14 +550,32 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: '#000000',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   address: {
+    fontSize: 14,
+    color: '#6b7280',
+    marginBottom: 2,
+  },
+  unitNumberText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#000000',
+    marginBottom: 2, 
+  },
+  smartHousingLine: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#BF5700', 
+    marginTop: 2,
+  },
+  sqftText: {
     fontSize: 14,
     color: '#6b7280',
   },
   rightInfo: {
     marginLeft: 16,
+    alignItems: 'flex-end',
   },
   price: {
     fontSize: 18,
@@ -541,31 +611,57 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
+  chipIconLeft: {
+    width: 20,
+    height: 20,
+  },
+  icon: {
+    width: 22,
+    height: 22,
+    resizeMode: 'contain',
+  },
+  iconContainerDistance: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#dfdfdfff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 15,
+    marginLeft: -5,
+  },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 12,
   },
-  buttonContainer: {
-    paddingHorizontal: 20,
-    paddingVertical: 24,
+  apartmentLinkSection: {
+    padding: 20,
+    backgroundColor: '#f9fafb',
+    marginHorizontal: 20,
+    borderRadius: 12,
+    marginTop: 10,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  subHeaderText: {
+    fontSize: 14,
+    color: '#6b7280',
+    marginBottom: 8,
   },
   apartmentButton: {
     backgroundColor: '#BF5700',
-    paddingVertical: 16,
-    paddingHorizontal: 32,
-    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 25,
+    width: '100%',
     alignItems: 'center',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
   },
   apartmentButtonText: {
     color: '#ffffff',
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   matchScoreSection: {
     marginTop: 15,
@@ -608,7 +704,7 @@ const styles = StyleSheet.create({
     marginLeft: 4,
     textAlign: 'right',
   },
-    saveButtonContainer: {
+  saveButtonContainer: {
     position: 'absolute',
     top: 50,
     right: 20,
@@ -633,29 +729,47 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginLeft: 6,
   },
-  websiteButtonContent: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  justifyContent: 'center',
-  gap: 10,
-},
-  unitNumberText: {
-    fontSize: 18,
+  smartHousingBadgeContainer: {
+    position: 'absolute',
+    top: 100,
+    right: 20,
+    zIndex: 100,
+  },
+  smartHousingBadge: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  smartHousingBadgeText: {
+    fontSize: 14,
     fontWeight: 'bold',
-    color: '#000000',
-    marginBottom: 2, 
+    color: '#ffffff',
   },
-  smartHousingLine: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#BF5700', 
-    marginTop: 2,
+  websiteButtonContainer: {
+    paddingHorizontal: 20,
+    paddingVertical: 24,
   },
-  sqftText: {
-    fontSize: 14,
+  websiteButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+  },
+  externalLinkIcon: {
+    tintColor: '#ffffff',
+    marginTop: -3 
+  },
+    viewDetailsText: {
+    fontSize: 12,
     color: '#6b7280',
+    fontWeight: '600',
   },
-    contactItem: {
+  contactItem: {
   marginBottom: 12,
   },
   contactLabel: {
@@ -669,7 +783,7 @@ const styles = StyleSheet.create({
     color: '#374151',
     lineHeight: 24,
   },
-  contactValueClickable: {
+    contactValueClickable: {
   fontSize: 16,
   color: '#BF5700',  
   lineHeight: 24,
