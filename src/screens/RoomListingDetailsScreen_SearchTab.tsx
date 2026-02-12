@@ -633,11 +633,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 24,
     gap: 12,
+    borderTopWidth: 1,          
+    borderTopColor: '#e5e7eb', 
   },
   // View Original Listing Button
   viewOriginalButton: {
     backgroundColor: '#f3f4f6',
-    paddingVertical: 16,
+    paddingVertical: 14,
     paddingHorizontal: 20,
     borderRadius: 12,
     flexDirection: 'row',
