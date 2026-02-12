@@ -383,9 +383,11 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
               onPress={handleOpenWebsite}
               style={styles.viewOriginalButton}
             >
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               <ExternalLinkIcon width={20} height={20} color="#BF5700" />
               <Text style={styles.viewOriginalButtonText}>View Original Listing</Text>
-              <ArrowUpRightIcon width={20} height={20} stroke="#8B6F47" />
+              </View>
+              <ArrowUpRightIcon width={25} height={25} stroke="#8B6F47" />
             </TouchableOpacity>
 
             {/* Row with Save Button and View Apartment Details */}
@@ -640,14 +642,14 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     marginBottom: 0,
     gap: 8,
   },
   viewOriginalButtonText: {
     color: '#BF5700',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   // Bottom Button Row
   bottomButtonRow: {
@@ -675,7 +677,7 @@ const styles = StyleSheet.create({
   saveButtonText: {
     color: '#BF5700',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   // Save Button (Saved State)
   savedButtonContent: {
