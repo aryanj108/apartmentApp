@@ -428,7 +428,7 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
                 style={styles.bottomDetailsButton}
               >
                 <View style={styles.saveButtonContent}>
-                  <Text style={styles.saveButtonText}>View Details</Text>
+                  <Text style={styles.saveButtonText}>View Apt. Details</Text>
                 </View>
               </TouchableOpacity>
             </View>
