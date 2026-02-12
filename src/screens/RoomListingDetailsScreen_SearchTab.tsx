@@ -405,19 +405,11 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
             {/* View Original Listing Button (Full Width) */}
             <TouchableOpacity 
               onPress={handleOpenWebsite}
+              style={styles.viewOriginalButton}
             >
-              <LinearGradient
-                colors={['#FF8C42', '#BF5700', '#994400']} 
-                start={{ x: 0, y: 1 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.apartmentButton}
-              >
-                <View style={styles.websiteButtonContent}>
-                  <ExternalLinkIcon width={24} height={24} color="#ffffff" />
-                  <Text style={styles.apartmentButtonText}>View Original Listing</Text>
-                </View>
-                <ArrowUpRightIcon width={24} height={24} stroke="#ffffff" />
-              </LinearGradient>
+              <ExternalLinkIcon width={20} height={20} color="#8B6F47" />
+              <Text style={styles.viewOriginalButtonText}>View Original Listing</Text>
+              <ArrowUpRightIcon width={20} height={20} stroke="#8B6F47" />
             </TouchableOpacity>
 
             {/* Row with Save Button and View Apartment Details */}
@@ -437,22 +429,19 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
                 style={styles.bottomSaveButton}
                 activeOpacity={0.8}
               >
-                {isSaved ? (
-                  <LinearGradient
-                    colors={['#FF8C42', '#BF5700', '#994400']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                    style={styles.bottomButtonGradient}
-                  >
-                    <SaveFilledIconHeart width={20} height={20} fill="#ffffff"/>
-                    <Text style={styles.bottomButtonTextWhite}>Saved</Text>
-                  </LinearGradient>
-                ) : (
-                  <View style={styles.bottomButtonOutline}>
-                    <SaveOutlineIconHeart width={20} height={20} />
-                    <Text style={styles.bottomButtonTextBlack}>Save</Text>
-                  </View>
-                )}
+                <View style={isSaved ? styles.saveButtonContent : styles.saveButtonContent}>
+                  {isSaved ? (
+                    <>
+                      <SaveFilledIconHeart width={20} height={20} fill="#8B6F47"/>
+                      <Text style={styles.saveButtonText}>Saved</Text>
+                    </>
+                  ) : (
+                    <>
+                      <SaveOutlineIconHeart width={20} height={20} stroke="#8B6F47" />
+                      <Text style={styles.saveButtonText}>Save</Text>
+                    </>
+                  )}
+                </View>
               </TouchableOpacity>
 
               {/* View Apartment Details Button */}
@@ -460,14 +449,9 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
                 onPress={handleViewApartmentDetails}
                 style={styles.bottomDetailsButton}
               >
-                <LinearGradient
-                  colors={['#FF8C42', '#BF5700', '#994400']} 
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={styles.bottomButtonGradient}
-                >
-                  <Text style={styles.bottomButtonTextWhite}>View Details</Text>
-                </LinearGradient>
+                <View style={styles.saveButtonContent}>
+                  <Text style={styles.saveButtonText}>View Details</Text>
+                </View>
               </TouchableOpacity>
             </View>
           </View>
@@ -668,25 +652,82 @@ const styles = StyleSheet.create({
   buttonContainer: {
     paddingHorizontal: 20,
     paddingVertical: 24,
+    gap: 12,
   },
-  apartmentButton: {
-    backgroundColor: '#BF5700',
+  // View Original Listing Button
+  viewOriginalButton: {
+    backgroundColor: '#f3f4f6',
     paddingVertical: 16,
-    paddingHorizontal: 32,
+    paddingHorizontal: 20,
     borderRadius: 12,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    justifyContent: 'center',
+    marginBottom: 0,
+    gap: 8,
   },
-  apartmentButtonText: {
-    color: '#ffffff',
-    fontSize: 18,
-    fontWeight: '400',
+  viewOriginalButtonText: {
+    color: '#8B6F47',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  // Bottom Button Row - Updated
+  bottomButtonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  bottomSaveButton: {
+    flex: 1,
+  },
+  bottomDetailsButton: {
+    flex: 1,
+  },
+  // Save Button
+  saveButtonContent: {
+    backgroundColor: '#F5F0EB',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  saveButtonText: {
+    color: '#8B6F47',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  // Save Button 
+  savedButtonContent: {
+    backgroundColor: '#D4C4B0',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  savedButtonText: {
+    color: '#8B6F47',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  // View Details Button - Updated with burnt orange
+  viewDetailsButtonContent: {
+    backgroundColor: '#BF5700',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  viewDetailsButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
   matchScoreSection: {
     marginTop: 15,
@@ -735,25 +776,6 @@ const styles = StyleSheet.create({
     right: 20,
     zIndex: 100,
   },
-  saveButtonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-    overflow: 'hidden',
-    backgroundColor: 'transparent',
-  },
-  saveButtonText: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    marginLeft: 6,
-  },
   websiteButtonContent: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -795,48 +817,5 @@ const styles = StyleSheet.create({
     color: '#BF5700',  
     lineHeight: 24,
     textDecorationLine: 'underline', 
-  },
-  bottomButtonRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 12,
-    marginTop: 16,
-  },
-  bottomSaveButton: {
-    flex: 1,
-  },
-  bottomDetailsButton: {
-    flex: 1,
-  },
-  bottomButtonGradient: {
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 8,
-  },
-  bottomButtonOutline: {
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 8,
-    backgroundColor: '#ffffff',
-    borderWidth: 2,
-    borderColor: '#BF5700',
-  },
-  bottomButtonTextWhite: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: '400',
-  },
-  bottomButtonTextBlack: {
-    color: '#BF5700',
-    fontSize: 16,
-    fontWeight: '400',
   },
 });
