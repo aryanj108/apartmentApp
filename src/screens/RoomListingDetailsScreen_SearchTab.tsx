@@ -645,7 +645,6 @@ const styles = StyleSheet.create({
     //borderTopWidth: 1,          
     //borderTopColor: '#e5e7eb', 
   },
-  // View Original Listing Button
   viewOriginalButton: {
     backgroundColor: '#f3f4f6',
     paddingVertical: 14,
@@ -662,7 +661,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '500',
   },
-  // Bottom Button Row
   bottomButtonRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -674,7 +672,6 @@ const styles = StyleSheet.create({
   bottomDetailsButton: {
     flex: 1,
   },
-  // Save Button (Unsaved State)
   saveButtonContent: {
     backgroundColor: '#f5f0ebb2',
     paddingVertical: 14,
@@ -690,7 +687,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '500',
   },
-  // Save Button (Saved State)
   savedButtonContent: {
     backgroundColor: '#D4C4B0',
     paddingVertical: 16,
@@ -706,7 +702,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  // View Details Button
   viewDetailsButtonContent: {
     backgroundColor: '#BF5700',
     paddingVertical: 16,

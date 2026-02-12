@@ -250,6 +250,8 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
           </View>
         </View>
 
+        <View style={styles.separator} />
+
         <View style={styles.chipsContainer}>
           {details.map((detail) => {
             // Make distance chip pressable
@@ -281,6 +283,8 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
           })}
         </View>
 
+        <View style={styles.separator} />
+
         {/* Description */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
@@ -291,6 +295,8 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
             {roomData.description}
           </Text>
         </View>
+
+        <View style={styles.separator} />
 
         {/* Features */}
         {roomData.features && roomData.features.length > 0 && (
@@ -306,6 +312,8 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
             ))}
           </View>
         )}
+
+        <View style={styles.separator} />
 
         {/* Contact */}
         <View style={styles.section}>
@@ -350,6 +358,8 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
           )}
         </View>
 
+        <View style={styles.separator} />
+
         {/* Lease Details */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
@@ -369,6 +379,8 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
             <Text style={styles.featureItem}>• Lease details not available</Text>
           )}
         </View>
+
+        <View style={styles.separator} />
 
         {/* View Original Listing Button - Only show if website exists */}
         {roomData.website && (
@@ -471,8 +483,8 @@ const styles = StyleSheet.create({
   section: {
     paddingVertical: 20,
     paddingHorizontal: 20,
-    borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
+    //borderTopWidth: 1,
+    //borderTopColor: '#e5e7eb',
   },
   sectionTitle: {
     fontSize: 16,
@@ -556,8 +568,8 @@ const styles = StyleSheet.create({
     gap: 13,
     paddingVertical: 20,
     paddingHorizontal: 20,
-    borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
+    //borderTopWidth: 1,
+    //borderTopColor: '#e5e7eb',
   },
   chip: {
     width: '31%',
@@ -713,8 +725,8 @@ const styles = StyleSheet.create({
   buttonContainer: {
     paddingHorizontal: 20,
     paddingVertical: 24,
-    borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
+    //borderTopWidth: 1,
+    //borderTopColor: '#e5e7eb',
   },
   viewOriginalButton: {
     backgroundColor: '#f3f4f6',
@@ -769,5 +781,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#6b7280',
     marginTop: 2,
+  },
+  separator: {
+    height: 1,
+    backgroundColor: '#e5e7eb',
+    marginHorizontal: 20,
+    marginVertical: 10, 
   },
 });

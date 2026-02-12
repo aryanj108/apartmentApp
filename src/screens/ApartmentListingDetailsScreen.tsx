@@ -211,6 +211,8 @@ useEffect(() => {
           </View>
         </View>
 
+        <View style={styles.separator} />
+
         {/* Description */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
@@ -221,6 +223,8 @@ useEffect(() => {
             {apartment.description || 'No description available.'}
           </Text>
         </View>
+
+        <View style={styles.separator} />
 
         {/* Reviews - Only show if there are reviews */}
         {apartment.reviews && apartment.reviews.length > 0 && (
@@ -235,6 +239,8 @@ useEffect(() => {
           </View>
         )}
 
+        <View style={styles.separator} />
+
         {/* Features - Only show if there are features */}
         {apartment.features && apartment.features.length > 0 && (
           <View style={styles.section}>
@@ -247,6 +253,8 @@ useEffect(() => {
             ))}
           </View>
         )}
+
+        <View style={styles.separator} />
 
         {/* Contact */}
         <View style={styles.section}>
@@ -291,6 +299,8 @@ useEffect(() => {
           )}
         </View>
 
+        <View style={styles.separator} />
+
         {/* Lease Details */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
@@ -310,6 +320,8 @@ useEffect(() => {
             <Text style={styles.featureItem}>• Lease details not available</Text>
           )}
         </View>
+
+        <View style={styles.separator} />
 
         {/* Available Units */}
         {availableUnits.length > 0 && (
@@ -351,6 +363,8 @@ useEffect(() => {
             ))}
           </View>
         )}
+
+      <View style={styles.separator} />
 
       {/* Website Button - Only show if website exists */}
       {apartment.website && (
@@ -447,11 +461,11 @@ const styles = StyleSheet.create({
   section: {
     paddingVertical: 20,
     paddingHorizontal: 20,
-    borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
+    //borderTopWidth: 1,
+    //borderTopColor: '#e5e7eb',
   },
   sectionTitle: {
-    fontSize: 20,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#000000',
   },
@@ -459,12 +473,12 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   description: {
-    fontSize: 16,
+    fontSize: 15,
     color: '#6b7280',
     lineHeight: 24,
   },
   featureItem: {
-    fontSize: 16,
+    fontSize: 15,
     color: '#374151',
     marginBottom: 8,
     lineHeight: 24,
@@ -482,7 +496,7 @@ const styles = StyleSheet.create({
   },
   contactButtonText: {
     color: '#ffffff',
-    fontSize: 18,
+    fontSize: 15,
     fontWeight: '600',
   },
   websiteButtonContainer: {
@@ -592,11 +606,6 @@ const styles = StyleSheet.create({
   unitsSectionHeader: {
     marginBottom: 16,
   },
-  unitsSectionTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#000',
-  },
   unitsSectionSubtitle: {
     fontSize: 14,
     color: '#6b7280',
@@ -609,7 +618,7 @@ const styles = StyleSheet.create({
     borderColor: '#e5e7eb',
     elevation: 3,
   },
-unitCardContent: {
+  unitCardContent: {
     padding: 16,
     flexDirection: 'column', 
     gap: 8,
@@ -635,12 +644,12 @@ unitCardContent: {
     marginRight: 16,
   },
   unitPrice: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#BF5700',
   },
   unitNumber: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: 'bold',
     letterSpacing: -0.2,
   },
@@ -680,20 +689,26 @@ unitCardContent: {
   marginBottom: 12,
   },
   contactLabel: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
     color: '#000000',
     marginBottom: 4,
   },
   contactValue: {
-    fontSize: 16,
+    fontSize: 15,
     color: '#374151',
     lineHeight: 24,
   },
   contactValueClickable: {
-  fontSize: 16,
-  color: '#BF5700',  
-  lineHeight: 24,
-  textDecorationLine: 'underline', 
+    fontSize: 15,
+    color: '#BF5700',  
+    lineHeight: 24,
+    textDecorationLine: 'underline', 
+  },
+  separator: {
+    height: 1,
+    backgroundColor: '#e5e7eb',
+    marginHorizontal: 20,
+    marginVertical: 10, 
   },
 });
