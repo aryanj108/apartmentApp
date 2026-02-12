@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Dimensions, ScrollView, TouchableOpacity, Alert, Animated, Linking, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
 import BedIcon from '../../assets/bedIcon.svg';
 import DistanceIcon from '../../assets/distanceIcon(2).svg';
 import BathIcon from '../../assets/bathIcon.svg';
@@ -165,15 +166,13 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
         <View style={styles.imageGalleryContainer}>
           <ImageCarousel images={roomData.images} />
           
-            <TouchableOpacity 
+          <TouchableOpacity 
             style={styles.backButtonOverlay}
             onPress={() => navigation.goBack()}
           >
-            <View style={styles.saveBadge}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <BackIcon width={20} height={20} />
-              </View>
-            </View>
+            <BlurView intensity={80} style={styles.circularButton} tint="light">
+              <BackIcon width={22} height={22}/>
+            </BlurView>
           </TouchableOpacity>
 
         <TouchableOpacity
@@ -191,37 +190,14 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
           activeOpacity={0.8}
           delayPressIn={0}
         >
-          {isSaved ? (
-            <LinearGradient
-              colors={['#FF8C42', '#BF5700', '#994400']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.saveButtonContent}
-            >
-              <SaveFilledIconHeart width={20} height={20} fill="#ffffff"/>
-              <Text style={[styles.saveButtonText, { color: '#ffffff' }]}>Saved</Text>
-            </LinearGradient>
-          ) : (
-            <View style={[styles.saveButtonContent, { backgroundColor: '#ffffff' }]}>
-              <SaveOutlineIconHeart width={20} height={20} />
-              <Text style={[styles.saveButtonText, { color: '#000000' }]}>Save Listing</Text>
-            </View>
-          )}
+          <BlurView intensity={80} style={styles.circularButton} tint="light">
+            {isSaved ? (
+              <SaveFilledIconHeart width={22} height={22} fill="#BF5700"/>
+            ) : (
+              <SaveOutlineIconHeart width={22} height={22} stroke="#000000" />
+            )}
+          </BlurView>
         </TouchableOpacity>
-
-          {/* SMART Housing Badge 
-          {roomData.smartHousing && (
-            <View style={styles.smartHousingBadgeContainer}>
-              <LinearGradient
-                colors={['#FF8C42', '#BF5700', '#994400']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.smartHousingBadge}
-              >
-                <Text style={styles.smartHousingBadgeText}>SMART Housing</Text>
-              </LinearGradient>
-            </View>
-          )}*/}
         </View>
 
         {/* Basic Info */}
@@ -496,26 +472,28 @@ const styles = StyleSheet.create({
   },
   backButtonOverlay: {
     position: 'absolute',
-    top: 40,
+    top: 50,
     left: 20,
     zIndex: 10,
   },
-  saveBadge: {
-    backgroundColor: '#f3f4f6',
-    paddingHorizontal: 10,
-    paddingVertical: 10,
-    borderRadius: 20,
-    marginTop: 10,
+  circularButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    overflow: 'hidden',
+    justifyContent: 'center',
+    alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
+    shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 5,
+    elevation: 3,
   },
-  saveText: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#000000',
+  saveButtonContainer: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    zIndex: 100,
   },
   placeholderText: {
     fontSize: 18,
@@ -671,7 +649,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  // Bottom Button Row - Updated
+  // Bottom Button Row
   bottomButtonRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -683,7 +661,7 @@ const styles = StyleSheet.create({
   bottomDetailsButton: {
     flex: 1,
   },
-  // Save Button
+  // Save Button (Unsaved State)
   saveButtonContent: {
     backgroundColor: '#F5F0EB',
     paddingVertical: 16,
@@ -699,7 +677,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  // Save Button 
+  // Save Button (Saved State)
   savedButtonContent: {
     backgroundColor: '#D4C4B0',
     paddingVertical: 16,
@@ -715,7 +693,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  // View Details Button - Updated with burnt orange
+  // View Details Button
   viewDetailsButtonContent: {
     backgroundColor: '#BF5700',
     paddingVertical: 16,
@@ -769,12 +747,6 @@ const styles = StyleSheet.create({
     minWidth: 35,
     marginLeft: 4,
     textAlign: 'right',
-  },
-  saveButtonContainer: {
-    position: 'absolute',
-    top: 50,
-    right: 20,
-    zIndex: 100,
   },
   websiteButtonContent: {
     flexDirection: 'row',
