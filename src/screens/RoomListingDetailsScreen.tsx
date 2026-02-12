@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Dimensions, ScrollView, TouchableOpacity, Alert, Animated, Linking, Platform} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
 import BedIcon from '../../assets/bedIcon.svg';
 import DistanceIcon from '../../assets/distanceIcon(2).svg';
 import BathIcon from '../../assets/bathIcon.svg';
@@ -16,7 +17,8 @@ import SaveFilledIcon from '../../assets/filledInSaveIcon.svg';
 import SaveOutlineIconHeart from '../../assets/heartOutline.svg';
 import SaveFilledIconHeart from '../../assets/heart.svg';
 import StarIcon from '../../assets/stars.svg';
-import ExternalLinkIcon from '../../assets/shareIcon2.svg'; 
+import ExternalLinkIcon from '../../assets/shareIcon2.svg';
+import ArrowUpRightIcon from '../../assets/arrowUp.svg';
 import { buildingsData } from '../data/buildings';
 import * as Clipboard from 'expo-clipboard';
 // Import the distance calculation utility
@@ -167,63 +169,29 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
         <View style={styles.imageGalleryContainer}>
           <ImageCarousel images={roomData.images} />
           
-            <TouchableOpacity 
-            style={styles.backButtonOverlay}
-            onPress={() => navigation.goBack()}
+          <TouchableOpacity
+            onPress={() => {
+              const wasSaved = isSaved;
+              Alert.alert(
+                wasSaved ? 'Listing Unsaved' : 'Listing Saved',
+                wasSaved
+                  ? 'This listing has been removed from your saved listings.'
+                  : 'This listing has been added to your saved listings.'
+              );
+              toggleSave(roomData.id);
+            }}
+            style={styles.saveButtonContainer}
+            activeOpacity={0.8}
+            delayPressIn={0}
           >
-            <View style={styles.saveBadge}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <BackIcon width={20} height={20} />
-              </View>
-            </View>
+            <BlurView intensity={80} style={styles.circularButton} tint="light">
+              {isSaved ? (
+                <SaveFilledIconHeart width={22} height={22} fill="#BF5700"/>
+              ) : (
+                <SaveOutlineIconHeart width={22} height={22} stroke="#000000" />
+              )}
+            </BlurView>
           </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={() => {
-            const wasSaved = isSaved;
-            Alert.alert(
-              wasSaved ? 'Listing Unsaved' : 'Listing Saved',
-              wasSaved
-                ? 'This listing has been removed from your saved listings.'
-                : 'This listing has been added to your saved listings.'
-            );
-            toggleSave(roomData.id);
-          }}
-          style={styles.saveButtonContainer}
-          activeOpacity={0.8}
-          delayPressIn={0}
-        >
-          {isSaved ? (
-            <LinearGradient
-              colors={['#FF8C42', '#BF5700', '#994400']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.saveButtonContent}
-            >
-              <SaveFilledIconHeart width={20} height={20} fill="#ffffff"/>
-              <Text style={[styles.saveButtonText, { color: '#ffffff' }]}>Saved</Text>
-            </LinearGradient>
-          ) : (
-            <View style={[styles.saveButtonContent, { backgroundColor: '#ffffff' }]}>
-              <SaveOutlineIconHeart width={20} height={20} />
-              <Text style={[styles.saveButtonText, { color: '#000000' }]}>Save Listing</Text>
-            </View>
-          )}
-        </TouchableOpacity>
-
-          {/* SMART Housing Badge 
-          {roomData.smartHousing && (
-            <View style={styles.smartHousingBadgeContainer}>
-              <LinearGradient
-                colors={['#FF8C42', '#BF5700', '#994400']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.smartHousingBadge}
-              >
-                <Text style={styles.smartHousingBadgeText}>SMART Housing</Text>
-              </LinearGradient>
-            </View>
-          )}*/}
         </View>
 
         {/* Basic Info */}
@@ -403,23 +371,30 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
 
         {/* View Original Listing Button - Only show if website exists */}
         {roomData.website && (
-          <View style={styles.websiteButtonContainer}>
-            <TouchableOpacity onPress={handleOpenWebsite}>
-              <LinearGradient
-                colors={['#FF8C42', '#BF5700', '#994400']} 
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.contactButton}
-              >
-                <View style={styles.websiteButtonContent}>
-                  <ExternalLinkIcon width={27} height={27} color="#ffffff" style={styles.externalLinkIcon} />
-                  <Text style={styles.contactButtonText}>View Original Listing</Text>
-                </View>
-              </LinearGradient>
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity 
+              onPress={handleOpenWebsite}
+              style={styles.viewOriginalButton}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <ExternalLinkIcon width={20} height={20} color="#BF5700" />
+                <Text style={styles.viewOriginalButtonText}>View Original Listing</Text>
+              </View>
+              <ArrowUpRightIcon width={25} height={25} stroke="#8B6F47" />
             </TouchableOpacity>
           </View>
         )}
       </ScrollView>
+
+      {/* Back Button - Fixed position outside ScrollView */}
+      <TouchableOpacity 
+        style={styles.backButtonOverlay}
+        onPress={() => navigation.goBack()}
+      >
+        <BlurView intensity={80} style={styles.circularButton} tint="light">
+          <BackIcon width={22} height={22} fill="#ffffff"/>
+        </BlurView>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -459,21 +434,28 @@ const styles = StyleSheet.create({
   },
   backButtonOverlay: {
     position: 'absolute',
-    top: 40,
+    top: 50,
     left: 20,
     zIndex: 10,
   },
-  saveBadge: {
-    backgroundColor: '#f3f4f6',
-    paddingHorizontal: 10,
-    paddingVertical: 10,
-    borderRadius: 20,
-    marginTop: 10,
+  circularButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    overflow: 'hidden',
+    justifyContent: 'center',
+    alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
+    shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 5,
+    elevation: 3,
+  },
+  saveButtonContainer: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    zIndex: 100,
   },
   saveText: {
     fontSize: 14,
@@ -698,12 +680,6 @@ const styles = StyleSheet.create({
     marginLeft: 4,
     textAlign: 'right',
   },
-  saveButtonContainer: {
-    position: 'absolute',
-    top: 50,
-    right: 20,
-    zIndex: 100,
-  },
   saveButtonContent: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -744,9 +720,25 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#ffffff',
   },
-  websiteButtonContainer: {
+  buttonContainer: {
     paddingHorizontal: 20,
     paddingVertical: 24,
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
+  },
+  viewOriginalButton: {
+    backgroundColor: '#f3f4f6',
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  viewOriginalButtonText: {
+    color: '#BF5700',
+    fontSize: 16,
+    fontWeight: '500',
   },
   websiteButtonContent: {
     flexDirection: 'row',
@@ -758,13 +750,13 @@ const styles = StyleSheet.create({
     tintColor: '#ffffff',
     marginTop: -3 
   },
-    viewDetailsText: {
+  viewDetailsText: {
     fontSize: 12,
     color: '#6b7280',
     fontWeight: '600',
   },
   contactItem: {
-  marginBottom: 12,
+    marginBottom: 12,
   },
   contactLabel: {
     fontSize: 16,
@@ -777,10 +769,10 @@ const styles = StyleSheet.create({
     color: '#374151',
     lineHeight: 24,
   },
-    contactValueClickable: {
-  fontSize: 16,
-  color: '#BF5700',  
-  lineHeight: 24,
-  textDecorationLine: 'underline', 
+  contactValueClickable: {
+    fontSize: 16,
+    color: '#BF5700',  
+    lineHeight: 24,
+    textDecorationLine: 'underline', 
   },
 });
