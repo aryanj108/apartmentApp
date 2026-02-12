@@ -213,7 +213,8 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
               )}
             </View>
             <View style={styles.rightInfo}>
-              <Text style={styles.price}>${roomData.price}/mo</Text>
+              <Text style={styles.price}>${roomData.price}</Text>
+              <Text style={styles.perMonth}>per month</Text>
             </View>
           </View>
 
@@ -284,7 +285,7 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <DescriptionIcon width={22} height={22} style={styles.sectionIcon} />
-            <Text style={styles.sectionTitle}>Room Description</Text>
+            <Text style={styles.sectionTitle}>About</Text>
           </View>
           <Text style={styles.description}>
             {roomData.description}
@@ -309,7 +310,7 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
         {/* Contact */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <ContactIcon width={24} height={24} style={styles.sectionIcon} />
+            <ContactIcon width={22} height={22} style={styles.sectionIcon} />
             <Text style={styles.sectionTitle}>Contact</Text>
           </View>
           {roomData.contact?.phone && (
@@ -474,7 +475,7 @@ const styles = StyleSheet.create({
     borderTopColor: '#e5e7eb',
   },
   sectionTitle: {
-    fontSize: 20,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#000000',
   },
@@ -482,30 +483,19 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   description: {
-    fontSize: 16,
+    fontSize: 15,
     color: '#6b7280',
     lineHeight: 24,
   },
   featureItem: {
-    fontSize: 16,
+    fontSize: 15,
     color: '#374151',
     marginBottom: 8,
     lineHeight: 24,
   },
-  contactButton: {
-    paddingVertical: 16,
-    paddingHorizontal: 32,
-    borderRadius: 12,
-    alignItems: 'center',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
   contactButtonText: {
     color: '#ffffff',
-    fontSize: 18,
+    fontSize: 15,
     fontWeight: '600',
   },
   infoSection: {
@@ -737,7 +727,7 @@ const styles = StyleSheet.create({
   },
   viewOriginalButtonText: {
     color: '#BF5700',
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '500',
   },
   websiteButtonContent: {
@@ -765,14 +755,19 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   contactValue: {
-    fontSize: 16,
+    fontSize: 15,
     color: '#374151',
     lineHeight: 24,
   },
   contactValueClickable: {
-    fontSize: 16,
+    fontSize: 15,
     color: '#BF5700',  
     lineHeight: 24,
     textDecorationLine: 'underline', 
+  },
+  perMonth: {
+    fontSize: 12,
+    color: '#6b7280',
+    marginTop: 2,
   },
 });
