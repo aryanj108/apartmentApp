@@ -166,15 +166,6 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
         <View style={styles.imageGalleryContainer}>
           <ImageCarousel images={roomData.images} />
           
-          <TouchableOpacity 
-            style={styles.backButtonOverlay}
-            onPress={() => navigation.goBack()}
-          >
-            <BlurView intensity={80} style={styles.circularButton} tint="light">
-              <BackIcon width={22} height={22} fill="#ffffff"/>
-            </BlurView>
-          </TouchableOpacity>
-
         <TouchableOpacity
           onPress={() => {
             const wasSaved = isSaved;
@@ -435,6 +426,14 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
           </View>
         )}
       </ScrollView>
+      <TouchableOpacity 
+            style={styles.backButtonOverlay}
+            onPress={() => navigation.goBack()}
+          >
+            <BlurView intensity={80} style={styles.circularButton} tint="light">
+              <BackIcon width={22} height={22} fill="#ffffff"/>
+            </BlurView>
+      </TouchableOpacity>
     </View>
   );
 }
