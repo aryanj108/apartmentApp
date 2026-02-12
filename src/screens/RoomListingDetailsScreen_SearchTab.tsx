@@ -643,7 +643,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 0,
+    marginBottom: 5,
     gap: 8,
   },
   viewOriginalButtonText: {
@@ -665,8 +665,8 @@ const styles = StyleSheet.create({
   },
   // Save Button (Unsaved State)
   saveButtonContent: {
-    backgroundColor: '#F5F0EB',
-    paddingVertical: 16,
+    backgroundColor: '#f5f0ebb2',
+    paddingVertical: 14,
     paddingHorizontal: 20,
     borderRadius: 12,
     alignItems: 'center',
