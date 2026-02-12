@@ -171,7 +171,7 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
             onPress={() => navigation.goBack()}
           >
             <BlurView intensity={80} style={styles.circularButton} tint="light">
-              <BackIcon width={22} height={22}/>
+              <BackIcon width={22} height={22} fill="#ffffff"/>
             </BlurView>
           </TouchableOpacity>
 
@@ -383,7 +383,7 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
               onPress={handleOpenWebsite}
               style={styles.viewOriginalButton}
             >
-              <ExternalLinkIcon width={20} height={20} color="#8B6F47" />
+              <ExternalLinkIcon width={20} height={20} color="#BF5700" />
               <Text style={styles.viewOriginalButtonText}>View Original Listing</Text>
               <ArrowUpRightIcon width={20} height={20} stroke="#8B6F47" />
             </TouchableOpacity>
@@ -408,12 +408,12 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
                 <View style={isSaved ? styles.saveButtonContent : styles.saveButtonContent}>
                   {isSaved ? (
                     <>
-                      <SaveFilledIconHeart width={20} height={20} fill="#8B6F47"/>
+                      <SaveFilledIconHeart width={20} height={20} fill="#BF5700"/>
                       <Text style={styles.saveButtonText}>Saved</Text>
                     </>
                   ) : (
                     <>
-                      <SaveOutlineIconHeart width={20} height={20} stroke="#8B6F47" />
+                      <SaveOutlineIconHeart width={20} height={20} stroke="#BF5700" />
                       <Text style={styles.saveButtonText}>Save</Text>
                     </>
                   )}
@@ -645,7 +645,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   viewOriginalButtonText: {
-    color: '#8B6F47',
+    color: '#BF5700',
     fontSize: 16,
     fontWeight: '600',
   },
@@ -673,7 +673,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   saveButtonText: {
-    color: '#8B6F47',
+    color: '#BF5700',
     fontSize: 16,
     fontWeight: '600',
   },
