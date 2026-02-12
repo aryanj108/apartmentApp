@@ -17,6 +17,7 @@ import SaveOutlineIconHeart from '../../assets/heartOutline.svg';
 import SaveFilledIconHeart from '../../assets/heart.svg';
 import StarIcon from '../../assets/stars.svg';
 import ExternalLinkIcon from '../../assets/shareIcon2.svg'; 
+import ArrowUpRightIcon from '../../assets/arrowUp.svg';
 import { buildingsData } from '../data/buildings';
 import * as Clipboard from 'expo-clipboard';
 import { calculateDistance } from '../navigation/locationUtils';
@@ -398,26 +399,12 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
           )}
         </View>
 
-        {/* View Apartment Details Button */}
+        {/* Bottom Buttons */}
         {roomData.website && (
           <View style={styles.buttonContainer}>
-            <TouchableOpacity onPress={handleViewApartmentDetails}>
-              <LinearGradient
-                colors={['#FF8C42', '#BF5700', '#994400']} 
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.apartmentButton}
-              >
-                <Text style={styles.apartmentButtonText}>View Apartment Details</Text>
-              </LinearGradient>
-            </TouchableOpacity>
-
-            {/* View Original Listing Button */}
+            {/* View Original Listing Button (Full Width) */}
             <TouchableOpacity 
-              onPress={() => {
-              handleOpenWebsite();
-              }}
-              style={{ marginTop: 16 }}
+              onPress={handleOpenWebsite}
             >
               <LinearGradient
                 colors={['#FF8C42', '#BF5700', '#994400']} 
@@ -429,8 +416,60 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
                   <ExternalLinkIcon width={24} height={24} color="#ffffff" />
                   <Text style={styles.apartmentButtonText}>View Original Listing</Text>
                 </View>
+                <ArrowUpRightIcon width={24} height={24} stroke="#ffffff" />
               </LinearGradient>
             </TouchableOpacity>
+
+            {/* Row with Save Button and View Apartment Details */}
+            <View style={styles.bottomButtonRow}>
+              {/* Save Button */}
+              <TouchableOpacity
+                onPress={() => {
+                  const wasSaved = isSaved;
+                  Alert.alert(
+                    wasSaved ? 'Listing Unsaved' : 'Listing Saved',
+                    wasSaved
+                      ? 'This listing has been removed from your saved listings.'
+                      : 'This listing has been added to your saved listings.'
+                  );
+                  toggleSave(roomData.id);
+                }}
+                style={styles.bottomSaveButton}
+                activeOpacity={0.8}
+              >
+                {isSaved ? (
+                  <LinearGradient
+                    colors={['#FF8C42', '#BF5700', '#994400']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={styles.bottomButtonGradient}
+                  >
+                    <SaveFilledIconHeart width={20} height={20} fill="#ffffff"/>
+                    <Text style={styles.bottomButtonTextWhite}>Saved</Text>
+                  </LinearGradient>
+                ) : (
+                  <View style={styles.bottomButtonOutline}>
+                    <SaveOutlineIconHeart width={20} height={20} />
+                    <Text style={styles.bottomButtonTextBlack}>Save</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+
+              {/* View Apartment Details Button */}
+              <TouchableOpacity 
+                onPress={handleViewApartmentDetails}
+                style={styles.bottomDetailsButton}
+              >
+                <LinearGradient
+                  colors={['#FF8C42', '#BF5700', '#994400']} 
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.bottomButtonGradient}
+                >
+                  <Text style={styles.bottomButtonTextWhite}>View Details</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
           </View>
         )}
       </ScrollView>
@@ -635,7 +674,9 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 32,
     borderRadius: 12,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -645,7 +686,7 @@ const styles = StyleSheet.create({
   apartmentButtonText: {
     color: '#ffffff',
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: '400',
   },
   matchScoreSection: {
     marginTop: 15,
@@ -688,7 +729,7 @@ const styles = StyleSheet.create({
     marginLeft: 4,
     textAlign: 'right',
   },
-    saveButtonContainer: {
+  saveButtonContainer: {
     position: 'absolute',
     top: 50,
     right: 20,
@@ -714,11 +755,11 @@ const styles = StyleSheet.create({
     marginLeft: 6,
   },
   websiteButtonContent: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  justifyContent: 'center',
-  gap: 10,
-},
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+  },
   unitNumberText: {
     fontSize: 18,
     fontWeight: 'bold',
@@ -735,8 +776,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#6b7280',
   },
-    contactItem: {
-  marginBottom: 12,
+  contactItem: {
+    marginBottom: 12,
   },
   contactLabel: {
     fontSize: 16,
@@ -750,9 +791,52 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   contactValueClickable: {
-  fontSize: 16,
-  color: '#BF5700',  
-  lineHeight: 24,
-  textDecorationLine: 'underline', 
+    fontSize: 16,
+    color: '#BF5700',  
+    lineHeight: 24,
+    textDecorationLine: 'underline', 
+  },
+  bottomButtonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+    marginTop: 16,
+  },
+  bottomSaveButton: {
+    flex: 1,
+  },
+  bottomDetailsButton: {
+    flex: 1,
+  },
+  bottomButtonGradient: {
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  bottomButtonOutline: {
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#ffffff',
+    borderWidth: 2,
+    borderColor: '#BF5700',
+  },
+  bottomButtonTextWhite: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '400',
+  },
+  bottomButtonTextBlack: {
+    color: '#BF5700',
+    fontSize: 16,
+    fontWeight: '400',
   },
 });

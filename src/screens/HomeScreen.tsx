@@ -144,7 +144,7 @@ function FilterModal({ visible, onClose, sections, visibleSections, toggleSectio
       translateY.setValue(0);
       Animated.timing(opacity, {
         toValue: 1,
-        duration: 300,
+        duration: 100,
         useNativeDriver: true,
       }).start();
     } else {
@@ -466,12 +466,12 @@ export default function Home({ navigation }) {
       <View style={styles.header}>
         <View style={styles.headerContent}>
           <View style={styles.headerLeft}>
-            {/* Logo */}
+            {/* Logo 
             <Image
               source={Logo}
               style={styles.headerLogo}
               resizeMode="contain"
-            />
+            />*/}
             
             {/* Text */}
             <View style={styles.headerTextContainer}>
