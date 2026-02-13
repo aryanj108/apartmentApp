@@ -78,7 +78,7 @@ function MyTabBar({ state, descriptors, navigation }) {
           };
 
           const renderIcon = (color) => {
-            const props = { width: 30, height: 30, fill: color };
+            const props = { width: 30, height: 30, fill: color, stroke: color };
             if (route.name === 'Home') return <HomeIcon {...props} />;
             if (route.name === 'Search') return <SearchIcon {...props} />;
             if (route.name === 'Profile') return <ProfileIcon {...props} />;
@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
     width: 300, // Width of the entire bar
     height: 65, // Height of the entire bar
     borderRadius: 40,
-    backgroundColor: Platform.OS === 'ios' ? 'transparent' : 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: Platform.OS === 'ios' ? 'transparent' : 'rgba(255, 255, 255, 0.85)',
     overflow: 'hidden',
     elevation: 10,
     shadowColor: '#000',
@@ -157,7 +157,7 @@ const styles = StyleSheet.create({
     width: 90,      
     height: 58,      
     borderRadius: 29, 
-    backgroundColor: '#e6e6e6b2',
+    backgroundColor: '#c5c5c565',
     zIndex: 1,
   },
   tabLabel: {
