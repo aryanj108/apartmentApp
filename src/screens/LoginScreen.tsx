@@ -18,6 +18,7 @@ import EyeOffOutline from '../../assets/eye-off-outline.svg';
 import EyeOpenOutline from '../../assets/eye-open.svg';
 import LoginLogo from '../../assets/loginLogo.svg'; 
 import CancelIcon from '../../assets/cancel-svg.svg';
+import CustomLoadingScreen from './CustomLoadingScreen';
 
 const { width, height } = Dimensions.get('window');
 const scale = (size: number) => (width / 375) * size;
@@ -158,28 +159,38 @@ export default function LoginScreen({ navigation }: any) {
   const [password, setPassword] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [localLoading, setLocalLoading] = useState(false);
   
   const { signInWithEmail, signUpWithEmail, sendVerificationEmail, loading, error, setError } = useAuth();
 
+  console.log('Loading state:', loading);
   const handleConfirm = async () => {
+    console.log('handleConfirm called, loading:', loading);
     try {
       setError(null);
+      setLocalLoading(true);
+
+      await new Promise(resolve => setTimeout(resolve, 8000));
       
       // Validation
       if (!email.trim()) {
         Alert.alert('Error', 'Please enter your email address');
+        setLocalLoading(false);
         return;
       }
       if (!email.includes('@')) {
         Alert.alert('Error', 'Please enter a valid email address');
+        setLocalLoading(false);
         return;
       }
       if (!password) {
         Alert.alert('Error', 'Please enter your password');
+        setLocalLoading(false);
         return;
       }
       if (password.length < 6) {
         Alert.alert('Error', 'Password must be at least 6 characters');
+        setLocalLoading(false);
         return;
       }
       
@@ -210,11 +221,16 @@ export default function LoginScreen({ navigation }: any) {
         isSignUp ? 'Sign Up Failed' : 'Login Failed',
         friendlyMessage,
         [{ text: 'OK' }]
-      );
+      ); 
+    } finally {
+      setLocalLoading(false); 
     }
   };
 
+
+  console.log('Current localLoading value:', localLoading);
   return (
+     <>
     <KeyboardAvoidingView
       style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -256,11 +272,11 @@ export default function LoginScreen({ navigation }: any) {
 
             {/* Login Button */}
             <Pressable
-              style={[styles.loginButton, loading && styles.buttonDisabled]}
+              style={[styles.loginButton, localLoading  && styles.buttonDisabled]}
               onPress={handleConfirm}
-              disabled={loading}
+              disabled={localLoading }
             >
-              {loading ? (
+              {localLoading  ? (
                 <ActivityIndicator color="#fff" />
               ) : (
                 <Text style={styles.loginButtonText} allowFontScaling={false}>
@@ -305,6 +321,8 @@ export default function LoginScreen({ navigation }: any) {
         </View>
       </LinearGradient>
     </KeyboardAvoidingView>
+  <CustomLoadingScreen visible={localLoading} />
+    </>
   );
 }
 

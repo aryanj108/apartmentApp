@@ -21,6 +21,7 @@ import PetIcon from '../../assets/petIcon.svg';
 import BedIcon from '../../assets/bedIcon.svg';
 import StarIcon from '../../assets/stars.svg';
 import Arrow from '../../assets/rightArrowIcon.svg'
+import CustomLoadingScreen from './CustomLoadingScreen';
 
 
 function formatPrice(price) {
@@ -35,6 +36,7 @@ const DEFAULT_LOCATION = {
 };
 
 export default function PreferencesScreen({ navigation, route }) {
+  const [isSaving, setIsSaving] = useState(false);
   const { user } = useAuth();
   const { preferences, setPreferences, loading } = usePreferences();
   
@@ -214,6 +216,7 @@ export default function PreferencesScreen({ navigation, route }) {
   };
 
   return (
+  <>
     <ScrollView style={styles.container} keyboardShouldPersistTaps="handled">
       {/* Section 1 */}
       <View style={[styles.section, styles.firstSection]}>
@@ -501,6 +504,7 @@ export default function PreferencesScreen({ navigation, route }) {
         style={styles.startButton}
         onPress={async () => {
           try {
+            setIsSaving(true);
             if (user?.uid) {
               // Save to Firebase
               await updateUserPreferences(user.uid, {
@@ -525,12 +529,15 @@ export default function PreferencesScreen({ navigation, route }) {
               });
               
               console.log('Saved preferences:', localPreferences);
-              console.log('Saved location:', selectedLocation);
+              console.log('Saved location:', selectedLocation);              
               navigation.navigate('SwipeSearch', { isRedo: isRedoingPreferences });
+              setTimeout(() => setIsSaving(false), 200);
             }
           } catch (error) {
             console.error('Error saving preferences:', error);
             alert('Error saving preferences');
+          } finally {
+              setIsSaving(false); 
           }
         }}
       >
@@ -567,6 +574,8 @@ export default function PreferencesScreen({ navigation, route }) {
           </View>
       </TouchableOpacity>
     </ScrollView>
+  <CustomLoadingScreen visible={isSaving} />
+  </>
   );
 }
 
