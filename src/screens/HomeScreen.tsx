@@ -20,7 +20,7 @@ import { buildingsData } from '../data/buildings';
 import { listingsData } from '../data/listings';
 import { usePreferences } from '../context/PreferencesContext';
 import { calculateMatchScore, getMatchColor } from '../data/matchingAlgorithm';
-import FilterIcon from '../../assets/filterIcon.svg';
+import FilterIcon from '../../assets/stars.svg';
 import BedIcon from '../../assets/bedIcon.svg';
 import BathIcon from '../../assets/bathIcon.svg';
 import Stars from '../../assets/stars.svg';
@@ -553,6 +553,7 @@ const styles = StyleSheet.create({
     fontSize: 23,
     fontWeight: 'bold',
     color: '#000000',
+    fontFamily: 'Test',
     marginBottom: 2,
   },
   headerSubtitle: {
@@ -574,6 +575,7 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: 'bold',
     color: '#000000',
+    fontFamily: 'Test',
     paddingHorizontal: 20,
   },
   carouselContainer: {
