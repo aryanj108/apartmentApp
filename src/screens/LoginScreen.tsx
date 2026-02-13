@@ -14,7 +14,6 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../context/AuthContext';
-import CustomLoadingScreen from './CustomLoadingScreen'; // Add this import
 import EyeOffOutline from '../../assets/eye-off-outline.svg';
 import EyeOpenOutline from '../../assets/eye-open.svg';
 import LoginLogo from '../../assets/loginLogo.svg'; 
@@ -159,7 +158,6 @@ export default function LoginScreen({ navigation }: any) {
   const [password, setPassword] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [isAuthenticating, setIsAuthenticating] = useState(false); // Add this state
   
   const { signInWithEmail, signUpWithEmail, sendVerificationEmail, loading, error, setError } = useAuth();
 
@@ -185,36 +183,27 @@ export default function LoginScreen({ navigation }: any) {
         return;
       }
       
-      // Show loading overlay
-      setIsAuthenticating(true);
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
       if (isSignUp) {
         await signUpWithEmail(email, password);
         
         // Send verification email automatically
         try {
           await sendVerificationEmail();
-          setIsAuthenticating(false); // Hide loading before alert
           Alert.alert(
             'Account Created!',
             'A verification email has been sent to ' + email + '. Please check your inbox and verify your email.',
             [{ text: 'OK' }]
           );
         } catch (err) {
-          setIsAuthenticating(false); // Hide loading before alert
           // Account was still created, just failed to send email
           Alert.alert('Account Created', 'Account created successfully!');
         }
       } else {
         await signInWithEmail(email, password);
-        // Keep loading overlay visible until navigation happens
-        // It will be hidden automatically when component unmounts
       }
       
       // Navigation happens automatically via AuthContext - no manual navigation needed!
     } catch (err: any) {
-      setIsAuthenticating(false); // Hide loading on error
       console.error('Auth error:', err);
       const friendlyMessage = getErrorMessage(err);
       Alert.alert(
@@ -226,97 +215,96 @@ export default function LoginScreen({ navigation }: any) {
   };
 
   return (
-    <>
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <LinearGradient
+        colors={['#1a1a1a', '#2d1810', '#BF5700']}
+        style={styles.gradient}
+        start={{ x: 0.5, y: 1 }}
+        end={{ x: 0.5, y: 0 }}
       >
-        <LinearGradient
-          colors={['#1a1a1a', '#2d1810', '#BF5700']}
-          style={styles.gradient}
-          start={{ x: 0.5, y: 1 }}
-          end={{ x: 0.5, y: 0 }}
-        >
-          <View style={styles.container}>
-            {/* Logo */}
-            <View style={styles.logoContainer}>
-              <LoginLogo width={scale(200)} height={scale(200)}/>
-            </View>
+        <View style={styles.container}>
+          {/* Logo */}
+          <View style={styles.logoContainer}>
+            <LoginLogo width={scale(200)} height={scale(200)}/>
+          </View>
 
-            {/* Input Fields */}
-            <View style={styles.inputContainer}>
-              <AnimatedInput
-                placeholder="Email"
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoComplete="email"
-                showClearButton={true}        
-                onClear={() => setEmail('')}
-              />
+          {/* Input Fields */}
+          <View style={styles.inputContainer}>
+            <AnimatedInput
+              placeholder="Email"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoComplete="email"
+              showClearButton={true}        
+              onClear={() => setEmail('')}
+            />
 
-              <AnimatedInput
-                placeholder="Password"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry={!showPassword}
-                autoComplete={isSignUp ? 'password-new' : 'password'}
-                showPasswordToggle={true}
-                showPassword={showPassword}
-                onTogglePassword={() => setShowPassword(!showPassword)}
-              />
+            <AnimatedInput
+              placeholder="Password"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPassword}
+              autoComplete={isSignUp ? 'password-new' : 'password'}
+              showPasswordToggle={true}
+              showPassword={showPassword}
+              onTogglePassword={() => setShowPassword(!showPassword)}
+            />
 
-              {/* Login Button */}
-              <Pressable
-                style={[styles.loginButton, (loading || isAuthenticating) && styles.buttonDisabled]}
-                onPress={handleConfirm}
-                disabled={loading || isAuthenticating}
-              >
+            {/* Login Button */}
+            <Pressable
+              style={[styles.loginButton, loading && styles.buttonDisabled]}
+              onPress={handleConfirm}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
                 <Text style={styles.loginButtonText} allowFontScaling={false}>
                   {isSignUp ? 'Sign up' : 'Log in'}
                 </Text>
-              </Pressable>
-              
-              {/* Forgot Password Link - only show on Sign In */}
-              {!isSignUp && (
-                <Pressable
-                  style={styles.forgotPasswordButton}
-                  onPress={() => navigation.navigate('ForgotPassword')}
-                >
-                  <Text style={styles.forgotPasswordText}>
-                    Forgot password?
-                  </Text>
-                </Pressable>
               )}
-            </View>
+            </Pressable>
 
-            {/* Spacer */}
-            <View style={styles.spacer} />
-
-            <View style={styles.bottomContainer}>
+            {/* Forgot Password Link - only show on Sign In */}
+            {!isSignUp && (
               <Pressable
-                style={styles.createAccountButton}
-                onPress={() => {
-                  setIsSignUp(!isSignUp);
-                  setError(null);
-                  setEmail('');      
-                  setPassword('');
-                }}
+                style={styles.forgotPasswordButton}
+                onPress={() => navigation.navigate('ForgotPassword')}
               >
-                <Text style={styles.createAccountText}>
-                  {isSignUp 
-                    ? 'Already have an account? Log in' 
-                    : 'Create new account'}
+                <Text style={styles.forgotPasswordText}>
+                  Forgot password?
                 </Text>
               </Pressable>
-            </View>
+            )}
           </View>
-        </LinearGradient>
-      </KeyboardAvoidingView>
 
-      {/* Loading Overlay */}
-      <CustomLoadingScreen visible={isAuthenticating} />
-    </>
+          {/* Spacer */}
+          <View style={styles.spacer} />
+
+          <View style={styles.bottomContainer}>
+          <Pressable
+            style={styles.createAccountButton}
+            onPress={() => {
+              setIsSignUp(!isSignUp);
+              setError(null);
+              setEmail('');      
+              setPassword('');
+            }}
+          >
+            <Text style={styles.createAccountText}>
+              {isSignUp 
+                ? 'Already have an account? Log in' 
+                : 'Create new account'}
+            </Text>
+          </Pressable>
+        </View>
+        </View>
+      </LinearGradient>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -408,9 +396,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   bottomContainer: {
-    paddingBottom: scale(90),
-    paddingHorizontal: scale(8),
-    alignItems: 'center',
+  paddingBottom: scale(90),
+  paddingHorizontal: scale(8),
+  alignItems: 'center',
   },
   clearButton: {  
     position: 'absolute',

@@ -159,7 +159,7 @@ export default function CustomLoadingScreen({ visible = true }) {
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)', // Dark overlay
+    backgroundColor: 'rgba(0, 0, 0, 0.4)', // Dark overlay
     justifyContent: 'center',
     alignItems: 'center',
   },
