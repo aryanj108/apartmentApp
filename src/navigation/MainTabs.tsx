@@ -7,8 +7,8 @@ import HomeScreen from '../screens/HomeScreen';
 import SearchScreen from '../screens/SearchScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 
-import HomeIcon from '../../assets/keys.svg'; 
-import SearchIcon from '../../assets/keys.svg'; 
+import HomeIcon from '../../assets/leaseIcon.svg'; 
+import SearchIcon from '../../assets/compass1.svg'; 
 import ProfileIcon from '../../assets/keys.svg';
 
 const ACTIVE_TEXT_COLOR = '#BF5700';   
@@ -41,7 +41,7 @@ const TabItem = ({ route, isFocused, onPress, renderIcon }) => {
         
         {/* ICON AND TEXT */}
         <View style={styles.foregroundContent}>
-          {renderIcon(isFocused ? '#BF5700' : '#6B7280')}
+          {renderIcon(isFocused ? '#BF5700' : '#000000')}
           <Text style={[
             styles.tabLabel, 
             { color: isFocused ? ACTIVE_TEXT_COLOR : INACTIVE_TEXT_COLOR }
@@ -157,7 +157,7 @@ const styles = StyleSheet.create({
     width: 90,      
     height: 58,      
     borderRadius: 29, 
-    backgroundColor: '#e6e6e6',
+    backgroundColor: '#e6e6e6b2',
     zIndex: 1,
   },
   tabLabel: {
