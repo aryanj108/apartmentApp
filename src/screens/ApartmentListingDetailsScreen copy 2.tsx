@@ -676,5 +676,4 @@ viewDetailsText: {
   color: '#6b7280',
   fontWeight: '600',
 },
-
 });
