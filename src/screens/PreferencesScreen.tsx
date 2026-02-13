@@ -23,6 +23,7 @@ import StarIcon from '../../assets/stars.svg';
 import Arrow from '../../assets/rightArrowIcon.svg'
 import CustomLoadingScreen from './CustomLoadingScreen';
 
+{/* https://my.locationiq.com/dashboard#reports */}
 
 function formatPrice(price) {
   return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
@@ -43,6 +44,8 @@ export default function PreferencesScreen({ navigation, route }) {
   // Check if this is a redo flow
   const isRedoingPreferences = route?.params?.isRedo || false;
   
+  const MAPBOX_TOKEN = 'pk.e493efe80245c480f2ef5d41058283e2';
+
   console.log("Current Render minPrice:", preferences.minPrice);
   console.log("Current Render beds:", preferences.beds);
 
@@ -108,27 +111,37 @@ export default function PreferencesScreen({ navigation, route }) {
       return;
     }
 
-    setIsSearching(true);
-    try {
-      // Search within Austin, TX area for better results
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?` +
-        `q=${encodeURIComponent(query + ', Austin, TX')}&` +
-        `format=json&` +
-        `limit=5&` +
-        `bounded=1&` +
-        `viewbox=-97.9,30.5,-97.5,30.1` // Austin bounding box
-      );
-      
-      const data = await response.json();
-      setSearchResults(data);
-      setShowResults(true);
-    } catch (error) {
-      console.error('Error searching location:', error);
-    } finally {
-      setIsSearching(false);
+  setIsSearching(true);
+  try {
+    const LOCATIONIQ_TOKEN = 'pk.e493efe80245c480f2ef5d41058283e2'; 
+    
+    const response = await fetch(
+      `https://us1.locationiq.com/v1/search.php?` +
+      `key=${LOCATIONIQ_TOKEN}&` +
+      `q=${encodeURIComponent(query + ', Austin, TX')}&` +
+      `format=json&` +
+      `limit=5&` +
+      `countrycodes=us&` +
+      `viewbox=-97.9,30.5,-97.5,30.1&` + // Austin bounding box
+      `bounded=1`
+    );
+    
+    if (!response.ok) {
+      console.error('LocationIQ API error:', response.status);
+      setSearchResults([]);
+      return;
     }
-  };
+
+    const data = await response.json();
+    setSearchResults(data);
+    setShowResults(true);
+  } catch (error) {
+    console.error('Error searching location:', error);
+    setSearchResults([]);
+  } finally {
+    setIsSearching(false);
+  }
+};
 
   // Debounced search
   useEffect(() => {
@@ -136,7 +149,7 @@ export default function PreferencesScreen({ navigation, route }) {
       if (searchQuery) {
         searchLocation(searchQuery);
       }
-    }, 500);
+    }, 2000);
 
     return () => clearTimeout(timer);
   }, [searchQuery]);

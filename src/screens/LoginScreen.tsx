@@ -163,6 +163,13 @@ export default function LoginScreen({ navigation }: any) {
   
   const { signInWithEmail, signUpWithEmail, sendVerificationEmail, loading, error, setError } = useAuth();
 
+    const testLoading = () => {
+    setLocalLoading(true);
+    setTimeout(() => {
+      setLocalLoading(false);
+    }, 5000); // Shows loading for 5 seconds
+  };
+
   console.log('Loading state:', loading);
   const handleConfirm = async () => {
     console.log('handleConfirm called, loading:', loading);
@@ -297,6 +304,14 @@ export default function LoginScreen({ navigation }: any) {
               </Pressable>
             )}
           </View>
+
+          {/* TEST BUTTON - ADD THIS 
+          <Pressable
+            style={styles.loginButton}
+            onPress={testLoading}
+          >
+            <Text style={styles.loginButtonText}>🧪 Test Loading Screen (5s)</Text>
+          </Pressable>*/}
 
           {/* Spacer */}
           <View style={styles.spacer} />

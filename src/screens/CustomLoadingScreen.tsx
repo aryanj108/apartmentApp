@@ -60,12 +60,8 @@ export default function CustomLoadingScreen({ visible = true }) {
       transparent={true}
       animationType="none"
       visible={visible}
-      // This is crucial for Android to draw behind the status bar
       statusBarTranslucent={true} 
     >
-      {/* Using a standard View for the background and an absoluteFill 
-         Animated.View for the fade effect ensures it covers the whole screen.
-      */}
       <View style={styles.modalRoot}>
         <Animated.View 
           style={[
@@ -74,19 +70,25 @@ export default function CustomLoadingScreen({ visible = true }) {
           ]}
         >
           <View style={styles.contentContainer}>
-            {/* Animated Logo */}
-            <Animated.View style={{ transform: [{ translateY: logoAnim }] }}>
-              <LonghornLivingIcon width={240} height={240} />
-            </Animated.View>
+            {/* Logo - positioned above center */}
+            <View style={styles.logoSection}>
+              <Animated.View style={{ transform: [{ translateY: logoAnim }] }}>
+                <LonghornLivingIcon width={240} height={240} />
+              </Animated.View>
+            </View>
 
-            {/* Loading Text */}
-            <Text style={styles.loadingText}>Longhorn Living</Text>
+            {/* Loading Text - centered in the middle */}
+            <View style={styles.textSection}>
+              <Text style={styles.loadingText}>Longhorn Living</Text>
+            </View>
 
-            {/* Pulsing Dots */}
-            <View style={styles.dotsContainer}>
-              {[dot1Anim, dot2Anim, dot3Anim].map((anim, i) => (
-                <Animated.View key={i} style={[styles.dot, { opacity: anim }]} />
-              ))}
+            {/* Pulsing Dots - positioned below center */}
+            <View style={styles.dotsSection}>
+              <View style={styles.dotsContainer}>
+                {[dot1Anim, dot2Anim, dot3Anim].map((anim, i) => (
+                  <Animated.View key={i} style={[styles.dot, { opacity: anim }]} />
+                ))}
+              </View>
             </View>
           </View>
         </Animated.View>
@@ -98,31 +100,41 @@ export default function CustomLoadingScreen({ visible = true }) {
 const styles = StyleSheet.create({
   modalRoot: {
     flex: 1,
-    // This ensures that even if the OS tries to pad the view, 
-    // it expands to the physical limits.
     backgroundColor: 'transparent', 
   },
   overlay: {
-    // absoluteFill covers the entire parent (the Modal)
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)', // Slightly darker for better contrast
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
     justifyContent: 'center',
     alignItems: 'center',
-    // We use the screen dimensions to force it past the nav bar
     width: SCREEN_WIDTH,
     height: SCREEN_HEIGHT + (StatusBar.currentHeight || 0),
   },
   contentContainer: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     width: '100%',
   },
+  logoSection: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+  },
+  textSection: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 20,
+  },
+  dotsSection: {
+    flex: 1,
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+  },
   loadingText: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 24,
+    fontWeight: '700',
     color: '#FFFFFF',
-    marginTop: 10,
-    marginBottom: 20,
     textAlign: 'center',
   },
   dotsContainer: {
@@ -131,10 +143,10 @@ const styles = StyleSheet.create({
     gap: 5,
   },
   dot: {
-    width: 12,
-    height: 12,
+    width: 10,
+    height: 10,
     borderRadius: 6,
     backgroundColor: '#FFFFFF',
-    marginHorizontal: 6, // Added for spacing stability
+    marginHorizontal: 4
   },
 });
