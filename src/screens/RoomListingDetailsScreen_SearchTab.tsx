@@ -17,7 +17,7 @@ import SaveFilledIcon from '../../assets/filledInSaveIcon.svg';
 import SaveOutlineIconHeart from '../../assets/heartOutline.svg';
 import SaveFilledIconHeart from '../../assets/heart.svg';
 import StarIcon from '../../assets/stars.svg';
-import ExternalLinkIcon from '../../assets/shareIcon2.svg'; 
+import ExternalLinkIcon from '../../assets/compass.svg'; 
 import ArrowUpRightIcon from '../../assets/arrowUp.svg';
 import { buildingsData } from '../data/buildings';
 import * as Clipboard from 'expo-clipboard';
@@ -394,7 +394,7 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
               style={styles.viewOriginalButton}
             >
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <ExternalLinkIcon width={20} height={20} color="#BF5700" />
+              <ExternalLinkIcon width={24} height={24} fill="#BF5700" />
               <Text style={styles.viewOriginalButtonText}>View Original Listing</Text>
               </View>
               <ArrowUpRightIcon width={25} height={25} stroke="#8B6F47" />
@@ -587,7 +587,7 @@ const styles = StyleSheet.create({
   price: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#000000',
+    color: '#BF5700',
   },
   chipsContainer: {
     flexDirection: 'row',
