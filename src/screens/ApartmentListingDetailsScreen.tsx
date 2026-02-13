@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { useState, useEffect } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
 import * as Clipboard from 'expo-clipboard';
 import Stars from '../../assets/stars.svg';
 import { buildingsData } from '../data/buildings';
@@ -184,19 +185,6 @@ useEffect(() => {
         
         {/* Image Gallery Section */}
         <View style={styles.imageGalleryContainer}>
-          
-          {/* Back Button positioned ON the image section */}
-          <TouchableOpacity 
-            style={styles.backButtonOverlay}
-            onPress={() => navigation.goBack()}
-          >
-            <View style={styles.saveBadge}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <BackIcon width={20} height={20} />
-              </View>
-            </View>
-          </TouchableOpacity>
-
           <ImageCarousel images={apartment.images || []} />
         </View>
 
@@ -393,6 +381,14 @@ useEffect(() => {
         </View>
       )}
       </ScrollView>
+      <TouchableOpacity 
+      style={styles.backButtonOverlay}
+      onPress={() => navigation.goBack()}
+          >
+          <BlurView intensity={80} style={styles.circularButton} tint="light">
+          <BackIcon width={22} height={22} fill="#000000"/>
+          </BlurView>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -710,5 +706,18 @@ const styles = StyleSheet.create({
     backgroundColor: '#e5e7eb',
     marginHorizontal: 20,
     marginVertical: 10, 
+  },
+  circularButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    overflow: 'hidden',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
 });

@@ -437,12 +437,31 @@ export default function Search({ navigation }) {
   const listPaddingTop = Platform.OS === 'ios' ? insets.top + 110 : (insets.top || 10) + 100;
 
   useLayoutEffect(() => {
-    navigation.getParent()?.setOptions({
-      tabBarStyle: showMap ? { display: 'none' } : styles.tabBar,
+    const parent = navigation.getParent();
+    
+    // Set tab bar visibility based on showMap state
+    parent?.setOptions({
+      tabBarStyle: showMap ? { display: 'none' } : undefined,
+    });
+    
+    // Add listeners for screen focus/blur
+    const unsubscribeFocus = navigation.addListener('focus', () => {
+      parent?.setOptions({
+        tabBarStyle: showMap ? { display: 'none' } : undefined,
+      });
+    });
+    
+    const unsubscribeBlur = navigation.addListener('blur', () => {
+      parent?.setOptions({
+        tabBarStyle: undefined,
+      });
     });
     
     return () => {
-      navigation.getParent()?.setOptions({
+      unsubscribeFocus();
+      unsubscribeBlur();
+      // Restore tab bar when component unmounts
+      parent?.setOptions({
         tabBarStyle: undefined,
       });
     };

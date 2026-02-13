@@ -649,6 +649,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#BF5700',
     fontWeight: '600',
+    fontFamily: 'Test',
     marginBottom: 4,
   },
   cardAddress: {

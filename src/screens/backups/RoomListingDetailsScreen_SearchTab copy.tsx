@@ -31,6 +31,7 @@ function formatPrice(price) {
 }
 
 export default function RoomListingDetailsScreen({ navigation, route }) {
+  const [isMapModalVisible, setIsMapModalVisible] = useState(false);
   const { savedIds, toggleSave, preferences } = usePreferences();
   const { listing, matchScore } = route.params;
   const scoreValue = matchScore || 0;
@@ -450,7 +451,7 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
             onPress={() => navigation.goBack()}
           >
             <BlurView intensity={80} style={styles.circularButton} tint="light">
-              <BackIcon width={22} height={22} fill="#000000"/>
+              <BackIcon width={22} height={22} fill="#ffffff"/>
             </BlurView>
       </TouchableOpacity>
     </View>

@@ -27,6 +27,10 @@ import { calculateDistance } from '../navigation/locationUtils';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 import ImageCarousel from '../navigation/ImageCarousel';
 
+function formatPrice(price) {
+  return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
   const copyToClipboard = async (text, label) => {
     await Clipboard.setStringAsync(text);
     Alert.alert('Copied!', `${label} has been copied to your clipboard.`);
@@ -213,7 +217,7 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
               )}
             </View>
             <View style={styles.rightInfo}>
-              <Text style={styles.price}>${roomData.price}</Text>
+              <Text style={styles.price}>${formatPrice(listing.price)}</Text>
               <Text style={styles.perMonth}>per month</Text>
             </View>
           </View>
@@ -405,7 +409,7 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
         onPress={() => navigation.goBack()}
       >
         <BlurView intensity={80} style={styles.circularButton} tint="light">
-          <BackIcon width={22} height={22} fill="#ffffff"/>
+          <BackIcon width={22} height={22} fill="#000000"/>
         </BlurView>
       </TouchableOpacity>
     </View>
