@@ -840,7 +840,7 @@ const styles = StyleSheet.create({
   applyButtonText: {
     color: '#BF5700',
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   saveBadge: {
     position: 'absolute',

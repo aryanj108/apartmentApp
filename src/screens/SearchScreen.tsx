@@ -770,19 +770,19 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   cardTitle: {
-    fontSize: 23,
+    fontSize: 20,
     fontWeight: '600',
     color: '#000000',
     marginBottom: 2,
   },
   unitNumber: {
-    fontSize: 12,
+    fontSize: 13,
     color: '#BF5700',
     fontWeight: '600',
     marginBottom: 4,
   },
   cardAddress: {
-    fontSize: 14,
+    fontSize: 11,
     color: '#6b7280',
     marginBottom: 12,
   },
