@@ -444,7 +444,7 @@ export default function Search({ navigation }) {
   const allAmenities = ['wifi', 'gym', 'pool', 'parking', 'furnished', 'petFriendly'];
   const selectedAmenities = allAmenities.filter(amenity => preferences?.[amenity]);
 
-  const headerPaddingTop = Platform.OS === 'ios' ? insets.top + 10 : insets.top || 10;
+  const headerPaddingTop = Platform.OS === 'ios' ? insets.top + 25 : insets.top || 25;
   const listPaddingTop = Platform.OS === 'ios' ? insets.top + 110 : (insets.top || 10) + 100;
 
   useEffect(() => {
@@ -513,7 +513,19 @@ export default function Search({ navigation }) {
           style={StyleSheet.absoluteFill} 
         />
         <View style={styles.headerTitleRow}>
+          {/* Reset Button on the Left */}
+          {showMap && (
+            <TouchableOpacity 
+              style={styles.resetButtonTopLeft} 
+              onPress={handleResetMap}
+            >
+              <ResetIcon width={20} height={20} fill="#000000" />
+            </TouchableOpacity>
+          )}
+
           <Text style={styles.headerTitle}>Browse Listings</Text>
+
+          {/* Search Button on the Right */}
           <TouchableOpacity 
             style={styles.searchIconButton}
             onPress={() => setSearchModalVisible(true)}
@@ -554,7 +566,7 @@ export default function Search({ navigation }) {
             ))}
           </MapView>
           
-          <TouchableOpacity 
+          {/*<TouchableOpacity 
             style={styles.resetButton}
             onPress={handleResetMap}
           >
@@ -562,7 +574,7 @@ export default function Search({ navigation }) {
               <ResetIcon width={15} height={15} fill={'#ffffff'} />
               <Text style={styles.resetButtonText}>  Reset View</Text>
             </View>
-          </TouchableOpacity>
+          </TouchableOpacity>*/}
         </View>
       ) : (
         <FlatList
@@ -641,10 +653,10 @@ const styles = StyleSheet.create({
   },
   searchIconButton: {
     position: 'absolute',
-    right: 0,
-    padding: 4,
-    marginTop: 5,
-    top: 0
+    right: 30,      
+    top: 0,         
+    padding: 4,               
+    zIndex: 101,
   },
   headerBottom: {
     flexDirection: 'row',
@@ -893,5 +905,12 @@ const styles = StyleSheet.create({
   emptyStateText: {
     fontSize: 16,
     color: '#9ca3af',
+  },
+  resetButtonTopLeft: {
+    position: 'absolute',
+    left: 30,
+    padding: 10,              
+    zIndex: 101,
+    top: 5,
   },
 });
