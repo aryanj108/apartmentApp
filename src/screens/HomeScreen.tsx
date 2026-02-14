@@ -286,8 +286,13 @@ function FilterModal({ visible, onClose, sections, visibleSections, toggleSectio
                 style={styles.filterItem}
                 onPress={() => toggleSection(section.key)}
               >
-                <View style={styles.checkbox}>
-                  {visibleSections[section.key] && <Text style={styles.checkmark}>✓</Text>}
+                <View style={[
+                  styles.checkbox,
+                  visibleSections[section.key] && styles.checkboxChecked
+                ]}>
+                  {visibleSections[section.key] && (
+                    <Text style={styles.checkmark}>✓</Text>
+                  )}
                 </View>
                 <Text style={styles.filterItemText}>{section.title}</Text>
                 <Text style={styles.filterItemCount}>({section.data.length})</Text>
@@ -739,15 +744,20 @@ const styles = StyleSheet.create({
     height: 24,
     borderRadius: 6,
     borderWidth: 2,
-    borderColor: '#000000',
+    borderColor: '#BF5700', 
     marginRight: 12,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#ffffff', 
+  },
+  checkboxChecked: {  
+    backgroundColor: '#BF5700',
+    borderColor: '#BF5700',
   },
   checkmark: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#000000',
+    color: '#ffffff',  
   },
   filterItemText: {
     flex: 1,
