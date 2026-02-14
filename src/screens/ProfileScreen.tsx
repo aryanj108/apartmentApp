@@ -375,8 +375,9 @@ const styles = StyleSheet.create({
   redoPreferencesButton: {
     backgroundColor: '#fff',
     paddingVertical: 16,
+    paddingHorizontal: 16, 
     borderRadius: 12,
-    alignItems: 'center',
+    alignItems: 'flex-start',
     borderWidth: 2,
     borderColor: '#ffffff',
     shadowColor: '#000',
