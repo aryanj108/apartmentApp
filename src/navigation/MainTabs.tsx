@@ -7,7 +7,7 @@ import HomeScreen from '../screens/HomeScreen';
 import SearchScreen from '../screens/SearchScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 
-import HomeIcon from '../../assets/leaseIcon.svg'; 
+import HomeIcon from '../../assets/homeIcon.svg'; 
 import SearchIcon from '../../assets/compass1.svg'; 
 import ProfileIcon from '../../assets/profile.svg';
 
