@@ -15,11 +15,14 @@ import {
   PanResponder,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { doc, updateDoc, getDoc } from 'firebase/firestore';
+import { db } from '../config/firebaseConfig';
 
 import { buildingsData } from '../data/buildings';
 import { listingsData } from '../data/listings';
 import { usePreferences } from '../context/PreferencesContext';
 import { calculateMatchScore, getMatchColor } from '../data/matchingAlgorithm';
+import { useAuth } from '../context/AuthContext';
 import FilterIcon from '../../assets/stars.svg';
 import BedIcon from '../../assets/bedIcon.svg';
 import BathIcon from '../../assets/bathIcon.svg';
@@ -134,7 +137,7 @@ function ApartmentCard({ listing, matchScore, onPress, isSaved, onSavePress }) {
 }
 
 // Filter Modal Component
-function FilterModal({ visible, onClose, sections, visibleSections, toggleSection }) {
+function FilterModal({ visible, onClose, sections, visibleSections, toggleSection, onApply }) {
   const translateY = useRef(new Animated.Value(0)).current;
   const opacity = useRef(new Animated.Value(0)).current;
 
@@ -290,9 +293,7 @@ function FilterModal({ visible, onClose, sections, visibleSections, toggleSectio
                   styles.checkbox,
                   visibleSections[section.key] && styles.checkboxChecked
                 ]}>
-                  {visibleSections[section.key] && (
-                    <Text style={styles.checkmark}>✓</Text>
-                  )}
+                  {visibleSections[section.key] && <Text style={styles.checkmark}>✓</Text>}
                 </View>
                 <Text style={styles.filterItemText}>{section.title}</Text>
                 <Text style={styles.filterItemCount}>({section.data.length})</Text>
@@ -302,7 +303,7 @@ function FilterModal({ visible, onClose, sections, visibleSections, toggleSectio
 
           <TouchableOpacity
             style={styles.applyButton}
-            onPress={onClose}
+            onPress={onApply}
           >
             <Text style={styles.applyButtonText}>Apply Filters</Text>
           </TouchableOpacity>
@@ -313,6 +314,7 @@ function FilterModal({ visible, onClose, sections, visibleSections, toggleSectio
 }
 
 export default function Home({ navigation }) {
+  const { user } = useAuth();
   const handleToggleSave = (id) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     toggleSave(id);
@@ -338,10 +340,48 @@ export default function Home({ navigation }) {
     hasAllAmenities: true,
     lovedByLonghorns: true,
   });
+  // Temporary state for filter changes (not saved until Apply is pressed)
+  const [tempVisibleSections, setTempVisibleSections] = useState(visibleSections);
 
   // Get selected amenities from preferences
   const allAmenities = ['wifi', 'gym', 'pool', 'parking', 'furnished', 'petFriendly'];
   const selectedAmenities = allAmenities.filter((amenity) => preferences?.[amenity]);
+
+  // Load filter preferences from Firebase on mount
+  useEffect(() => {
+    const loadFilterPreferences = async () => {
+      if (!user?.uid) return;
+      
+      try {
+        const userDocRef = doc(db, 'users', user.uid);
+        const userDoc = await getDoc(userDocRef);
+        
+        if (userDoc.exists() && userDoc.data().filterPreferences) {
+          const savedFilters = userDoc.data().filterPreferences;
+          setVisibleSections(savedFilters);
+          setTempVisibleSections(savedFilters);
+        }
+      } catch (error) {
+        console.error('Error loading filter preferences:', error);
+      }
+    };
+
+    loadFilterPreferences();
+  }, [user?.uid]);
+
+  // Save filter preferences to Firebase
+  const saveFilterPreferences = async (filters) => {
+    if (!user?.uid) return;
+    
+    try {
+      const userDocRef = doc(db, 'users', user.uid);
+      await updateDoc(userDocRef, {
+        filterPreferences: filters
+      });
+    } catch (error) {
+      console.error('Error saving filter preferences:', error);
+    }
+  };
 
   // Load enriched listings on mount
   useEffect(() => {
@@ -413,8 +453,27 @@ export default function Home({ navigation }) {
     });
   };
 
+  // Toggle section in temporary state (not saved yet)
   const toggleSection = (sectionKey) => {
-    setVisibleSections((prev) => ({ ...prev, [sectionKey]: !prev[sectionKey] }));
+    setTempVisibleSections((prev) => ({ ...prev, [sectionKey]: !prev[sectionKey] }));
+  };
+
+  // Apply filters and save to Firebase
+  const handleApplyFilters = async () => {
+    // Apply the temporary changes to actual state
+    setVisibleSections(tempVisibleSections);
+    
+    // Save to Firebase
+    await saveFilterPreferences(tempVisibleSections);
+    
+    // Close modal
+    setFilterModalVisible(false);
+  };
+
+  // Reset temp state when modal opens
+  const handleOpenFilterModal = () => {
+    setTempVisibleSections(visibleSections);
+    setFilterModalVisible(true);
   };
 
   const renderSection = (title, data, sectionKey) => {
@@ -488,7 +547,7 @@ export default function Home({ navigation }) {
           {/* Filter Button */}
           <TouchableOpacity
             style={styles.filterButton}
-            onPress={() => setFilterModalVisible(true)}
+            onPress={handleOpenFilterModal}
           >
             <FilterIcon width={35} height={35} />
           </TouchableOpacity>
@@ -510,8 +569,9 @@ export default function Home({ navigation }) {
         visible={filterModalVisible}
         onClose={() => setFilterModalVisible(false)}
         sections={sections}
-        visibleSections={visibleSections}
+        visibleSections={tempVisibleSections}
         toggleSection={toggleSection}
+        onApply={handleApplyFilters}
       />
     </View>
   );
@@ -744,20 +804,20 @@ const styles = StyleSheet.create({
     height: 24,
     borderRadius: 6,
     borderWidth: 2,
-    borderColor: '#BF5700', 
+    borderColor: '#BF5700',
     marginRight: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#ffffff', 
+    backgroundColor: '#ffffff',
   },
-  checkboxChecked: {  
+  checkboxChecked: {
     backgroundColor: '#BF5700',
     borderColor: '#BF5700',
   },
   checkmark: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#ffffff',  
+    color: '#ffffff',
   },
   filterItemText: {
     flex: 1,
