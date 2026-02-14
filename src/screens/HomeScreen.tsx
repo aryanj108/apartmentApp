@@ -779,7 +779,7 @@ const styles = StyleSheet.create({
   modalHeader: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 0,
     paddingBottom: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#e5e7eb',
@@ -796,7 +796,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 16,
-    borderBottomWidth: 1,
+    borderBottomWidth: 0,
     borderBottomColor: '#e5e7eb',
   },
   checkbox: {
