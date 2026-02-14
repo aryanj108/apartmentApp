@@ -779,7 +779,7 @@ const styles = StyleSheet.create({
   modalHeader: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 0,
+    marginHorizontal: 20,
     paddingBottom: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#e5e7eb',
