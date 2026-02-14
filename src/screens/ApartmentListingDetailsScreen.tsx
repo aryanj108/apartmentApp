@@ -27,6 +27,8 @@ import ContactIcon from '../../assets/contactIcon.svg';
 import LeaseIcon from '../../assets/leaseIcon.svg';
 import BackIcon from '../../assets/backIcon.svg';
 import KeysIcon from '../../assets/keys.svg';
+import ExternalLinkIcon from '../../assets/apartment.svg'; 
+import ArrowUpRightIcon from '../../assets/arrowUp.svg';
 import { usePreferences } from '../context/PreferencesContext';
 import SaveOutlineIcon from '../../assets/saveIcon.svg';
 import SaveFilledIcon from '../../assets/filledInSaveIcon.svg';
@@ -354,7 +356,36 @@ useEffect(() => {
 
       <View style={styles.separator} />
 
-      {/* Website Button - Only show if website exists */}
+
+
+              {/* Bottom Buttons */}
+        {apartment.website && (
+          <View style={styles.websiteButtonContainer}>
+            {/* View Original Listing Button (Full Width) */}
+            <TouchableOpacity 
+            style={styles.viewOriginalButton}
+            onPress={async () => {
+            try {
+              const supported = await Linking.canOpenURL(apartment.website);
+              if (supported) {
+                await Linking.openURL(apartment.website);
+              } else {
+                Alert.alert('Error', 'Cannot open this URL');
+              }
+            } catch (error) {
+              Alert.alert('Error', 'Failed to open website');
+            }
+          }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <ExternalLinkIcon width={24} height={24} fill="#BF5700" />
+              <Text style={styles.viewOriginalButtonText}>Visit Apt. Website</Text>
+              </View>
+              <ArrowUpRightIcon width={25} height={25} stroke="#8B6F47" />
+            </TouchableOpacity>
+        </View>
+      )}
+
+      {/* Website Button - Only show if website exists 
       {apartment.website && (
         <View style={styles.websiteButtonContainer}>
           <TouchableOpacity onPress={async () => {
@@ -379,7 +410,8 @@ useEffect(() => {
             </LinearGradient>
           </TouchableOpacity>
         </View>
-      )}
+      )}*/}
+
       </ScrollView>
       <TouchableOpacity 
       style={styles.backButtonOverlay}
@@ -719,5 +751,21 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+  },
+  viewOriginalButton: {
+    backgroundColor: '#f3f4f6',
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 5,
+    gap: 8,
+  },
+  viewOriginalButtonText: {
+    color: '#BF5700',
+    fontSize: 15,
+    fontWeight: '500',
   },
 });
