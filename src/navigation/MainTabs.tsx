@@ -18,6 +18,7 @@ const Tab = createBottomTabNavigator();
 
 const TabItem = ({ route, isFocused, onPress, renderIcon }) => {
   const animatedValue = useRef(new Animated.Value(isFocused ? 1 : 0)).current;
+  const scaleValue = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     Animated.spring(animatedValue, {
@@ -25,6 +26,16 @@ const TabItem = ({ route, isFocused, onPress, renderIcon }) => {
       useNativeDriver: true,
       friction: 8,   
       tension: 100,  
+    }).start();
+  }, [isFocused]);
+
+  useEffect(() => {
+    // Scale up when focused, scale down when not focused
+    Animated.spring(scaleValue, {
+      toValue: isFocused ? 1.3 : 1,
+      useNativeDriver: true,
+      friction: 5,
+      tension: 100,
     }).start();
   }, [isFocused]);
 
@@ -41,7 +52,9 @@ const TabItem = ({ route, isFocused, onPress, renderIcon }) => {
         
         {/* ICON AND TEXT */}
         <View style={styles.foregroundContent}>
-          {renderIcon(isFocused ? '#BF5700' : '#000000')}
+          <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
+            {renderIcon(isFocused ? '#BF5700' : '#000000')}
+          </Animated.View>
           <Text style={[
             styles.tabLabel, 
             { color: isFocused ? ACTIVE_TEXT_COLOR : INACTIVE_TEXT_COLOR }
