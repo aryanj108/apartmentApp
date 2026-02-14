@@ -9,7 +9,7 @@ import ProfileScreen from '../screens/ProfileScreen';
 
 import HomeIcon from '../../assets/leaseIcon.svg'; 
 import SearchIcon from '../../assets/compass1.svg'; 
-import ProfileIcon from '../../assets/keys.svg';
+import ProfileIcon from '../../assets/profile.svg';
 
 const ACTIVE_TEXT_COLOR = '#BF5700';   
 const INACTIVE_TEXT_COLOR = '#000000';
@@ -78,7 +78,7 @@ function MyTabBar({ state, descriptors, navigation }) {
           };
 
           const renderIcon = (color) => {
-            const props = { width: 30, height: 30, fill: color, stroke: color, color: color };
+            const props = { width: 30, height: 30, stroke: color, color: color };
             if (route.name === 'Home') return <HomeIcon {...props} />;
             if (route.name === 'Search') return <SearchIcon {...props} />;
             if (route.name === 'Profile') return <ProfileIcon {...props} />;
@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
     width: 300, // Width of the entire bar
     height: 65, // Height of the entire bar
     borderRadius: 40,
-    backgroundColor: Platform.OS === 'ios' ? 'transparent' : 'rgba(255, 255, 255, 0.85)',
+    backgroundColor: Platform.OS === 'ios' ? 'transparent' : 'rgba(255, 255, 255, 0.8)',
     overflow: 'hidden',
     elevation: 10,
     shadowColor: '#000',
@@ -162,8 +162,7 @@ const styles = StyleSheet.create({
   },
   tabLabel: {
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: '800',
     marginTop: 4,
-    color: '#000000'
   },
 });
