@@ -296,7 +296,6 @@ function FilterModal({ visible, onClose, sections, visibleSections, toggleSectio
                   {visibleSections[section.key] && <Text style={styles.checkmark}>✓</Text>}
                 </View>
                 <Text style={styles.filterItemText}>{section.title}</Text>
-                <Text style={styles.filterItemCount}>({section.data.length})</Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -831,15 +830,15 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   applyButton: {
-    backgroundColor: '#000000',
+    backgroundColor: '#f3f4f6',
     marginHorizontal: 20,
     marginVertical: 20,
-    padding: 18,
+    padding: 16,
     borderRadius: 12,
     alignItems: 'center',
   },
   applyButtonText: {
-    color: '#ffffff',
+    color: '#BF5700',
     fontSize: 18,
     fontWeight: '600',
   },
