@@ -378,7 +378,7 @@ useEffect(() => {
           }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               <ExternalLinkIcon width={24} height={24} fill="#BF5700" />
-              <Text style={styles.viewOriginalButtonText}>Visit Apt. Website</Text>
+              <Text style={styles.viewOriginalButtonText}>Visit Apartment Website</Text>
               </View>
               <ArrowUpRightIcon width={25} height={25} stroke="#8B6F47" />
             </TouchableOpacity>

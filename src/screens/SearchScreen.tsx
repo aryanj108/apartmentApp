@@ -597,6 +597,7 @@ export default function Search({ navigation }) {
         </View>
       ) : (
         <FlatList
+        ref={scrollViewRef}
           ref={scrollViewRef}
           data={sortedListings}
           keyExtractor={(item) => item.id.toString()}

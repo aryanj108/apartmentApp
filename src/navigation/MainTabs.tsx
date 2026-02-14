@@ -30,7 +30,6 @@ const TabItem = ({ route, isFocused, onPress, renderIcon }) => {
   }, [isFocused]);
 
   useEffect(() => {
-    // Scale up when focused, scale down when not focused
     Animated.spring(scaleValue, {
       toValue: isFocused ? 1.3 : 1,
       useNativeDriver: true,
@@ -47,10 +46,8 @@ const TabItem = ({ route, isFocused, onPress, renderIcon }) => {
   return (
     <Pressable onPress={onPress} style={styles.tabItem}>
       <View style={styles.contentWrapper}>
-        {/* PILL / CYLINDER BACKGROUND */}
         <Animated.View style={[styles.activePillContainer, animatedBgStyle]} />
         
-        {/* ICON AND TEXT */}
         <View style={styles.foregroundContent}>
           <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
             {renderIcon(isFocused ? '#BF5700' : '#000000')}
@@ -136,8 +133,8 @@ const styles = StyleSheet.create({
   },
   tabBarContainer: {
     flexDirection: 'row',
-    width: 300, // Width of the entire bar
-    height: 65, // Height of the entire bar
+    width: 300, 
+    height: 65, 
     borderRadius: 40,
     backgroundColor: Platform.OS === 'ios' ? 'transparent' : 'rgba(255, 255, 255, 0.8)',
     overflow: 'hidden',

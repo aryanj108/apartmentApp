@@ -282,7 +282,8 @@ function FilterModal({ visible, onClose, sections, visibleSections, toggleSectio
           </View>
 
           {/* NON-DRAGGABLE AREA - ScrollView */}
-          <ScrollView style={styles.filterList}>
+          <ScrollView 
+          style={styles.filterList}>
             {sections.map((section) => (
               <TouchableOpacity
                 key={section.key}
@@ -313,6 +314,17 @@ function FilterModal({ visible, onClose, sections, visibleSections, toggleSectio
 }
 
 export default function Home({ navigation }) {
+  const scrollViewRef = useRef(null);  
+    useEffect(() => {
+    const unsubscribe = navigation.addListener('tabPress', (e) => {
+      if (navigation.isFocused()) {
+        scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+      }
+    });
+
+    return unsubscribe;
+  }, [navigation]);
+
   const { user } = useAuth();
   const handleToggleSave = (id) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -524,7 +536,10 @@ export default function Home({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={true}>
+      <ScrollView 
+      ref={scrollViewRef}
+      style={styles.scrollView} 
+      showsVerticalScrollIndicator={true}>
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
@@ -712,13 +727,13 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   unitNumber: {
-    fontSize: 12,
+    fontSize: 13,
     color: '#BF5700',
     fontWeight: '600',
     marginBottom: 4,
   },
   cardAddress: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#6b7280',
     marginBottom: 12,
   },
