@@ -421,6 +421,17 @@ function SearchModal({ visible, onClose, buildings, onSelectBuilding }) {
 }
 
 export default function Search({ navigation }) {
+  const scrollViewRef = useRef(null);  
+    useEffect(() => {
+    const unsubscribe = navigation.addListener('tabPress', (e) => {
+      if (navigation.isFocused()) {
+        scrollViewRef.current?.scrollToOffset({ offset: 0, animated: true });
+      }
+    });
+
+    return unsubscribe;
+  }, [navigation]);
+
   const insets = useSafeAreaInsets();
   const { preferences, savedIds, toggleSave, loading: prefsLoading } = usePreferences();
   const [sortedListings, setSortedListings] = useState([]);
@@ -586,6 +597,7 @@ export default function Search({ navigation }) {
         </View>
       ) : (
         <FlatList
+          ref={scrollViewRef}
           data={sortedListings}
           keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) => (
