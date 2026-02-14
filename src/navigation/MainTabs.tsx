@@ -78,7 +78,7 @@ function MyTabBar({ state, descriptors, navigation }) {
           };
 
           const renderIcon = (color) => {
-            const props = { width: 30, height: 30, fill: color, stroke: color };
+            const props = { width: 30, height: 30, fill: color, stroke: color, color: color };
             if (route.name === 'Home') return <HomeIcon {...props} />;
             if (route.name === 'Search') return <SearchIcon {...props} />;
             if (route.name === 'Profile') return <ProfileIcon {...props} />;
