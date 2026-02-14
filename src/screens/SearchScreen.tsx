@@ -447,37 +447,6 @@ export default function Search({ navigation }) {
   const headerPaddingTop = Platform.OS === 'ios' ? insets.top + 10 : insets.top || 10;
   const listPaddingTop = Platform.OS === 'ios' ? insets.top + 110 : (insets.top || 10) + 100;
 
-  useLayoutEffect(() => {
-    const parent = navigation.getParent();
-    
-    // Set tab bar visibility based on showMap state
-    parent?.setOptions({
-      tabBarStyle: showMap ? { display: 'none' } : undefined,
-    });
-    
-    // Add listeners for screen focus/blur
-    const unsubscribeFocus = navigation.addListener('focus', () => {
-      parent?.setOptions({
-        tabBarStyle: showMap ? { display: 'none' } : undefined,
-      });
-    });
-    
-    const unsubscribeBlur = navigation.addListener('blur', () => {
-      parent?.setOptions({
-        tabBarStyle: undefined,
-      });
-    });
-    
-    return () => {
-      unsubscribeFocus();
-      unsubscribeBlur();
-      // Restore tab bar when component unmounts
-      parent?.setOptions({
-        tabBarStyle: undefined,
-      });
-    };
-  }, [navigation, showMap]);
-
   useEffect(() => {
     if (prefsLoading) return;
     
@@ -597,7 +566,6 @@ export default function Search({ navigation }) {
         </View>
       ) : (
         <FlatList
-        ref={scrollViewRef}
           ref={scrollViewRef}
           data={sortedListings}
           keyExtractor={(item) => item.id.toString()}
@@ -704,7 +672,7 @@ const styles = StyleSheet.create({
   },
   resetButton: {
     position: 'absolute',
-    bottom: 20,
+    bottom: 110,
     right: 20,
     backgroundColor: '#BF5700',
     paddingVertical: 12,
