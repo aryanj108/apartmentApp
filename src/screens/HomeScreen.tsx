@@ -576,7 +576,7 @@ export default function Home({ navigation }) {
           </React.Fragment>
         ))}
 
-        <View style={{ height: 40 }} />
+        <View style={{ height: 120 }} />
       </ScrollView>
 
       {/* Filter Modal */}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   View, 
   Text, 
@@ -22,6 +22,17 @@ export default function Profile({ navigation }: any) {
   const { preferences } = usePreferences();
   const [refreshing, setRefreshing] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
+  const scrollViewRef = useRef(null);
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('tabPress', (e) => {
+      if (navigation.isFocused()) {
+        scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+      }
+    });
+
+    return unsubscribe;
+  }, [navigation]);
   
   // Location state
   const [isEditingLocation, setIsEditingLocation] = useState(false);
@@ -263,7 +274,10 @@ export default function Profile({ navigation }: any) {
   };
 
   return (
-    <ScrollView style={styles.container} keyboardShouldPersistTaps="handled">
+    <ScrollView 
+      ref={scrollViewRef}
+      style={styles.container} 
+      keyboardShouldPersistTaps="handled">
       <View style={styles.content}>
         {/* Header */}
         <View style={styles.header}>
@@ -450,6 +464,7 @@ const styles = StyleSheet.create({
   content: {
     padding: 20,
     paddingTop: 60,
+    paddingBottom: 120
   },
   header: {
     alignItems: 'center',
