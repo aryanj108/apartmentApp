@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   View, 
   Text, 
@@ -6,15 +6,49 @@ import {
   Pressable,
   Alert,
   ScrollView,
-  ActivityIndicator
+  ActivityIndicator,
+  TextInput,
+  FlatList,
+  Keyboard
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
+import { usePreferences } from '../context/PreferencesContext';
 import { resetUserOnboarding } from '../services/userService';
+import { doc, updateDoc } from 'firebase/firestore';
+import { db } from '../config/firebaseConfig';
+import PersonIcon from '../../assets/personIcon.svg';
 
 export default function Profile({ navigation }: any) {
   const { user, signOut, sendVerificationEmail, reloadUser } = useAuth();
+  const { preferences } = usePreferences();
   const [refreshing, setRefreshing] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
+  
+  // Location state
+  const [isEditingLocation, setIsEditingLocation] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showResults, setShowResults] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState(null);
+
+  // Load saved location on mount
+  useEffect(() => {
+    if (preferences?.location) {
+      setSelectedLocation(preferences.location);
+    }
+  }, [preferences]);
+
+  // Debounced search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchQuery) {
+        searchLocation(searchQuery);
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   const formatMemberSince = () => {
     try {
@@ -48,6 +82,98 @@ export default function Profile({ navigation }: any) {
     } catch (error) {
       console.error('Date formatting error:', error);
       return 'Recently';
+    }
+  };
+
+  const searchLocation = async (query) => {
+    if (!query || query.length < 3) {
+      setSearchResults([]);
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      const LOCATIONIQ_TOKEN = 'pk.e493efe80245c480f2ef5d41058283e2'; 
+      
+      const response = await fetch(
+        `https://us1.locationiq.com/v1/search.php?` +
+        `key=${LOCATIONIQ_TOKEN}&` +
+        `q=${encodeURIComponent(query + ', Austin, TX')}&` +
+        `format=json&` +
+        `limit=5&` +
+        `countrycodes=us&` +
+        `viewbox=-97.9,30.5,-97.5,30.1&` +
+        `bounded=1`
+      );
+      
+      if (!response.ok) {
+        console.error('LocationIQ API error:', response.status);
+        setSearchResults([]);
+        return;
+      }
+
+      const data = await response.json();
+      setSearchResults(data);
+      setShowResults(true);
+    } catch (error) {
+      console.error('Error searching location:', error);
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const selectLocation = async (location) => {
+    const newLocation = {
+      name: location.display_name.split(',')[0],
+      lat: parseFloat(location.lat),
+      lon: parseFloat(location.lon)
+    };
+    
+    setSelectedLocation(newLocation);
+    setSearchQuery('');
+    setShowResults(false);
+    setIsEditingLocation(false);
+    Keyboard.dismiss();
+    
+    // Save to Firebase
+    if (user?.uid) {
+      try {
+        const userDocRef = doc(db, 'users', user.uid);
+        await updateDoc(userDocRef, {
+          'preferences.location': newLocation
+        });
+        Alert.alert('Success', 'Location updated successfully');
+      } catch (error) {
+        console.error('Error saving location:', error);
+        Alert.alert('Error', 'Failed to save location');
+      }
+    }
+  };
+
+  const resetToDefaultLocation = async () => {
+    const defaultLocation = {
+      name: 'University of Texas at Austin',
+      lat: 30.285340698031447,
+      lon: -97.73208396036748
+    };
+    
+    setSelectedLocation(defaultLocation);
+    setSearchQuery('');
+    setIsEditingLocation(false);
+    
+    // Save to Firebase
+    if (user?.uid) {
+      try {
+        const userDocRef = doc(db, 'users', user.uid);
+        await updateDoc(userDocRef, {
+          'preferences.location': defaultLocation
+        });
+        Alert.alert('Success', 'Location reset to UT Austin');
+      } catch (error) {
+        console.error('Error resetting location:', error);
+        Alert.alert('Error', 'Failed to reset location');
+      }
     }
   };
 
@@ -138,7 +264,7 @@ export default function Profile({ navigation }: any) {
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} keyboardShouldPersistTaps="handled">
       <View style={styles.content}>
         {/* Header */}
         <View style={styles.header}>
@@ -214,7 +340,79 @@ export default function Profile({ navigation }: any) {
           </View>
         </View>
 
-        {/* Preferences Section - NEW */}
+        {/* Location Settings Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Location Settings</Text>
+          
+          <View style={styles.infoCard}>
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>Current Location</Text>
+              <Text style={styles.infoValue} numberOfLines={1}>
+                {selectedLocation?.name || 'UT Austin (Default)'}
+              </Text>
+            </View>
+            
+            {isEditingLocation && (
+              <>
+                <View style={[styles.infoRow, styles.borderTop]}>
+                  <TextInput
+                    style={styles.locationSearchInput}
+                    placeholder="Search for a location..."
+                    placeholderTextColor="#9ca3af"
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
+                    autoFocus={true}
+                  />
+                  {isSearching && (
+                    <ActivityIndicator size="small" color="#BF5700" />
+                  )}
+                </View>
+                
+                {showResults && searchResults.length > 0 && (
+                  <View style={styles.searchResultsContainer}>
+                    <FlatList
+                      data={searchResults}
+                      keyExtractor={(item) => item.place_id.toString()}
+                      scrollEnabled={false}
+                      renderItem={({ item }) => (
+                        <Pressable
+                          style={styles.searchResultItem}
+                          onPress={() => selectLocation(item)}
+                        >
+                          <Text style={styles.searchResultText} numberOfLines={2}>
+                            {item.display_name}
+                          </Text>
+                        </Pressable>
+                      )}
+                    />
+                  </View>
+                )}
+              </>
+            )}
+          </View>
+          
+          <View style={styles.locationButtonsContainer}>
+            <Pressable
+              style={styles.locationButton}
+              onPress={() => setIsEditingLocation(!isEditingLocation)}
+            >
+              <Text style={styles.locationButtonText}>
+                {isEditingLocation ? 'Cancel' : 'Update Location'}
+              </Text>
+            </Pressable>
+            
+            {selectedLocation && selectedLocation.name !== 'University of Texas at Austin' && (
+              <Pressable
+                style={[styles.locationButton, styles.resetButton]}
+                onPress={resetToDefaultLocation}
+              >
+                <Text style={styles.locationButtonText}>Reset to UT</Text>
+              </Pressable>
+            )}
+          </View>
+        </View>
+
+        {/* Preferences Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Preferences</Text>
           
@@ -372,6 +570,50 @@ const styles = StyleSheet.create({
   notVerified: {
     color: '#f59e0b',
   },
+  locationSearchInput: {
+    flex: 1,
+    fontSize: 15,
+    color: '#000',
+    padding: 8,
+    backgroundColor: '#f3f4f6',
+    borderRadius: 8,
+  },
+  searchResultsContainer: {
+    marginTop: 8,
+    maxHeight: 150,
+  },
+  searchResultItem: {
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f3f4f6',
+  },
+  searchResultText: {
+    fontSize: 14,
+    color: '#000',
+  },
+  locationButtonsContainer: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 12,
+  },
+  locationButton: {
+    flex: 1,
+    backgroundColor: '#fff',
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#BF5700',
+  },
+  resetButton: {
+    backgroundColor: '#f9fafb',
+    borderColor: '#e5e7eb',
+  },
+  locationButtonText: {
+    color: '#BF5700',
+    fontSize: 14,
+    fontWeight: '600',
+  },
   redoPreferencesButton: {
     backgroundColor: '#fff',
     paddingVertical: 16,
@@ -393,7 +635,7 @@ const styles = StyleSheet.create({
   },
   redoDescription: {
     fontSize: 13,
-    color: '#c',
+    color: '#6b7280',
     textAlign: 'center',
     marginTop: 8,
     paddingHorizontal: 12,
