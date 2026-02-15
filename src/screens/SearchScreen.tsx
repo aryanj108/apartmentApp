@@ -35,6 +35,7 @@ import SearchIcon from '../../assets/searchIcon.svg';
 import ResetIcon from '../../assets/resetIcon.svg';
 import CancelIcon from '../../assets/cancel-svg.svg';
 import ApartmentIcon from '../../assets/arrowUp.svg';
+import UTIcon from '../../assets/campusIcon.svg';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -560,6 +561,19 @@ export default function Search({ navigation }) {
             showsUserLocation={false}
             showsMyLocationButton={false}
           >
+            
+            {/* UT Campus Marker */}
+            <Marker
+              coordinate={{
+                latitude: 30.285340698031447,
+                longitude: -97.73208396036748,
+              }}
+            >
+              <View style={styles.utMarkerContainer}>
+                <UTIcon width={30} height={30} fill="#BF5700" />
+              </View>
+            </Marker>
+
             {buildingsData.map((building) => (
               <CustomMarker
                 key={building.id}
@@ -915,4 +929,8 @@ const styles = StyleSheet.create({
     zIndex: 101,
     top: 5,
   },
+  utMarkerContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+},
 });

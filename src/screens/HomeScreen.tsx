@@ -23,6 +23,7 @@ import { listingsData } from '../data/listings';
 import { usePreferences } from '../context/PreferencesContext';
 import { calculateMatchScore, getMatchColor } from '../data/matchingAlgorithm';
 import { useAuth } from '../context/AuthContext';
+
 import FilterIcon from '../../assets/stars.svg';
 import BedIcon from '../../assets/bedIcon.svg';
 import BathIcon from '../../assets/bathIcon.svg';
@@ -647,7 +648,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   section: {
-    marginBottom: 20,
+    marginBottom: 20
   },
   sectionTitle: {
     fontSize: 20,

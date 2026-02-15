@@ -177,7 +177,7 @@ export default function LoginScreen({ navigation }: any) {
       setError(null);
       setLocalLoading(true);
 
-      await new Promise(resolve => setTimeout(resolve, 8000));
+      await new Promise(resolve => setTimeout(resolve, 2000));
       
       // Validation
       if (!email.trim()) {
