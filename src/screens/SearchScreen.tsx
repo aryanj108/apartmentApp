@@ -20,11 +20,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MapView, { Marker } from 'react-native-maps';
 import { LinearGradient } from 'expo-linear-gradient';
 import { calculateDistance } from '../navigation/locationUtils';
-
 import { buildingsData } from '../data/buildings';
 import { listingsData } from '../data/listings';
 import { usePreferences } from '../context/PreferencesContext';
 import { calculateMatchScore } from '../data/matchingAlgorithm';
+
 import BedIcon from '../../assets/bedIcon.svg';
 import BathIcon from '../../assets/bathIcon.svg';
 import DistanceIcon from '../../assets/distanceIcon(2).svg';
@@ -36,6 +36,8 @@ import ResetIcon from '../../assets/resetIcon.svg';
 import CancelIcon from '../../assets/cancel-svg.svg';
 import ApartmentIcon from '../../assets/arrowUp.svg';
 import UTIcon from '../../assets/campusIcon.svg';
+import PersonIcon from '../../assets/personIcon.svg';
+
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -574,6 +576,20 @@ export default function Search({ navigation }) {
               </View>
             </Marker>
 
+              {/* User Location Marker */}
+              {preferences?.location && (
+                <Marker
+                  coordinate={{
+                    latitude: preferences.location.lat,
+                    longitude: preferences.location.lon,
+                  }}
+                >
+                  <View style={styles.personMarkerContainer}>
+                    <PersonIcon width={50} height={30} fill="#000000" />
+                  </View>
+                </Marker>
+              )}
+
             {buildingsData.map((building) => (
               <CustomMarker
                 key={building.id}
@@ -932,5 +948,8 @@ const styles = StyleSheet.create({
   utMarkerContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-},
+  },
+  personMarkerContainer: {
+    alignItems: 'center',
+  },
 });
