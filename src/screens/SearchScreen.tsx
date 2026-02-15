@@ -519,7 +519,7 @@ export default function Search({ navigation }) {
               style={styles.resetButtonTopLeft} 
               onPress={handleResetMap}
             >
-              <ResetIcon width={20} height={20} fill="#000000" />
+              <ResetIcon width={26} height={20} fill="#000000" />
             </TouchableOpacity>
           )}
 

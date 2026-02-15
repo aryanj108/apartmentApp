@@ -563,7 +563,7 @@ export default function Home({ navigation }) {
             style={styles.filterButton}
             onPress={handleOpenFilterModal}
           >
-            <FilterIcon width={35} height={35} />
+            <FilterIcon width={30} height={30} />
           </TouchableOpacity>
         </View>
       </View>
@@ -645,13 +645,12 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 10,
   },
   section: {
-    marginBottom: 30,
+    marginBottom: 20,
   },
   sectionTitle: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#000000',
     fontFamily: 'Test',
@@ -660,7 +659,7 @@ const styles = StyleSheet.create({
   carouselContainer: {
     paddingLeft: 20,
     paddingRight: 20,
-    paddingVertical: 16,
+    paddingVertical: 2,
   },
   card: {
     width: CARD_WIDTH,
@@ -872,5 +871,5 @@ const styles = StyleSheet.create({
   },
   dragArea: {
     paddingBottom: 10,
-},
+  },
 });
