@@ -19,6 +19,7 @@ const Tab = createBottomTabNavigator();
 const TabItem = ({ route, isFocused, onPress, renderIcon }) => {
   const animatedValue = useRef(new Animated.Value(isFocused ? 1 : 0)).current;
   const scaleValue = useRef(new Animated.Value(1)).current;
+  const tapScale = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     Animated.spring(animatedValue, {
@@ -38,18 +39,38 @@ const TabItem = ({ route, isFocused, onPress, renderIcon }) => {
     }).start();
   }, [isFocused]);
 
+  const handlePress = () => {
+      Animated.sequence([
+        Animated.timing(tapScale, {
+          toValue: 1.2,
+          duration: 400,
+          useNativeDriver: true,
+        }),
+        Animated.spring(tapScale, {
+          toValue: 1,
+          friction: 3,
+          tension: 100,
+          useNativeDriver: true,
+        })
+      ]).start();
+      
+      onPress(); 
+  };
+
   const animatedBgStyle = {
     transform: [{ scale: animatedValue }],
     opacity: animatedValue,
   };
 
+  const combinedScale = Animated.multiply(scaleValue, tapScale);
+
   return (
-    <Pressable onPress={onPress} style={styles.tabItem}>
+    <Pressable onPress={handlePress} style={styles.tabItem}>
       <View style={styles.contentWrapper}>
         <Animated.View style={[styles.activePillContainer, animatedBgStyle]} />
         
         <View style={styles.foregroundContent}>
-          <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
+          <Animated.View style={{ transform: [{ scale: combinedScale }] }}>
             {renderIcon(isFocused ? '#BF5700' : '#000000')}
           </Animated.View>
           <Text style={[

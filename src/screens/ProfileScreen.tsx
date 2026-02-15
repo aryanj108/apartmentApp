@@ -16,7 +16,6 @@ import { usePreferences } from '../context/PreferencesContext';
 import { resetUserOnboarding } from '../services/userService';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../config/firebaseConfig';
-import PersonIcon from '../../assets/personIcon.svg';
 
 export default function Profile({ navigation }: any) {
   const { user, signOut, sendVerificationEmail, reloadUser } = useAuth();
@@ -546,7 +545,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: 10,
   },
   borderTop: {
     borderTopWidth: 1,
@@ -598,15 +597,16 @@ const styles = StyleSheet.create({
   },
   locationButton: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#f9fafb',
     paddingVertical: 12,
     borderRadius: 8,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#BF5700',
+    borderColor: '#e5e7eb',
   },
   resetButton: {
     backgroundColor: '#f9fafb',
+    borderWidth: 1,
     borderColor: '#e5e7eb',
   },
   locationButtonText: {

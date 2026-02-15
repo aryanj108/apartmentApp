@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useAuth } from './AuthContext';
 import { getUserProfile, updateUserProfile } from '../services/userService';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { db } from '../config/firebaseConfig';
 
 export type Preferences = {
   minPrice: number;
@@ -55,60 +57,65 @@ export const PreferencesProvider = ({ children }: PreferencesProviderProps) => {
 
   // Load preferences from Firestore when user signs in
   useEffect(() => {
-    const loadUserData = async () => {
-      if (user?.uid) {
-        try {
-          setLoading(true);
-          const userProfile = await getUserProfile(user.uid);
-          
-          if (userProfile && userProfile.preferences) {
-            // Use ?? (nullish coalescing) to properly handle 0 values
-            setPreferences({
-              minPrice: userProfile.preferences.minPrice ?? 0,
-              maxPrice: userProfile.preferences.maxPrice ?? 5000,
-              beds: userProfile.preferences.bedrooms ?? 1,
-              bathrooms: userProfile.preferences.bathrooms ?? 1,
-              distance: userProfile.preferences.maxDistance ?? 0.5,
-              parking: userProfile.preferences.parking ?? false,
-              wifi: userProfile.preferences.wifi ?? false,
-              gym: userProfile.preferences.gym ?? false,
-              pool: userProfile.preferences.pool ?? false,
-              petFriendly: userProfile.preferences.petFriendly ?? false,
-              furnished: userProfile.preferences.furnished ?? false,
-              location: userProfile.preferences.location ?? null,
-            });
-          }
+    if (!user?.uid) {
+      // Reset to defaults when logged out
+      setPreferences({
+        minPrice: 0,
+        maxPrice: 5000,
+        beds: 1,
+        bathrooms: 1,
+        distance: 0.5,
+        parking: false,
+        wifi: false,
+        gym: false,
+        pool: false,
+        petFriendly: false,
+        furnished: false,
+        location: undefined, 
+      });
+      setSavedIds([]);
+      setLoading(false);
+      return;
+    }
 
-          // Load saved apartments
-          if (userProfile?.savedApartments) {
-            setSavedIds(userProfile.savedApartments.map(id => parseInt(id)));
-          }
-        } catch (error) {
-          console.error('Error loading user data:', error);
-        } finally {
-          setLoading(false);
-        }
-      } else {
+    setLoading(true);
+
+    // Set up real-time listener
+    const userDocRef = doc(db, 'users', user.uid);
+    const unsubscribe = onSnapshot(userDocRef, (docSnapshot) => {
+      if (docSnapshot.exists()) {
+        const userProfile = docSnapshot.data();
+        
+        if (userProfile && userProfile.preferences) {
           setPreferences({
-          minPrice: 0,
-          maxPrice: 5000,
-          beds: 1,
-          bathrooms: 1,
-          distance: 0.5,
-          parking: false,
-          wifi: false,
-          gym: false,
-          pool: false,
-          petFriendly: false,
-          furnished: false,
-          location: undefined, 
-        });
-        setSavedIds([]);
-        setLoading(false);
-      }
-    };
+            minPrice: userProfile.preferences.minPrice ?? 0,
+            maxPrice: userProfile.preferences.maxPrice ?? 5000,
+            beds: userProfile.preferences.bedrooms ?? 1,
+            bathrooms: userProfile.preferences.bathrooms ?? 1,
+            distance: userProfile.preferences.maxDistance ?? 0.5,
+            parking: userProfile.preferences.parking ?? false,
+            wifi: userProfile.preferences.wifi ?? false,
+            gym: userProfile.preferences.gym ?? false,
+            pool: userProfile.preferences.pool ?? false,
+            petFriendly: userProfile.preferences.petFriendly ?? false,
+            furnished: userProfile.preferences.furnished ?? false,
+            location: userProfile.preferences.location ?? null,
+          });
+        }
 
-    loadUserData();
+        // Load saved apartments
+        if (userProfile?.savedApartments) {
+          setSavedIds(userProfile.savedApartments.map(id => parseInt(id)));
+        }
+      }
+      setLoading(false);
+    }, (error) => {
+      console.error('Error in preferences listener:', error);
+      setLoading(false);
+    });
+
+    // Cleanup listener when component unmounts or user changes
+    return () => unsubscribe();
   }, [user?.uid]);
 
   // Just update local state - NO auto-save to Firestore
