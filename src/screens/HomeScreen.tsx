@@ -82,7 +82,7 @@ function ApartmentCard({ listing, matchScore, onPress, isSaved, onSavePress }) {
           {/* Floating Save Button */}
           {isSaved && (
             <View style={styles.saveBadge}>
-              <Heart width={28} height={28} fill="#BF5700" />
+              <Heart width={24} height={24} fill="#BF5700" />
             </View>
           )}
           {matchScore && (
@@ -93,7 +93,7 @@ function ApartmentCard({ listing, matchScore, onPress, isSaved, onSavePress }) {
               style={styles.matchBadge}
             >
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Stars width={15} height={15} fill={'#ffffff'} />
+                <Stars width={13} height={13} fill={'#ffffff'} />
                 <Text style={styles.matchText}> {matchScore}%</Text>
               </View>
             </LinearGradient>
@@ -704,16 +704,17 @@ const styles = StyleSheet.create({
   },
   matchBadge: {
     position: 'absolute',
-    top: 12,
+    top: 8,
     right: 12,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
     borderRadius: 20,
   },
   matchText: {
     color: '#ffffff',
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: 'bold',
+    letterSpacing: 0.8,
   },
   cardContent: {
     padding: 16,
@@ -858,7 +859,7 @@ const styles = StyleSheet.create({
   },
   saveBadge: {
     position: 'absolute',
-    top: 15,
+    top: 12,
     left: 10,
     flexDirection: 'row',
     alignItems: 'center',
