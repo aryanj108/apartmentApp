@@ -33,6 +33,8 @@ import SaveFilledIconHeart from '../../assets/heart.svg';
 import PinIcon from '../../assets/pinIcon2.svg';
 import SearchIcon from '../../assets/searchIcon.svg'; 
 import ResetIcon from '../../assets/resetIcon.svg';
+import CancelIcon from '../../assets/cancel-svg.svg';
+import ApartmentIcon from '../../assets/arrowUp.svg';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -374,7 +376,6 @@ function SearchModal({ visible, onClose, buildings, onSelectBuilding }) {
           </View>
 
           <View style={styles.searchInputContainer}>
-            <SearchIcon width={25} height={25}/>
             <TextInput
               style={styles.searchInput}
               placeholder="Search by name or address..."
@@ -385,7 +386,8 @@ function SearchModal({ visible, onClose, buildings, onSelectBuilding }) {
             />
             {searchQuery.length > 0 && (
               <TouchableOpacity onPress={() => setSearchQuery('')}>
-                <Text style={styles.clearButton}>✕</Text>
+                <CancelIcon width={22} height={22} fill="#6b7280" />
+                {/*<Text style={styles.clearButton}>✕</Text>*/}
               </TouchableOpacity>
             )}
           </View>
@@ -402,7 +404,8 @@ function SearchModal({ visible, onClose, buildings, onSelectBuilding }) {
                   <Text style={styles.searchResultName}>{item.name}</Text>
                   <Text style={styles.searchResultAddress}>{item.address}</Text>
                 </View>
-                <Text style={styles.searchResultArrow}>→</Text>
+                <ApartmentIcon width={24} height={24} fill="#BF5700" />
+                {/*<Text style={styles.searchResultArrow}>→</Text>*/}
               </TouchableOpacity>
             )}
             ListEmptyComponent={
@@ -857,7 +860,6 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     color: '#000000',
-    marginLeft: 12,
   },
   clearButton: {
     fontSize: 18,

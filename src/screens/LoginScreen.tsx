@@ -305,7 +305,7 @@ export default function LoginScreen({ navigation }: any) {
             )}
           </View>
 
-          {/* TEST BUTTON - ADD THIS 
+          {/* TEST BUTTON 
           <Pressable
             style={styles.loginButton}
             onPress={testLoading}
