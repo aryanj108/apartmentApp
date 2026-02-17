@@ -427,22 +427,6 @@ function SearchModal({ visible, onClose, buildings, onSelectBuilding }) {
 }
 
 export default function Search({ navigation }) {
-  const scrollViewRef = useRef(null);  
-  // Reset map when tab is pressed while already on Search screen in map view
-  useEffect(() => {
-    const unsubscribe = navigation.addListener('tabPress', (e) => {
-      if (navigation.isFocused() && showMap) {
-        // If we're already on the Search screen and in map view, reset the map
-        handleResetMap();
-      } else if (navigation.isFocused() && !showMap) {
-        // If we're in list view, scroll to top
-        scrollViewRef.current?.scrollToOffset({ offset: 0, animated: true });
-      }
-    });
-
-    return unsubscribe;
-  }, [navigation, showMap]);
-
   const insets = useSafeAreaInsets();
   const { preferences, savedIds, toggleSave, loading: prefsLoading } = usePreferences();
   const [sortedListings, setSortedListings] = useState([]);
@@ -481,6 +465,28 @@ export default function Search({ navigation }) {
     setLoading(false);
   }, [preferences, prefsLoading, preferences.location]);
 
+
+  const handleResetMap = () => {
+    if (mapRef.current) {
+      mapRef.current.animateToRegion(initialMapRegion, 750);
+    }
+  };
+    const scrollViewRef = useRef(null);  
+  // Reset map when tab is pressed while already on Search screen in map view
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('tabPress', (e) => {
+      if (navigation.isFocused() && showMap) {
+        // If we're already on the Search screen and in map view, reset the map
+        handleResetMap();
+      } else if (navigation.isFocused() && !showMap) {
+        // If we're in list view, scroll to top
+        scrollViewRef.current?.scrollToOffset({ offset: 0, animated: true });
+      }
+    });
+
+    return unsubscribe;
+  }, [navigation, showMap]);
+
   const handleCardPress = (listing) => {
     navigation.navigate('RoomListingDetailsScreen_SearchVersion', {
       listing: listing,
@@ -498,12 +504,6 @@ export default function Search({ navigation }) {
     navigation.navigate('ApartmentListingDetails', {
       listing: building,
     });
-  };
-
-  const handleResetMap = () => {
-    if (mapRef.current) {
-      mapRef.current.animateToRegion(initialMapRegion, 750);
-    }
   };
 
   if (loading || prefsLoading) {
