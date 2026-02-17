@@ -30,6 +30,8 @@ import BathIcon from '../../assets/bathIcon.svg';
 import Stars from '../../assets/stars.svg';
 import Heart from '../../assets/heart.svg';
 import Logo from '../../assets/longhornLivingIcon1.png';
+import ExternalLinkIcon from '../../assets/apartment.svg'; 
+import ArrowUpRightIcon from '../../assets/arrowUp.svg';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH * 0.7;
@@ -576,7 +578,20 @@ export default function Home({ navigation }) {
           </React.Fragment>
         ))}
 
-        <View style={{ height: 120 }} />
+      {/* Browse All Listings Button */}
+      <View style={styles.browseAllContainer}>
+        <TouchableOpacity 
+          style={styles.browseAllButton}
+          onPress={() => navigation.navigate('Search')}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <ExternalLinkIcon width={24} height={24} fill="#BF5700" />
+            <Text style={styles.browseAllButtonText}>Browse All Listings</Text>
+          </View>
+          <ArrowUpRightIcon width={25} height={25} stroke="#8B6F47" />
+        </TouchableOpacity>
+      </View>
+      <View style={{ height: 120 }} />  
       </ScrollView>
 
       {/* Filter Modal */}
@@ -874,4 +889,24 @@ const styles = StyleSheet.create({
   dragArea: {
     paddingBottom: 10,
   },
+  browseAllContainer: {
+  paddingHorizontal: 20,
+  paddingVertical: 10,
+  marginTop: 10,
+},
+browseAllButton: {
+  backgroundColor: '#f3f4f6',
+  paddingVertical: 14,
+  paddingHorizontal: 20,
+  borderRadius: 12,
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: 8,
+},
+browseAllButtonText: {
+  color: '#BF5700',
+  fontSize: 15,
+  fontWeight: '500',
+},
 });
