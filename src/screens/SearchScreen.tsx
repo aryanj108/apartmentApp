@@ -428,15 +428,20 @@ function SearchModal({ visible, onClose, buildings, onSelectBuilding }) {
 
 export default function Search({ navigation }) {
   const scrollViewRef = useRef(null);  
-    useEffect(() => {
+  // Reset map when tab is pressed while already on Search screen in map view
+  useEffect(() => {
     const unsubscribe = navigation.addListener('tabPress', (e) => {
-      if (navigation.isFocused()) {
+      if (navigation.isFocused() && showMap) {
+        // If we're already on the Search screen and in map view, reset the map
+        handleResetMap();
+      } else if (navigation.isFocused() && !showMap) {
+        // If we're in list view, scroll to top
         scrollViewRef.current?.scrollToOffset({ offset: 0, animated: true });
       }
     });
 
     return unsubscribe;
-  }, [navigation]);
+  }, [navigation, showMap]);
 
   const insets = useSafeAreaInsets();
   const { preferences, savedIds, toggleSave, loading: prefsLoading } = usePreferences();

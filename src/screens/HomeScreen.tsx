@@ -586,7 +586,7 @@ export default function Home({ navigation }) {
         >
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <ExternalLinkIcon width={24} height={24} fill="#BF5700" />
-            <Text style={styles.browseAllButtonText}>Browse All Listings</Text>
+            <Text style={styles.browseAllButtonText}>Search for Apartments</Text>
           </View>
           <ArrowUpRightIcon width={25} height={25} stroke="#8B6F47" />
         </TouchableOpacity>
