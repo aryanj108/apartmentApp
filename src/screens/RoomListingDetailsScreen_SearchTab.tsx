@@ -170,30 +170,41 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
         <View style={styles.imageGalleryContainer}>
           <ImageCarousel images={roomData.images} />
           
-        <TouchableOpacity
-          onPress={() => {
-            const wasSaved = isSaved;
-            Alert.alert(
-              wasSaved ? 'Listing Unsaved' : 'Listing Saved',
-              wasSaved
-                ? 'This listing has been removed from your saved listings.'
-                : 'This listing has been added to your saved listings.'
-            );
-            toggleSave(roomData.id);
-          }}
-          style={styles.saveButtonContainer}
-          activeOpacity={0.8}
-          delayPressIn={0}
-        >
-          <BlurView intensity={80} style={styles.circularButton} tint="light">
-            {isSaved ? (
-              <SaveFilledIconHeart width={22} height={22} fill="#BF5700"/>
-            ) : (
-              <SaveOutlineIconHeart width={22} height={22} stroke="#000000" />
-            )}
+        <View style={styles.saveButtonContainer}>
+          <BlurView intensity={80} style={styles.doneButtonBlur} tint="light">
+            <TouchableOpacity
+              onPress={() => navigation.goBack()}
+              activeOpacity={0.8}
+              delayPressIn={0}
+              style={styles.doneTextTouchable}
+            >
+              <Text style={styles.doneText}>Done</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              onPress={() => {
+                const wasSaved = isSaved;
+                Alert.alert(
+                  wasSaved ? 'Listing Unsaved' : 'Listing Saved',
+                  wasSaved
+                    ? 'This listing has been removed from your saved listings.'
+                    : 'This listing has been added to your saved listings.'
+                );
+                toggleSave(roomData.id);
+              }}
+              activeOpacity={0.8}
+              delayPressIn={0}
+              style={styles.heartTouchable}
+            >
+              {isSaved ? (
+                <SaveFilledIconHeart width={22} height={22} fill="#BF5700"/>
+              ) : (
+                <SaveOutlineIconHeart width={22} height={22} stroke="#000000" />
+              )}
+            </TouchableOpacity>
           </BlurView>
-        </TouchableOpacity>
         </View>
+      </View>
 
 
         {/* Basic Info */}
@@ -819,5 +830,31 @@ const styles = StyleSheet.create({
     marginHorizontal: 0, 
     marginBottom: 20,
     marginTop: 0 
+  },
+  doneButtonBlur: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 22,
+    overflow: 'hidden',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    gap: 8,
+  },
+  doneText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000000',
+  },
+  doneTextTouchable: {
+    paddingVertical: 4,
+  },
+  heartTouchable: {
+    paddingVertical: 4,
   },
 });

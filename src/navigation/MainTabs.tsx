@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   foregroundContent: {
-    zIndex: 2, // Keeps icon and text above the orange background
+    zIndex: 2, 
     alignItems: 'center',
     justifyContent: 'center',
   },
