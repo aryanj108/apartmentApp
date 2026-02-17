@@ -392,7 +392,7 @@ export default function SwipeScreen({ navigation, route }: any) {
                           });
                         }}
                       >
-                        <Text style={styles.buttonText}>Apartment Details</Text>
+                        <Text style={styles.buttonText}>Apt. Details</Text>
                       </TouchableOpacity>
 
                       <TouchableOpacity

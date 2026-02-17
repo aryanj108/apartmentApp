@@ -7,7 +7,8 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
-  Linking
+  Linking,
+  Platform
 } from 'react-native';
 import { useState, useEffect } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -34,6 +35,7 @@ import SaveOutlineIcon from '../../assets/saveIcon.svg';
 import SaveFilledIcon from '../../assets/filledInSaveIcon.svg';
 import SaveOutlineIconHeart from '../../assets/heartOutline.svg';
 import SaveFilledIconHeart from '../../assets/heart.svg';
+import { calculateDistance } from '../navigation/locationUtils';
 
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -179,6 +181,58 @@ useEffect(() => {
     },
     website: ''
   };
+
+  // Calculate distance
+  let calculatedDistance = apartment.distance || 0;
+  if (preferences.location && apartment.latitude && apartment.longitude) {
+    calculatedDistance = calculateDistance(
+      preferences.location.lat,
+      preferences.location.lon,
+      apartment.latitude,
+      apartment.longitude
+    );
+    // Round to 1 decimal place
+    calculatedDistance = Math.round(calculatedDistance * 10) / 10;
+  }
+
+  // Helper function to open maps with directions
+  const openMaps = (destinationAddress) => {
+    // Use custom location if set in preferences, otherwise default to UT Austin
+    const destinationLatitude = preferences.location?.lat || 30.285340698031447;
+    const destinationLongitude = preferences.location?.lon || -97.73208396036748;
+    
+    // Encode the apartment address for URL (this is now the ORIGIN)
+    const encodedAddress = encodeURIComponent(destinationAddress);
+    
+    let url = '';
+    
+    if (Platform.OS === 'ios') {
+      // Apple Maps URL scheme - swapped saddr and daddr
+      url = `maps://app?saddr=${encodedAddress}&daddr=${destinationLatitude},${destinationLongitude}`;
+      
+      // Fallback to Google Maps on iOS if Apple Maps fails
+      const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodedAddress}&destination=${destinationLatitude},${destinationLongitude}`;
+      
+      Linking.canOpenURL(url).then(supported => {
+        if (supported) {
+          Linking.openURL(url);
+        } else {
+          Linking.openURL(googleMapsUrl);
+        }
+      }).catch(() => {
+        Linking.openURL(googleMapsUrl);
+      });
+    } else {
+      // Google Maps for Android - swapped origin and destination
+      url = `https://www.google.com/maps/dir/?api=1&origin=${encodedAddress}&destination=${destinationLatitude},${destinationLongitude}`;
+      
+      Linking.openURL(url).catch(err => {
+        Alert.alert('Error', 'Unable to open maps. Please make sure you have a maps app installed.');
+        console.error('Error opening maps:', err);
+      });
+    }
+  };
+
   const isSaved = savedIds.includes(apartment.id);
 
   return (
@@ -188,6 +242,20 @@ useEffect(() => {
         {/* Image Gallery Section */}
         <View style={styles.imageGalleryContainer}>
           <ImageCarousel images={apartment.images || []} />
+          
+          {/* Distance Button - Top Right */}
+          <View style={styles.distanceButtonContainer}>
+            <TouchableOpacity
+              onPress={() => openMaps(apartment.address)}
+              activeOpacity={0.8}
+              delayPressIn={0}
+            >
+              <BlurView intensity={80} style={styles.distanceButtonBlur} tint="light">
+                <DistanceIcon width={20} height={20} />
+                <Text style={styles.distanceText}>{calculatedDistance} mi</Text>
+              </BlurView>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Basic Info */}
@@ -385,33 +453,6 @@ useEffect(() => {
         </View>
       )}
 
-      {/* Website Button - Only show if website exists 
-      {apartment.website && (
-        <View style={styles.websiteButtonContainer}>
-          <TouchableOpacity onPress={async () => {
-            try {
-              const supported = await Linking.canOpenURL(apartment.website);
-              if (supported) {
-                await Linking.openURL(apartment.website);
-              } else {
-                Alert.alert('Error', 'Cannot open this URL');
-              }
-            } catch (error) {
-              Alert.alert('Error', 'Failed to open website');
-            }
-          }}>
-            <LinearGradient
-              colors={['#FF8C42', '#BF5700', '#994400']} 
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.contactButton}
-            >
-              <Text style={styles.contactButtonText}>Visit Website</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-        </View>
-      )}*/}
-
       </ScrollView>
       <TouchableOpacity 
       style={styles.backButtonOverlay}
@@ -463,6 +504,32 @@ const styles = StyleSheet.create({
     top: 40,
     left: 20,
     zIndex: 10,
+  },
+  distanceButtonContainer: {
+    position: 'absolute',
+    top: 40,
+    right: 20,
+    zIndex: 100,
+  },
+  distanceButtonBlur: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 22,
+    overflow: 'hidden',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    gap: 8,
+  },
+  distanceText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#000000',
   },
   saveBadge: {
     backgroundColor: '#f3f4f6',
