@@ -653,11 +653,11 @@ const styles = StyleSheet.create({
   },
   redoPreferencesText: {
     color: '#000000',
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '500',
   },
   redoDescription: {
-    fontSize: 13,
+    fontSize: 12,
     color: '#6b7280',
     textAlign: 'center',
     marginTop: 8,
@@ -672,7 +672,7 @@ const styles = StyleSheet.create({
   },
   signOutText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
   },
   appVersion: {
