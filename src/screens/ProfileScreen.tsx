@@ -555,7 +555,7 @@ const styles = StyleSheet.create({
   infoCard: {
     backgroundColor: '#f9fafb',
     borderRadius: 12,
-    padding: 16,
+    padding: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
@@ -566,24 +566,24 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 10,
+    paddingVertical: 8,
   },
   borderTop: {
-    borderTopWidth: 1,
+    borderTopWidth: 0,
     borderTopColor: '#f3f4f6',
   },
   infoLabel: {
-    fontSize: 15,
-    color: '#374151',
+    fontSize: 14,
+    color: '#000000',
     fontWeight: '500',
   },
   infoValue: {
-    fontSize: 15,
+    fontSize: 14,
     color: '#000',
-    fontWeight: '600',
+    fontWeight: '500',
     flex: 1,
     textAlign: 'right',
-    paddingLeft: 24,
+    paddingLeft: 54,
 
   },
   verified: {
@@ -594,7 +594,7 @@ const styles = StyleSheet.create({
   },
   locationSearchInput: {
     flex: 1,
-    fontSize: 15,
+    fontSize: 12,
     color: '#000',
     padding: 8,
     backgroundColor: '#f3f4f6',
@@ -634,13 +634,13 @@ const styles = StyleSheet.create({
   },
   locationButtonText: {
     color: '#BF5700',
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '600',
   },
   redoPreferencesButton: {
     backgroundColor: '#f9fafb',
     paddingVertical: 16,
-    paddingHorizontal: 16, 
+    paddingHorizontal: 10, 
     borderRadius: 12,
     alignItems: 'flex-start',
     borderWidth: 0,
@@ -652,8 +652,8 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   redoPreferencesText: {
-    color: '#BF5700',
-    fontSize: 16,
+    color: '#000000',
+    fontSize: 14,
     fontWeight: '500',
   },
   redoDescription: {
