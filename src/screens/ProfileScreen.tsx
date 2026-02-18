@@ -335,12 +335,12 @@ export default function Profile({ navigation }: any) {
               <Text style={styles.infoLabel}>Email</Text>
               <Text style={styles.infoValue}>{user?.email}</Text>
             </View>
-            <View style={[styles.infoRow, styles.borderTop]}>
+            {/*<View style={[styles.infoRow, styles.borderTop]}>
               <Text style={styles.infoLabel}>User ID</Text>
               <Text style={styles.infoValue} numberOfLines={1}>
                 {user?.uid?.substring(0, 16)}...
               </Text>
-            </View>
+            </View>*/}
             <View style={[styles.infoRow, styles.borderTop]}>
               <Text style={styles.infoLabel}>Email Verified</Text>
               <Text style={[
@@ -574,7 +574,7 @@ const styles = StyleSheet.create({
   },
   infoLabel: {
     fontSize: 15,
-    color: '#BF5700',
+    color: '#374151',
     fontWeight: '500',
   },
   infoValue: {
