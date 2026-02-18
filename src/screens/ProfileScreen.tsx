@@ -573,12 +573,12 @@ const styles = StyleSheet.create({
     borderTopColor: '#f3f4f6',
   },
   infoLabel: {
-    fontSize: 14,
+    fontSize: 15,
     color: '#000000',
     fontWeight: '500',
   },
   infoValue: {
-    fontSize: 14,
+    fontSize: 15,
     color: '#000',
     fontWeight: '500',
     flex: 1,
@@ -605,7 +605,7 @@ const styles = StyleSheet.create({
     maxHeight: 150,
   },
   searchResultItem: {
-    padding: 12,
+    padding: 13,
     borderBottomWidth: 1,
     borderBottomColor: '#f3f4f6',
   },
@@ -634,7 +634,7 @@ const styles = StyleSheet.create({
   },
   locationButtonText: {
     color: '#BF5700',
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '600',
   },
   redoPreferencesButton: {
