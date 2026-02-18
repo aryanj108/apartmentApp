@@ -358,12 +358,15 @@ export default function Profile({ navigation }: any) {
           <Text style={styles.sectionTitle}>Location Settings</Text>
           
           <View style={styles.infoCard}>
-            <View style={styles.infoRow}>
+            <Pressable 
+              style={styles.infoRow}
+              onPress={() => Alert.alert('Current Location', selectedLocation?.name || 'University of Texas at Austin')}
+            >
               <Text style={styles.infoLabel}>Current Location</Text>
               <Text style={styles.infoValue} numberOfLines={1}>
                 {selectedLocation?.name || 'UT Austin (Default)'}
               </Text>
-            </View>
+            </Pressable>
             
             {isEditingLocation && (
               <>
