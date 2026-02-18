@@ -426,6 +426,9 @@ export default function Profile({ navigation }: any) {
               </Pressable>
             )}
           </View>
+          <Text style={styles.redoDescription}>
+            View and update your current search location for nearby housing recommendations
+          </Text>
         </View>
 
         {/* Preferences Section */}
@@ -462,7 +465,7 @@ export default function Profile({ navigation }: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
+    backgroundColor: '#ffffff',
   },
   content: {
     padding: 20,
@@ -550,7 +553,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   infoCard: {
-    backgroundColor: '#fff',
+    backgroundColor: '#f9fafb',
     borderRadius: 12,
     padding: 16,
     shadowColor: '#000',
@@ -571,7 +574,7 @@ const styles = StyleSheet.create({
   },
   infoLabel: {
     fontSize: 15,
-    color: '#6b7280',
+    color: '#BF5700',
     fontWeight: '500',
   },
   infoValue: {
@@ -635,12 +638,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   redoPreferencesButton: {
-    backgroundColor: '#fff',
+    backgroundColor: '#f9fafb',
     paddingVertical: 16,
     paddingHorizontal: 16, 
     borderRadius: 12,
     alignItems: 'flex-start',
-    borderWidth: 2,
+    borderWidth: 0,
     borderColor: '#ffffff',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
@@ -649,7 +652,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   redoPreferencesText: {
-    color: '#6b7280',
+    color: '#BF5700',
     fontSize: 16,
     fontWeight: '500',
   },
