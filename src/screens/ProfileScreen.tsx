@@ -577,6 +577,8 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     flex: 1,
     textAlign: 'right',
+    paddingLeft: 24,
+
   },
   verified: {
     color: '#10b981',
