@@ -35,7 +35,7 @@ import ArrowUpRightIcon from '../../assets/arrowUp.svg';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH * 0.7;
-const CARD_MARGIN = 12;
+const CARD_MARGIN = 20;
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -106,11 +106,10 @@ function ApartmentCard({ listing, matchScore, onPress, isSaved, onSavePress }) {
         {/* Card Content */}
         <View style={styles.cardContent}>
           <View>
-            <Text style={styles.cardTitle} numberOfLines={1}>
+            <Text style={styles.cardTitle}>{listing.unitNumber}</Text>
+            <Text style={styles.unitNumber} numberOfLines={1}>
               {listing.name}
             </Text>
-            <Text style={styles.unitNumber}>{listing.unitNumber}</Text>
-
             <Text
               style={styles.cardAddress}
               numberOfLines={2}
@@ -502,7 +501,7 @@ export default function Home({ navigation }) {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>{title}</Text>
         <LinearGradient
-          colors={['#ffffff', '#fafafa', '#ffffff']}
+          colors={['#ffffff', '#fafafa', '#f0f0f0']}
           start={{ x: 0, y: 0 }}
           end={{ x: 0, y: 1 }}
         >
@@ -686,7 +685,7 @@ const styles = StyleSheet.create({
   },
   card: {
     width: CARD_WIDTH,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#fafafa',
     borderRadius: 16,
     marginRight: CARD_MARGIN,
   },
@@ -735,13 +734,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   cardTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
     color: '#000000',
     marginBottom: 2,
   },
   unitNumber: {
-    fontSize: 13,
+    fontSize: 12,
     color: '#000000',
     fontWeight: '600',
     marginBottom: 4,
@@ -768,7 +767,7 @@ const styles = StyleSheet.create({
   },
   cardDetailText: {
     fontSize: 12,
-    color: '#374151',
+    color: '#6b7280',
     fontWeight: '600',
     marginLeft: 4,
   },
