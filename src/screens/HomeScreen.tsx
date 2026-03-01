@@ -745,7 +745,7 @@ const styles = StyleSheet.create({
   },
   unitNumber: {
     fontSize: 13,
-    color: '#BF5700',
+    color: '#000000',
     fontWeight: '600',
     marginBottom: 4,
   },
@@ -811,8 +811,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginHorizontal: 20,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
+    //borderBottomWidth: 1,
     borderBottomColor: '#e5e7eb',
   },
   modalTitle: {
