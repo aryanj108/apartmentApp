@@ -501,6 +501,11 @@ export default function Home({ navigation }) {
     return (
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>{title}</Text>
+        <LinearGradient
+          colors={['#ffffff', '#fafafa', '#ffffff']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0, y: 1 }}
+        >
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -524,6 +529,7 @@ export default function Home({ navigation }) {
             );
           })}
         </ScrollView>
+      </LinearGradient>
       </View>
     );
   };
@@ -672,26 +678,17 @@ const styles = StyleSheet.create({
     color: '#000000',
     paddingHorizontal: 20,
     letterSpacing: 0.3,
+    paddingVertical: 8,
   },
   carouselContainer: {
     paddingLeft: 20,
     paddingRight: 20,
-    paddingVertical: 2,
   },
   card: {
     width: CARD_WIDTH,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#f5f5f5',
     borderRadius: 16,
     marginRight: CARD_MARGIN,
-    marginVertical: 8,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 5,
   },
   cardInner: {
     borderRadius: 16,
@@ -752,7 +749,7 @@ const styles = StyleSheet.create({
   cardAddress: {
     fontSize: 12,
     color: '#6b7280',
-    marginBottom: 12,
+    marginBottom: 6,
   },
   cardDetailsRow: {
     flexDirection: 'row',
