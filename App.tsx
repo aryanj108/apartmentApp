@@ -13,7 +13,7 @@ import { AuthProvider } from './src/context/AuthContext';
 
 export default function App() {
   const [fontsLoaded] = useFonts({
-    'Test': require('./assets/fonts/static/Outfit-SemiBold.ttf')
+    'Test': require('./assets/fonts/Baloo2-VariableFont_wght.ttf')
   });
 
     useEffect(() => {

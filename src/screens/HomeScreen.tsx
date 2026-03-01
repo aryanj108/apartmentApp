@@ -648,12 +648,13 @@ const styles = StyleSheet.create({
     fontSize: 23,
     fontWeight: 'bold',
     color: '#000000',
-    fontFamily: 'Test',
     marginBottom: 2,
+    letterSpacing: 0.3,
   },
   headerSubtitle: {
     fontSize: 13,
     color: '#6b7280',
+    fontFamily: 'Test',
   },
   filterButton: {
     width: 44,
@@ -669,8 +670,8 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     color: '#000000',
-    fontFamily: 'Test',
     paddingHorizontal: 20,
+    letterSpacing: 0.3,
   },
   carouselContainer: {
     paddingLeft: 20,
