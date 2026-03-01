@@ -624,7 +624,7 @@ export default function Home({ navigation }) {
       <View style={styles.browseAllContainer}>
         <TouchableOpacity 
           style={styles.browseAllButton}
-          onPress={() => navigation.navigate('Search')}
+          onPress={() => navigation.navigate('Search', { resetMap: true, timestamp: Date.now() })}
         >
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <ExternalLinkIcon width={24} height={24} fill="#BF5700" />

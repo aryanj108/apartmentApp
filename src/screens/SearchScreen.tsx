@@ -24,6 +24,7 @@ import { buildingsData } from '../data/buildings';
 import { listingsData } from '../data/listings';
 import { usePreferences } from '../context/PreferencesContext';
 import { calculateMatchScore } from '../data/matchingAlgorithm';
+import { useRoute } from '@react-navigation/native';
 
 import BedIcon from '../../assets/bedIcon.svg';
 import BathIcon from '../../assets/bathIcon.svg';
@@ -428,6 +429,7 @@ function SearchModal({ visible, onClose, buildings, onSelectBuilding }) {
 
 export default function Search({ navigation }) {
   const insets = useSafeAreaInsets();
+  const route = useRoute();
   const { preferences, savedIds, toggleSave, loading: prefsLoading } = usePreferences();
   const [sortedListings, setSortedListings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -441,6 +443,13 @@ export default function Search({ navigation }) {
 
   const headerPaddingTop = Platform.OS === 'ios' ? insets.top + 25 : insets.top || 25;
   const listPaddingTop = Platform.OS === 'ios' ? insets.top + 110 : (insets.top || 10) + 100;
+
+    useEffect(() => {                        
+    if (route.params?.resetMap) {
+      setShowMap(true);
+      setTimeout(() => handleResetMap(), 100);
+    }
+  }, [route.params?.timestamp]);
 
   useEffect(() => {
     if (prefsLoading) return;
@@ -464,7 +473,6 @@ export default function Search({ navigation }) {
     setSortedListings(sorted);
     setLoading(false);
   }, [preferences, prefsLoading, preferences.location]);
-
 
   const handleResetMap = () => {
     if (mapRef.current) {
