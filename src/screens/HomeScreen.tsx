@@ -784,13 +784,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#000000',
-    marginBottom: 2,
+    marginBottom: 6,
+    marginTop: 6,
   },
   unitNumber: {
     fontSize: 12,
     color: '#000000',
     fontWeight: '600',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   cardAddress: {
     fontSize: 12,
@@ -867,7 +868,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
   resetText: {
-    color: '#ef4444',
+    color: '#BF5700',
     fontSize: 16,
     fontWeight: '500',
     width: 50,
