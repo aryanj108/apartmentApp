@@ -16,6 +16,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { doc, updateDoc, getDoc } from 'firebase/firestore';
+import MaskedView from '@react-native-masked-view/masked-view';
 import { db } from '../config/firebaseConfig';
 
 import { buildingsData } from '../data/buildings';
@@ -24,7 +25,6 @@ import { usePreferences } from '../context/PreferencesContext';
 import { calculateMatchScore, getMatchColor } from '../data/matchingAlgorithm';
 import { useAuth } from '../context/AuthContext';
 
-import FilterIcon from '../../assets/stars.svg';
 import BedIcon from '../../assets/bedIcon.svg';
 import BathIcon from '../../assets/bathIcon.svg';
 import Stars from '../../assets/stars.svg';
@@ -130,7 +130,21 @@ function ApartmentCard({ listing, matchScore, onPress, isSaved, onSavePress }) {
                 <Text style={styles.cardDetailText}>{listing.bathrooms} Bath</Text>
               </View>
             </View>
-            <Text style={styles.cardPrice}>${formatPrice(listing.price)}</Text>
+            <MaskedView
+              maskElement={
+                <Text style={styles.cardPrice}>${formatPrice(listing.price)}</Text>
+              }
+            >
+              <LinearGradient
+                colors={['#FF8C42', '#BF5700', '#994400']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+              >
+                <Text style={[styles.cardPrice, { opacity: 0 }]}>
+                  ${formatPrice(listing.price)}
+                </Text>
+              </LinearGradient>
+            </MaskedView>
           </View>
         </View>
       </View>
@@ -567,11 +581,17 @@ export default function Home({ navigation }) {
           </View>
           
           {/* Filter Button */}
-          <TouchableOpacity
-            style={styles.filterButton}
-            onPress={handleOpenFilterModal}
-          >
-            <FilterIcon width={30} height={30} />
+          <TouchableOpacity style={styles.filterButton} onPress={handleOpenFilterModal}>
+            <MaskedView
+              maskElement={<Stars width={30} height={30} fill="#000000" />}
+            >
+              <LinearGradient
+                colors={['#FF8C42', '#BF5700', '#994400']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={{ width: 30, height: 30 }}
+              />
+            </MaskedView>
           </TouchableOpacity>
         </View>
       </View>
@@ -772,9 +792,10 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   cardPrice: {
-    fontSize: 21,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#BF5700',
+    letterSpacing: 0.5,
   },
   cardDetails: {
     flexDirection: 'row',
