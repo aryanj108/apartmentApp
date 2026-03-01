@@ -511,14 +511,27 @@ export default function Home({ navigation }) {
       return null;
     }
 
-    return (
-      <View style={styles.section}>
+  return (
+    <View style={styles.section}>
+      <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>{title}</Text>
-        <LinearGradient
-          colors={['#ffffff', '#fafafa', '#f0f0f0']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 0, y: 1 }}
+        <MaskedView
+          maskElement={<Stars width={22} height={22} fill="#000000" />}
         >
+          <LinearGradient
+            colors={['#FF8C42', '#BF5700', '#994400']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={{ width: 22, height: 22 }}
+          />
+        </MaskedView>
+      </View>
+
+      <LinearGradient
+        colors={['#ffffff', '#fafafa', '#f0f0f0']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+      >
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -543,8 +556,8 @@ export default function Home({ navigation }) {
           })}
         </ScrollView>
       </LinearGradient>
-      </View>
-    );
+    </View>
+  );
   };
 
   const sections = [
@@ -616,7 +629,7 @@ export default function Home({ navigation }) {
           <ArrowUpRightIcon width={25} height={25} stroke="#8B6F47" />
         </TouchableOpacity>
       </View>
-      <View style={{ height: 120 }} />  
+      <View style={{ height: 110 }} />  
       </ScrollView>
 
       {/* Filter Modal */}
@@ -691,17 +704,23 @@ const styles = StyleSheet.create({
   section: {
     marginBottom: 20
   },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+  },
   sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
     color: '#000000',
-    paddingHorizontal: 20,
+    //paddingHorizontal: 20,
     letterSpacing: 0.3,
-    paddingVertical: 8,
+    //paddingVertical: 8,
   },
   carouselContainer: {
     paddingLeft: 20,
-    paddingRight: 20,
   },
   card: {
     width: CARD_WIDTH,
