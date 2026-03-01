@@ -795,7 +795,7 @@ const styles = StyleSheet.create({
   },
   cardAddress: {
     fontSize: 12,
-    color: '#6b7280',
+    color: '#8e8e91',
     marginBottom: 6,
   },
   cardDetailsRow: {
@@ -815,7 +815,7 @@ const styles = StyleSheet.create({
   },
   cardDetailText: {
     fontSize: 12,
-    color: '#6b7280',
+    color: '#8e8e91',
     fontWeight: '600',
     marginLeft: 4,
   },

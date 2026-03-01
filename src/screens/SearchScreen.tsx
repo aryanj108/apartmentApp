@@ -25,6 +25,7 @@ import { listingsData } from '../data/listings';
 import { usePreferences } from '../context/PreferencesContext';
 import { calculateMatchScore } from '../data/matchingAlgorithm';
 import { useRoute } from '@react-navigation/native';
+import MaskedView from '@react-native-masked-view/masked-view';
 
 import BedIcon from '../../assets/bedIcon.svg';
 import BathIcon from '../../assets/bathIcon.svg';
@@ -163,12 +164,14 @@ function ListingVerticalCard({ listing, matchScore, onPress, isSaved }) {
       </View>
       
       <View style={styles.cardContent}>
-        <Text style={styles.cardTitle} numberOfLines={1}>
-          {listing.name}
-        </Text>
-        <Text style={styles.unitNumber}>
+        <Text style={styles.cardTitle}>
           {listing.unitNumber} {/*• {listing.floorPlan}*/}
         </Text>
+
+        <Text style={styles.unitNumber} numberOfLines={1}>
+          {listing.name}
+        </Text>
+        
         <Text style={styles.cardAddress} numberOfLines={1}>
           {listing.address}
         </Text>
@@ -188,7 +191,24 @@ function ListingVerticalCard({ listing, matchScore, onPress, isSaved }) {
               <Text style={styles.cardDetailText}>{listing.distance} mi</Text>
             </View>
           </View>
-          <Text style={styles.cardPrice}>${formatPrice(listing.price)}/mo</Text>
+          <View style={{ alignItems: 'flex-end' }}>
+            <MaskedView
+              maskElement={
+                <Text style={styles.cardPrice}>${formatPrice(listing.price)}</Text>
+              }
+            >
+              <LinearGradient
+                colors={['#FF8C42', '#BF5700', '#994400']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+              >
+                <Text style={[styles.cardPrice, { opacity: 0 }]}>
+                  ${formatPrice(listing.price)}
+                </Text>
+              </LinearGradient>
+            </MaskedView>
+            <Text style={styles.perMonth}>per month</Text>
+          </View>
         </View>
       </View>
     </TouchableOpacity>
@@ -653,7 +673,7 @@ export default function Search({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f2f2f6',
+    backgroundColor: '#fbfbfb',
   },
   loadingContainer: {
     flex: 1,
@@ -753,7 +773,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   card: {
-    backgroundColor: '#ffffff',
+    backgroundColor: '#fafafa',
     borderRadius: 12,
     marginBottom: 16,
     overflow: 'hidden',
@@ -808,22 +828,29 @@ const styles = StyleSheet.create({
   },
   cardContent: {
     padding: 16,
+    paddingBottom: 20,
+  },
+  perMonth: {
+    fontSize: 11,
+    color: '#8e8e91',
+    fontWeight: '500',
+    marginTop: 2,
   },
   cardTitle: {
-    fontSize: 20,
-    fontWeight: '600',
+    fontSize: 19,
+    fontWeight: '700',
     color: '#000000',
-    marginBottom: 2,
+    marginBottom: 4,
   },
   unitNumber: {
     fontSize: 13,
-    color: '#BF5700',
+    color: '#0a0a0a',
     fontWeight: '600',
     marginBottom: 4,
   },
   cardAddress: {
     fontSize: 11,
-    color: '#6b7280',
+    color: '#8e8e91',
     marginBottom: 12,
   },
   cardDetailsRow: {
@@ -842,7 +869,7 @@ const styles = StyleSheet.create({
   },
   cardDetailText: {
     fontSize: 12,
-    color: '#374151',
+    color: '#8e8e91',
     fontWeight: '600',
     marginLeft: 4,
   },
