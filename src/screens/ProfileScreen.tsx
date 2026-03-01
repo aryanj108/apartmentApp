@@ -465,7 +465,7 @@ export default function Profile({ navigation }: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#f2f2f6',
   },
   content: {
     padding: 20,

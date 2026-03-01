@@ -397,7 +397,7 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
               <ExternalLinkIcon width={24} height={24} fill="#BF5700" />
               <Text style={styles.viewOriginalButtonText}>View Original Listing</Text>
               </View>
-              <ArrowUpRightIcon width={25} height={25} stroke="#8B6F47" />
+              <ArrowUpRightIcon width={25} height={25} stroke="#BF5700" />
             </TouchableOpacity>
 
             {/* Row with Save Button and View Apartment Details */}

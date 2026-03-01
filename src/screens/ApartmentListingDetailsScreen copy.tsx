@@ -134,7 +134,7 @@ export default function ApartmentListingDetailsScreen({ navigation, visible, onC
               {isSaved ? (
                 <SaveFilledIconHeart width={16} height={16} />
               ) : (
-                <SaveOutlineIconHeart width={16} height={16} />
+                <SaveOutlineIconHeart width={16} height={16}/>
               )}
             <Text style={{ fontSize: 14, fontWeight: 'bold', marginLeft: 6 }}>
               {isSaved ? 'Saved' : 'Save Listing'}

@@ -430,7 +430,7 @@ export default function SwipeScreen({ navigation, route }: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f3f4f6',
+    backgroundColor: '#f2f2f6',
     justifyContent: 'flex-start',
     alignItems: 'center',
     paddingVertical: 55,

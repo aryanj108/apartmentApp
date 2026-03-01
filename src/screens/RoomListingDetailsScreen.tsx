@@ -192,7 +192,7 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
               {isSaved ? (
                 <SaveFilledIconHeart width={22} height={22} fill="#BF5700"/>
               ) : (
-                <SaveOutlineIconHeart width={22} height={22} stroke="#000000" />
+                <SaveOutlineIconHeart width={22} height={22} />
               )}
             </BlurView>
           </TouchableOpacity>
@@ -397,7 +397,7 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
                 <ExternalLinkIcon width={23} height={23} fill="#BF5700" />
                 <Text style={styles.viewOriginalButtonText}>View Original Listing</Text>
               </View>
-              <ArrowUpRightIcon width={25} height={25} stroke="#8B6F47" />
+              <ArrowUpRightIcon width={25} height={25} stroke="#BF5700" />
             </TouchableOpacity>
           </View>
         )}

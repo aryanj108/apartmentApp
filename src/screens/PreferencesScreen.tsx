@@ -595,7 +595,7 @@ export default function PreferencesScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'rgba(223, 223, 223, 0)',
+    backgroundColor: '#f2f2f6',
     paddingHorizontal: 16,
   },
   section: {
@@ -648,7 +648,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 22,
-    backgroundColor: '#dfdfdfff',
+    backgroundColor: '#f2f2f6',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 15,
@@ -658,7 +658,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#dfdfdfff',
+    backgroundColor: '#f2f2f6',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 15,

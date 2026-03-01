@@ -653,7 +653,7 @@ export default function Search({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#f2f2f6',
   },
   loadingContainer: {
     flex: 1,
