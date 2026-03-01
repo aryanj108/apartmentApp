@@ -153,7 +153,7 @@ function ApartmentCard({ listing, matchScore, onPress, isSaved, onSavePress }) {
 }
 
 // Filter Modal Component
-function FilterModal({ visible, onClose, sections, visibleSections, toggleSection, onApply }) {
+function FilterModal({ visible, onClose, sections, visibleSections, toggleSection, onApply, onReset }) {
   const translateY = useRef(new Animated.Value(0)).current;
   const opacity = useRef(new Animated.Value(0)).current;
 
@@ -292,9 +292,13 @@ function FilterModal({ visible, onClose, sections, visibleSections, toggleSectio
               <View style={styles.dragHandle} />
             </View>
 
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Filter Sections</Text>
-            </View>
+          <View style={styles.modalHeader}>
+            <TouchableOpacity onPress={onReset}>
+              <Text style={styles.resetText}>Reset</Text>
+            </TouchableOpacity>
+            <Text style={styles.modalTitle}>Filter Sections</Text>
+            <View style={{ width: 50 }} />
+          </View>
           </View>
 
           {/* NON-DRAGGABLE AREA - ScrollView */}
@@ -596,7 +600,7 @@ export default function Home({ navigation }) {
           {/* Filter Button */}
           <TouchableOpacity style={styles.filterButton} onPress={handleOpenFilterModal}>
             <MaskedView
-              maskElement={<Stars width={30} height={30} fill="#000000" />}
+              maskElement={<Stars width={31} height={31} fill="#000000" />}
             >
               <LinearGradient
                 colors={['#FF8C42', '#BF5700', '#994400']}
@@ -634,6 +638,10 @@ export default function Home({ navigation }) {
 
       {/* Filter Modal */}
       <FilterModal
+            onReset={() => {
+          const allOn = Object.fromEntries(sections.map(s => [s.key, true]));
+          setTempVisibleSections(allOn);
+        }}
         visible={filterModalVisible}
         onClose={() => setFilterModalVisible(false)}
         sections={sections}
@@ -844,16 +852,25 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
   modalHeader: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     marginHorizontal: 20,
+    paddingBottom: 16,
     //borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
+    //borderBottomColor: '#e5e7eb',
   },
   modalTitle: {
     fontSize: 20,
     fontWeight: 'bold',
     color: '#000000',
+    letterSpacing: 0.3,
+  },
+  resetText: {
+    color: '#ef4444',
+    fontSize: 16,
+    fontWeight: '500',
+    width: 50,
   },
   filterList: {
     paddingHorizontal: 20,
