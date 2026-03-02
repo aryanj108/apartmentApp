@@ -2,6 +2,8 @@ import React, { useEffect, useRef } from 'react';
 import { View, Platform, StyleSheet, Pressable, Animated, Text } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
+import MaskedView from '@react-native-masked-view/masked-view';
 
 import HomeScreen from '../screens/HomeScreen';
 import SearchScreen from '../screens/SearchScreen';
@@ -109,10 +111,25 @@ function MyTabBar({ state, descriptors, navigation }) {
           };
 
           const renderIcon = (color) => {
-            const props = { width: 30, height: 30, stroke: color, color: color };
-            if (route.name === 'Home') return <HomeIcon {...props} />;
-            if (route.name === 'Search') return <SearchIcon {...props} />;
-            if (route.name === 'Profile') return <ProfileIcon {...props} />;
+            let Icon;
+            if (route.name === 'Home') Icon = HomeIcon;
+            else if (route.name === 'Search') Icon = SearchIcon;
+            else if (route.name === 'Profile') Icon = ProfileIcon;
+
+            if (isFocused) {
+              return (
+                <MaskedView maskElement={<Icon width={30} height={30} stroke="#000000" color="#000000" />}>
+                  <LinearGradient
+                    colors={['#FF8C42', '#BF5700', '#994400']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={{ width: 30, height: 30 }}
+                  />
+                </MaskedView>
+              );
+            }
+
+            return <Icon width={30} height={30} stroke={color} color={color} />;
           };
 
           return (
