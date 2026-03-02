@@ -14,13 +14,15 @@ import { useState, useEffect } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import * as Clipboard from 'expo-clipboard';
+import MaskedView from '@react-native-masked-view/masked-view';
+
 import Stars from '../../assets/stars.svg';
 import { buildingsData } from '../data/buildings';
 import { listingsData } from '../data/listings';
 import { calculateMatchScore } from '../data/matchingAlgorithm';
-import BedIcon from '../../assets/bedIcon.svg';
+import BedIcon from '../../assets/bedFilledIcon.svg';
 import DistanceIcon from '../../assets/distanceIcon(2).svg';
-import BathIcon from '../../assets/bathIcon.svg';
+import BathIcon from '../../assets/bathFilledIcon.svg';
 import DescriptionIcon from '../../assets/descriptionIcon.svg';
 import ReviewIcon from '../../assets/reviewIcon.svg';
 import FeaturesIcon from '../../assets/featuresIcon.svg';
@@ -83,11 +85,26 @@ function UnitCard({ listing, matchScore, onPress }) {
         <View style={styles.unitDetailsRow}>
           <View style={styles.unitDetails}>
             <View style={styles.unitDetailItem}>
-              <BedIcon width={14} height={14} />
+              <MaskedView maskElement={<BedIcon width={16} height={16} fill="#000000" />}>
+                <LinearGradient
+                  colors={['#FF8C42', '#BF5700', '#994400']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={{ width: 16, height: 16 }}
+                />
+              </MaskedView>
               <Text style={styles.unitDetailText}>{listing.bedrooms} Bed</Text>
             </View>
+
             <View style={styles.unitDetailItem}>
-              <BathIcon width={14} height={14} />
+              <MaskedView maskElement={<BathIcon width={16} height={16} fill="#000000" />}>
+                <LinearGradient
+                  colors={['#FF8C42', '#BF5700', '#994400']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={{ width: 16, height: 16 }}
+                />
+              </MaskedView>
               <Text style={styles.unitDetailText}>{listing.bathrooms} Bath</Text>
             </View>
           </View>
@@ -400,7 +417,7 @@ useEffect(() => {
                 listing={unit}
                 matchScore={unit.matchScore}
                 onPress={() =>
-                  navigation.navigate('RoomListingDetailsScreen', {
+                  navigation.navigate('RoomListingDetailsScreen_SearchVersion', {
                     listing: {
                       ...unit,
                       name: apartment.name,
