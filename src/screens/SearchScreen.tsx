@@ -27,8 +27,8 @@ import { calculateMatchScore } from '../data/matchingAlgorithm';
 import { useRoute } from '@react-navigation/native';
 import MaskedView from '@react-native-masked-view/masked-view';
 
-import BedIcon from '../../assets/bedIcon.svg';
-import BathIcon from '../../assets/bathIcon.svg';
+import BedIcon from '../../assets/bedFilledIcon.svg';
+import BathIcon from '../../assets/bathFilledIcon.svg';
 import DistanceIcon from '../../assets/distanceIcon(2).svg';
 import Stars from '../../assets/stars.svg';
 import SaveFilledIconHeart from '../../assets/heart.svg';
@@ -179,15 +179,36 @@ function ListingVerticalCard({ listing, matchScore, onPress, isSaved }) {
         <View style={styles.cardDetailsRow}>
           <View style={styles.leftDetails}>
             <View style={styles.cardDetailItem}>
-              <BedIcon width={16} height={16}/>
+              <MaskedView maskElement={<BedIcon width={16} height={16} fill="#000000" />}>
+                <LinearGradient
+                  colors={['#FF8C42', '#BF5700', '#994400']}
+                  start={{ x: 0, y: 1 }}
+                  end={{ x: 1, y: 0 }}
+                  style={{ width: 16, height: 16 }}
+                />
+              </MaskedView>
               <Text style={styles.cardDetailText}>{listing.bedrooms} Bed</Text>
             </View>
             <View style={styles.cardDetailItem}>
-              <BathIcon width={16} height={16}/>
+              <MaskedView maskElement={<BathIcon width={16} height={16} fill="#000000" />}>
+                <LinearGradient
+                  colors={['#FF8C42', '#BF5700', '#994400']}
+                  start={{ x: 0, y: 1 }}
+                  end={{ x: 1, y: 0 }}
+                  style={{ width: 16, height: 16 }}
+                />
+              </MaskedView>
               <Text style={styles.cardDetailText}>{listing.bathrooms} Bath</Text>
             </View>
             <View style={styles.cardDetailItem}>
-              <DistanceIcon width={16} height={16}/>
+              <MaskedView maskElement={<DistanceIcon width={16} height={16} fill="#000000" />}>
+                <LinearGradient
+                  colors={['#FF8C42', '#BF5700', '#994400']}
+                  start={{ x: 0, y: 1 }}
+                  end={{ x: 1, y: 0 }}
+                  style={{ width: 16, height: 16 }}
+                />
+              </MaskedView>
               <Text style={styles.cardDetailText}>{listing.distance} mi</Text>
             </View>
           </View>
