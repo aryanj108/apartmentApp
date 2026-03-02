@@ -29,7 +29,7 @@ import MaskedView from '@react-native-masked-view/masked-view';
 
 import BedIcon from '../../assets/bedFilledIcon.svg';
 import BathIcon from '../../assets/bathFilledIcon.svg';
-import DistanceIcon from '../../assets/distanceIcon(2).svg';
+import DistanceIcon from '../../assets/arrowFilledIcon.svg';
 import Stars from '../../assets/stars.svg';
 import SaveFilledIconHeart from '../../assets/heart.svg';
 import PinIcon from '../../assets/pinIcon2.svg';

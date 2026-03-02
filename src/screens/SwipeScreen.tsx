@@ -15,7 +15,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import MaskedView from '@react-native-masked-view/masked-view';
 
 import BedIcon from '../../assets/bedFilledIcon.svg';
-import DistanceIcon from '../../assets/distanceIcon(2).svg';
+import DistanceIcon from '../../assets/arrowFilledIcon.svg';
 import BathIcon from '../../assets/bathFilledIcon.svg';
 import WifiIcon from '../../assets/wifiIcon.svg';
 import GymIcon from '../../assets/gymIcon.svg';

@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Dimensions, ScrollView, TouchableOpacity, Alert
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import BedIcon from '../../assets/bedFilledIcon.svg';
-import DistanceIcon from '../../assets/distanceIcon(2).svg';
+import DistanceIcon from '../../assets/arrowFilledIcon.svg';
 import BathIcon from '../../assets/bathFilledIcon.svg';
 import DescriptionIcon from '../../assets/descriptionIcon.svg';
 import ReviewIcon from '../../assets/reviewIcon.svg';
@@ -273,12 +273,12 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
         <View style={styles.chipsContainer}>
         {details.map((detail) => {
           const iconElement = (
-            <MaskedView maskElement={<detail.icon width={24} height={24} fill="#000000" />}>
+            <MaskedView maskElement={<detail.icon width={26} height={26} fill="#000000" />}>
               <LinearGradient
                 colors={['#FF8C42', '#BF5700', '#994400']}
                 start={{ x: 0, y: 1 }}
                 end={{ x: 1, y: 0 }}
-                style={{ width: 24, height: 24 }}
+                style={{ width: 26, height: 26 }}
               />
             </MaskedView>
           );
