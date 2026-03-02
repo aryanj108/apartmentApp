@@ -142,11 +142,18 @@ function ListingVerticalCard({ listing, matchScore, onPress, isSaved }) {
           </View>
         )}
         
-        {isSaved && (
-          <View style={styles.saveBadge}>
-            <SaveFilledIconHeart width={25} height={25} fill="#BF5700" />
-          </View>
-        )}
+          {isSaved && (
+            <View style={styles.saveBadge}>
+              <MaskedView maskElement={<SaveFilledIconHeart width={25} height={25} fill="#000000" />}>
+                <LinearGradient
+                  colors={['#FF8C42', '#BF5700', '#994400']}
+                  start={{ x: 0, y: 1 }}
+                  end={{ x: 0, y: 0 }}
+                  style={{ width: 25, height: 25 }}
+                />
+              </MaskedView>
+            </View>
+          )}
 
         {matchScore && (
           <LinearGradient
@@ -445,11 +452,18 @@ function SearchModal({ visible, onClose, buildings, onSelectBuilding }) {
                 style={styles.searchResultItem}
                 onPress={() => handleSelectBuilding(item)}
               >
-                <View style={styles.searchResultContent}>
-                  <Text style={styles.searchResultName}>{item.name}</Text>
-                  <Text style={styles.searchResultAddress}>{item.address}</Text>
-                </View>
-                <ApartmentIcon width={24} height={24} fill="#BF5700" />
+              <View style={styles.searchResultContent}>
+                <Text style={styles.searchResultName}>{item.name}</Text>
+                <Text style={styles.searchResultAddress}>{item.address}</Text>
+              </View>
+              <MaskedView maskElement={<ApartmentIcon width={24} height={24} fill="#000000" />}>
+                <LinearGradient
+                  colors={['#FF8C42', '#BF5700', '#994400']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={{ width: 24, height: 24 }}
+                />
+              </MaskedView>
                 {/*<Text style={styles.searchResultArrow}>→</Text>*/}
               </TouchableOpacity>
             )}
@@ -928,9 +942,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginHorizontal: 20,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
+    //paddingBottom: 16,
+    //borderBottomWidth: 1,
+    //borderBottomColor: '#e5e7eb',
   },
   modalTitle: {
     fontSize: 20,
@@ -982,7 +996,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   searchResultAddress: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#6b7280',
   },
   searchResultArrow: {
