@@ -12,10 +12,11 @@ import {
   Platform
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import MaskedView from '@react-native-masked-view/masked-view';
 
-import BedIcon from '../../assets/bedIcon.svg';
+import BedIcon from '../../assets/bedFilledIcon.svg';
 import DistanceIcon from '../../assets/distanceIcon(2).svg';
-import BathIcon from '../../assets/bathIcon.svg';
+import BathIcon from '../../assets/bathFilledIcon.svg';
 import WifiIcon from '../../assets/wifiIcon.svg';
 import GymIcon from '../../assets/gymIcon.svg';
 import PoolIcon from '../../assets/poolIcon.svg';
@@ -23,6 +24,7 @@ import ParkingIcon from '../../assets/parkingIcon.svg';
 import FurnishedIcon from '../../assets/furnishedIcon.svg';
 import PetIcon from '../../assets/petIcon.svg';
 import Stars from '../../assets/stars.svg';
+import InfoIcon from '../../assets/infoIcon.svg';
 
 import { buildingsData } from '../data/buildings';
 import { listingsData } from '../data/listings';
@@ -320,28 +322,45 @@ export default function SwipeScreen({ navigation, route }: any) {
                       {/* Title & Price */}
                       <View style={styles.infoHeader}>
                         <View style={styles.leftInfo}>
-                          <Text style={styles.apartmentName} numberOfLines={1}>
-                            {currentListing.name}
-                          </Text>
-                          <Text style={styles.unitNumber}>
+                          <Text style={styles.apartmentName}>
                             {currentListing.unitNumber} {/*• {currentListing.floorPlan}*/}
+                          </Text>
+                          <Text style={styles.unitNumber} numberOfLines={1}>
+                            {currentListing.name}
                           </Text>
                           <Text style={styles.address} numberOfLines={1}>
                             {currentListing.address}
                           </Text>
                         </View>
-                        <View style={styles.priceContainer}>
-                          <Text style={styles.price}>${formatPrice(currentListing.price)}</Text>
-                          <Text style={styles.perMonth}>per month</Text>
+                          <View style={styles.priceContainer}>
+                            <MaskedView maskElement={<Text style={styles.price}>${formatPrice(currentListing.price)}</Text>}>
+                              <LinearGradient
+                                colors={['#FF8C42', '#BF5700', '#994400']}
+                                start={{ x: 0, y: 0 }}
+                                end={{ x: 1, y: 0 }}
+                              >
+                                <Text style={[styles.price, { opacity: 0 }]}>${formatPrice(currentListing.price)}</Text>
+                              </LinearGradient>
+                            </MaskedView>
+                            <Text style={styles.perMonth}>per month</Text>
+                          </View>
                         </View>
-                      </View>
 
                       {/* Details Chips (Bed, Bath, Distance) */}
                       <View style={styles.chipsContainer}>
                         {details.map(detail => {
                           const Icon = detail.icon;
-                          
-                          // Make distance chip pressable
+                          const iconElement = (
+                            <MaskedView maskElement={<Icon width={25} height={25} fill="#000000" />}>
+                              <LinearGradient
+                                colors={['#FF8C42', '#BF5700', '#994400']}
+                                start={{ x: 0, y: 1 }}
+                                end={{ x: 1, y: 0 }}
+                                style={{ width: 25, height: 25 }}
+                              />
+                            </MaskedView>
+                          );
+
                           if (detail.id === 'distance') {
                             return (
                               <TouchableOpacity
@@ -350,16 +369,15 @@ export default function SwipeScreen({ navigation, route }: any) {
                                 onPress={() => openMaps(currentListing.address)}
                                 activeOpacity={0.7}
                               >
-                                <Icon width={25} height={25} />
+                                {iconElement}
                                 <Text style={styles.chipText}>{detail.label}</Text>
                               </TouchableOpacity>
                             );
                           }
-                          
-                          // Other chips remain non-pressable
+
                           return (
                             <View key={detail.id} style={styles.chip}>
-                              <Icon width={25} height={25} />
+                              {iconElement}
                               <Text style={styles.chipText}>{detail.label}</Text>
                             </View>
                           );
@@ -383,28 +401,15 @@ export default function SwipeScreen({ navigation, route }: any) {
                     <View style={styles.buttonsContainer}>
                       <TouchableOpacity
                         style={styles.detailsButton}
-                        onPress={() => {
-                          // Find the actual building for apartment details
-                          const building = buildingsData.find(b => b.id === currentListing.buildingId);
-                          navigation.navigate('ApartmentListingDetails', {
-                            listing: building,
-                            matchScore,
-                          });
-                        }}
-                      >
-                        <Text style={styles.buttonText}>Apt. Details</Text>
-                      </TouchableOpacity>
-
-                      <TouchableOpacity
-                        style={styles.detailsButton}
                         onPress={() =>
-                          navigation.navigate('RoomListingDetailsScreen', {
+                          navigation.navigate('RoomListingDetailsScreen_SearchVersion', {
                             listing: currentListing,
                             matchScore,
                           })
                         }
                       >
-                        <Text style={styles.buttonText}>Room Details</Text>
+                        <InfoIcon width={20} height={20} fill="#000000" />
+                        <Text style={styles.buttonText}>View More Details</Text>
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -501,13 +506,13 @@ const styles = StyleSheet.create({
   },
   unitNumber: {
     fontSize: 13,
-    color: '#BF5700',
+    color: '#000000',
     fontWeight: '600',
     marginBottom: 2,
   },
   address: {
-    fontSize: 14,
-    color: '#6b7280',
+    fontSize: 13,
+    color: '#8e8e91',
   },
   price: {
     fontSize: 18,
@@ -583,6 +588,9 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 12,
     alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
   },
   buttonText: {
     color: '#000000',

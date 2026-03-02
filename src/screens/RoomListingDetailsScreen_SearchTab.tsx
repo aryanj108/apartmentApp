@@ -216,21 +216,21 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
               )}
             </View>
             <View style={styles.rightInfo}>
-                                      <MaskedView
-                            maskElement={
-                              <Text style={styles.price}>${formatPrice(listing.price)}</Text>
-                            }
-                          >
-                            <LinearGradient
-                              colors={['#FF8C42', '#BF5700', '#994400']}
-                              start={{ x: 0, y: 0 }}
-                              end={{ x: 1, y: 0 }}
-                            >
-                              <Text style={[styles.price, { opacity: 0 }]}>
-                                ${formatPrice(listing.price)}
-                              </Text>
-                            </LinearGradient>
-                          </MaskedView>
+              <MaskedView
+                maskElement={
+                  <Text style={styles.price}>${formatPrice(listing.price)}</Text>
+                }
+              >
+                <LinearGradient
+                  colors={['#FF8C42', '#BF5700', '#994400']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                >
+                  <Text style={[styles.price, { opacity: 0 }]}>
+                    ${formatPrice(listing.price)}
+                  </Text>
+                </LinearGradient>
+              </MaskedView>
               <Text style={styles.perMonth}>per month</Text>
             </View>
           </View>
@@ -761,8 +761,8 @@ const styles = StyleSheet.create({
   },
   matchScoreTitle: {
     fontSize: 14,
-    fontWeight: 'bold',
-    color: '#000000',
+    fontWeight: '400',
+    color: '#8e8e91',
     marginLeft: 6,
   },
   progressBarTrack: {
