@@ -179,15 +179,15 @@ function ListingVerticalCard({ listing, matchScore, onPress, isSaved }) {
         <View style={styles.cardDetailsRow}>
           <View style={styles.leftDetails}>
             <View style={styles.cardDetailItem}>
-              <BedIcon width={16} height={16} />
+              <BedIcon width={16} height={16}/>
               <Text style={styles.cardDetailText}>{listing.bedrooms} Bed</Text>
             </View>
             <View style={styles.cardDetailItem}>
-              <BathIcon width={16} height={16} />
+              <BathIcon width={16} height={16}/>
               <Text style={styles.cardDetailText}>{listing.bathrooms} Bath</Text>
             </View>
             <View style={styles.cardDetailItem}>
-              <DistanceIcon width={16} height={16} />
+              <DistanceIcon width={16} height={16}/>
               <Text style={styles.cardDetailText}>{listing.distance} mi</Text>
             </View>
           </View>

@@ -9,13 +9,116 @@ import {
   ActivityIndicator,
   TextInput,
   FlatList,
-  Keyboard
+  Keyboard,
+  TouchableOpacity,
+  Modal,
+  Share,
+  Linking,
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import { usePreferences } from '../context/PreferencesContext';
 import { resetUserOnboarding } from '../services/userService';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../config/firebaseConfig';
+
+import Stars from '../../assets/stars.svg';
+import InfoIcon from '../../assets/infoIcon.svg'
+
+const ICON_SIZE = 20;
+
+function SectionLabel({ title }: { title: string }) {
+  return <Text style={styles.sectionLabel}>{title}</Text>;
+}
+
+function SettingsCard({ children }: { children: React.ReactNode }) {
+  return <View style={styles.card}>{children}</View>;
+}
+
+function SettingsRow({
+  icon,
+  label,
+  value,
+  valueColor,
+  onPress,
+  showChevron = false,
+  showArrow = false,
+  danger = false,
+  isLast = false,
+}: {
+  icon?: React.ReactNode;
+  label: string;
+  value?: string;
+  valueColor?: string;
+  onPress?: () => void;
+  showChevron?: boolean;
+  showArrow?: boolean;
+  danger?: boolean;
+  isLast?: boolean;
+}) {
+  const Row = onPress ? TouchableOpacity : View;
+  return (
+    <>
+      <Row
+        style={styles.row}
+        onPress={onPress}
+        activeOpacity={0.6}
+      >
+        {icon && <View style={styles.rowIcon}>{icon}</View>}
+        <Text style={[styles.rowLabel, danger && styles.rowLabelDanger, !icon && styles.rowLabelNoIcon]}>
+          {label}
+        </Text>
+        <View style={styles.rowRight}>
+          {value ? (
+            <Text style={[styles.rowValue, valueColor ? { color: valueColor } : null]}>
+              {value}
+            </Text>
+          ) : null}
+          {showChevron && <Text style={styles.chevron}>›</Text>}
+          {showArrow && <Text style={styles.externalArrow}>⎋</Text>}
+        </View>
+      </Row>
+      {!isLast && <View style={styles.separator} />}
+    </>
+  );
+}
+
+function AppearancePicker({
+  visible,
+  current,
+  onSelect,
+  onClose,
+}: {
+  visible: boolean;
+  current: string;
+  onSelect: (val: string) => void;
+  onClose: () => void;
+}) {
+  const options = [
+    { label: 'Light', icon: '☀️' },
+    { label: 'Dark', icon: '🌙' },
+    { label: 'System', icon: '📱' },
+  ];
+  return (
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <Pressable style={styles.pickerOverlay} onPress={onClose}>
+        <View style={styles.pickerBox}>
+          {options.map((opt, i) => (
+            <TouchableOpacity
+              key={opt.label}
+              style={[styles.pickerOption, i < options.length - 1 && styles.pickerOptionBorder]}
+              onPress={() => { onSelect(opt.label); onClose(); }}
+            >
+              {current === opt.label && <Text style={styles.pickerCheck}>✓</Text>}
+              <Text style={[styles.pickerOptionText, current === opt.label && styles.pickerOptionSelected]}>
+                {opt.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </Pressable>
+    </Modal>
+  );
+}
 
 export default function Profile({ navigation }: any) {
   const { user, signOut, sendVerificationEmail, reloadUser } = useAuth();
@@ -24,17 +127,11 @@ export default function Profile({ navigation }: any) {
   const [sendingEmail, setSendingEmail] = useState(false);
   const scrollViewRef = useRef(null);
 
-  useEffect(() => {
-    const unsubscribe = navigation.addListener('tabPress', (e) => {
-      if (navigation.isFocused()) {
-        scrollViewRef.current?.scrollTo({ y: 0, animated: true });
-      }
-    });
+  // Appearance
+  const [appearance, setAppearance] = useState('Light');
+  const [showAppearancePicker, setShowAppearancePicker] = useState(false);
 
-    return unsubscribe;
-  }, [navigation]);
-  
-  // Location state
+  // Location
   const [isEditingLocation, setIsEditingLocation] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -42,425 +139,341 @@ export default function Profile({ navigation }: any) {
   const [showResults, setShowResults] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState(null);
 
-  // Load saved location on mount
   useEffect(() => {
-    if (preferences?.location) {
-      setSelectedLocation(preferences.location);
-    }
+    const unsubscribe = navigation.addListener('tabPress', () => {
+      if (navigation.isFocused()) {
+        scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+      }
+    });
+    return unsubscribe;
+  }, [navigation]);
+
+  useEffect(() => {
+    if (preferences?.location) setSelectedLocation(preferences.location);
   }, [preferences]);
 
-  // Debounced search
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (searchQuery) {
-        searchLocation(searchQuery);
-      }
+      if (searchQuery) searchLocation(searchQuery);
     }, 500);
-
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
   const formatMemberSince = () => {
     try {
-      if (!user?.metadata?.creationTime) {
-        console.log('No creationTime found');
-        return 'Recently';
-      }
-      
-      console.log('Raw creationTime:', user.metadata.creationTime);
-      
+      if (!user?.metadata?.creationTime) return 'Recently';
       const date = new Date(user.metadata.creationTime);
-      console.log('Parsed date:', date);
-      console.log('Date timestamp:', date.getTime());
-      
-      if (isNaN(date.getTime())) {
-        console.log('Invalid date');
-        return 'Recently';
-      }
-      
-      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      const month = months[date.getMonth()];
-      const day = date.getDate();
-      const year = date.getFullYear();
-      
-      console.log('Formatted parts - Month:', month, 'Day:', day, 'Year:', year);
-      
-      const result = `${month} ${day}, ${year}`;
-      console.log('Final result:', result);
-      
-      return result;
-    } catch (error) {
-      console.error('Date formatting error:', error);
-      return 'Recently';
-    }
+      if (isNaN(date.getTime())) return 'Recently';
+      const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+    } catch { return 'Recently'; }
   };
 
-  const searchLocation = async (query) => {
-    if (!query || query.length < 3) {
-      setSearchResults([]);
-      return;
-    }
-
+  const searchLocation = async (query: string) => {
+    if (!query || query.length < 3) { setSearchResults([]); return; }
     setIsSearching(true);
     try {
-      const LOCATIONIQ_TOKEN = 'pk.e493efe80245c480f2ef5d41058283e2'; 
-      
+      const LOCATIONIQ_TOKEN = 'pk.e493efe80245c480f2ef5d41058283e2';
       const response = await fetch(
-        `https://us1.locationiq.com/v1/search.php?` +
-        `key=${LOCATIONIQ_TOKEN}&` +
-        `q=${encodeURIComponent(query + ', Austin, TX')}&` +
-        `format=json&` +
-        `limit=5&` +
-        `countrycodes=us&` +
-        `viewbox=-97.9,30.5,-97.5,30.1&` +
-        `bounded=1`
+        `https://us1.locationiq.com/v1/search.php?key=${LOCATIONIQ_TOKEN}&q=${encodeURIComponent(query + ', Austin, TX')}&format=json&limit=5&countrycodes=us&viewbox=-97.9,30.5,-97.5,30.1&bounded=1`
       );
-      
-      if (!response.ok) {
-        console.error('LocationIQ API error:', response.status);
-        setSearchResults([]);
-        return;
-      }
-
+      if (!response.ok) { setSearchResults([]); return; }
       const data = await response.json();
       setSearchResults(data);
       setShowResults(true);
-    } catch (error) {
-      console.error('Error searching location:', error);
-      setSearchResults([]);
-    } finally {
-      setIsSearching(false);
-    }
+    } catch { setSearchResults([]); }
+    finally { setIsSearching(false); }
   };
 
-  const selectLocation = async (location) => {
+  const selectLocation = async (location: any) => {
     const newLocation = {
       name: location.display_name.split(',')[0],
       lat: parseFloat(location.lat),
-      lon: parseFloat(location.lon)
+      lon: parseFloat(location.lon),
     };
-    
     setSelectedLocation(newLocation);
     setSearchQuery('');
     setShowResults(false);
     setIsEditingLocation(false);
     Keyboard.dismiss();
-    
-    // Save to Firebase
     if (user?.uid) {
       try {
-        const userDocRef = doc(db, 'users', user.uid);
-        await updateDoc(userDocRef, {
-          'preferences.location': newLocation
-        });
+        await updateDoc(doc(db, 'users', user.uid), { 'preferences.location': newLocation });
         Alert.alert('Success', 'Location updated successfully');
-      } catch (error) {
-        console.error('Error saving location:', error);
-        Alert.alert('Error', 'Failed to save location');
-      }
+      } catch { Alert.alert('Error', 'Failed to save location'); }
     }
   };
 
   const resetToDefaultLocation = async () => {
-    const defaultLocation = {
-      name: 'University of Texas at Austin',
-      lat: 30.285340698031447,
-      lon: -97.73208396036748
-    };
-    
+    const defaultLocation = { name: 'University of Texas at Austin', lat: 30.285340698031447, lon: -97.73208396036748 };
     setSelectedLocation(defaultLocation);
     setSearchQuery('');
     setIsEditingLocation(false);
-    
-    // Save to Firebase
     if (user?.uid) {
       try {
-        const userDocRef = doc(db, 'users', user.uid);
-        await updateDoc(userDocRef, {
-          'preferences.location': defaultLocation
-        });
+        await updateDoc(doc(db, 'users', user.uid), { 'preferences.location': defaultLocation });
         Alert.alert('Success', 'Location reset to UT Austin');
-      } catch (error) {
-        console.error('Error resetting location:', error);
-        Alert.alert('Error', 'Failed to reset location');
-      }
+      } catch { Alert.alert('Error', 'Failed to reset location'); }
     }
   };
 
-  const handleSignOut = async () => {
-    Alert.alert(
-      'Sign Out',
-      'Are you sure you want to sign out?',
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Sign Out',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await signOut();
-            } catch (error) {
-              Alert.alert('Error', 'Failed to sign out. Please try again.');
-            }
-          },
-        },
-      ]
-    );
+  const handleSignOut = () => {
+    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Sign Out', style: 'destructive', onPress: async () => { try { await signOut(); } catch { Alert.alert('Error', 'Failed to sign out.'); } } },
+    ]);
   };
 
   const handleResendVerification = async () => {
     try {
       setSendingEmail(true);
       await sendVerificationEmail();
-      Alert.alert(
-        'Email Sent!',
-        'A verification email has been sent to ' + user?.email + '. Please check your inbox and spam folder.',
-        [{ text: 'OK' }]
-      );
+      Alert.alert('Email Sent!', `A verification email has been sent to ${user?.email}.`);
     } catch (error: any) {
       Alert.alert('Error', error.message || 'Failed to send verification email');
-    } finally {
-      setSendingEmail(false);
-    }
+    } finally { setSendingEmail(false); }
   };
 
   const handleRefreshStatus = async () => {
     try {
       setRefreshing(true);
       await reloadUser();
-      if (user?.emailVerified) {
-        Alert.alert('Verified!', 'Your email has been verified successfully! ✓');
-      } else {
-        Alert.alert('Not Verified Yet', 'Please check your email and click the verification link.');
-      }
-    } catch (error) {
-      Alert.alert('Error', 'Failed to refresh status');
-    } finally {
-      setRefreshing(false);
-    }
+      Alert.alert(user?.emailVerified ? 'Verified!' : 'Not Verified Yet',
+        user?.emailVerified ? 'Your email has been verified! ✓' : 'Please check your email and click the verification link.');
+    } catch { Alert.alert('Error', 'Failed to refresh status'); }
+    finally { setRefreshing(false); }
   };
 
   const handleRedoPreferences = () => {
-    Alert.alert(
-      'Redo Preferences',
-      'This will take you through the preferences and swiping flow again. Your current preferences will be updated.',
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Continue',
-          onPress: async () => {
-            try {
-              if (user?.uid) {
-                // Reset onboarding status
-                await resetUserOnboarding(user.uid);
-                
-                // Navigate to preferences with redo flag
-                navigation.navigate('Preferences', { isRedo: true });
-              }
-            } catch (error) {
-              console.error('Error resetting preferences:', error);
-              Alert.alert('Error', 'Failed to reset preferences. Please try again.');
-            }
-          },
-        },
-      ]
-    );
+    Alert.alert('Redo Preferences', 'This will take you through the preferences and swiping flow again.', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Continue', onPress: async () => {
+        try {
+          if (user?.uid) { await resetUserOnboarding(user.uid); navigation.navigate('Preferences', { isRedo: true }); }
+        } catch { Alert.alert('Error', 'Failed to reset preferences.'); }
+      }},
+    ]);
   };
 
+  const handleShare = async () => {
+    try {
+      await Share.share({ message: 'Check out Longhorn Living — the best apartment finder for UT Austin students!' });
+    } catch {}
+  };
+
+  const Icon = () => <Stars width={ICON_SIZE} height={ICON_SIZE} fill="#BF5700" />;
+
   return (
-    <ScrollView 
+    <ScrollView
       ref={scrollViewRef}
-      style={styles.container} 
-      keyboardShouldPersistTaps="handled">
-      <View style={styles.content}>
-        {/* Header */}
-        <View style={styles.header}>
-          <View style={styles.avatarContainer}>
-            <Text style={styles.avatarText}>
-              {user?.email?.charAt(0).toUpperCase() || 'U'}
-            </Text>
-          </View>
-          <Text style={styles.emailText}>{user?.email}</Text>
-          <Text style={styles.memberSince} numberOfLines={1} ellipsizeMode="clip">
-            Member since {formatMemberSince()}
-          </Text>
+      style={styles.container}
+      contentContainerStyle={styles.content}
+      keyboardShouldPersistTaps="handled"
+    >
+      {/* ── Page Title ── */}
+      <Text style={styles.pageTitle}>Settings</Text>
+
+      {/* ── Profile Header ── */}
+      <View style={styles.profileHeader}>
+        <View style={styles.avatarContainer}>
+          <Text style={styles.avatarText}>{user?.email?.charAt(0).toUpperCase() || 'U'}</Text>
         </View>
-
-        {/* Email Verification Alert */}
-        {!user?.emailVerified && (
-          <View style={styles.verificationAlert}>
-            <Text style={styles.verificationAlertTitle}>⚠️ Email Not Verified</Text>
-            <Text style={styles.verificationAlertText}>
-              Please verify your email to access all features
-            </Text>
-            <View style={styles.verificationButtons}>
-              <Pressable
-                style={styles.verificationButton}
-                onPress={handleResendVerification}
-                disabled={sendingEmail}
-              >
-                {sendingEmail ? (
-                  <ActivityIndicator size="small" color="#BF5700" />
-                ) : (
-                  <Text style={styles.verificationButtonText}>Resend Email</Text>
-                )}
-              </Pressable>
-              <Pressable
-                style={styles.verificationButton}
-                onPress={handleRefreshStatus}
-                disabled={refreshing}
-              >
-                {refreshing ? (
-                  <ActivityIndicator size="small" color="#BF5700" />
-                ) : (
-                  <Text style={styles.verificationButtonText}>Check Status</Text>
-                )}
-              </Pressable>
-            </View>
-          </View>
-        )}
-
-        {/* Account Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Account</Text>
-          
-          <View style={styles.infoCard}>
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Email</Text>
-              <Text style={styles.infoValue}>{user?.email}</Text>
-            </View>
-            {/*<View style={[styles.infoRow, styles.borderTop]}>
-              <Text style={styles.infoLabel}>User ID</Text>
-              <Text style={styles.infoValue} numberOfLines={1}>
-                {user?.uid?.substring(0, 16)}...
-              </Text>
-            </View>*/}
-            <View style={[styles.infoRow, styles.borderTop]}>
-              <Text style={styles.infoLabel}>Email Verified</Text>
-              <Text style={[
-                styles.infoValue, 
-                user?.emailVerified ? styles.verified : styles.notVerified
-              ]}>
-                {user?.emailVerified ? '✓' : 'Not yet'}
-              </Text>
-            </View>
-          </View>
+        <View style={styles.profileInfo}>
+          <Text style={styles.profileEmail}>{user?.email}</Text>
+          <Text style={styles.profileSub}>Member since {formatMemberSince()}</Text>
         </View>
-
-        {/* Location Settings Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Location Settings</Text>
-          
-          <View style={styles.infoCard}>
-            <Pressable 
-              style={styles.infoRow}
-              onPress={() => Alert.alert('Current Location', selectedLocation?.name || 'University of Texas at Austin')}
-            >
-              <Text style={styles.infoLabel}>Current Location</Text>
-              <Text style={styles.infoValue} numberOfLines={1}>
-                {selectedLocation?.name || 'UT Austin (Default)'}
-              </Text>
-            </Pressable>
-            
-            {isEditingLocation && (
-              <>
-                <View style={[styles.infoRow, styles.borderTop]}>
-                  <TextInput
-                    style={styles.locationSearchInput}
-                    placeholder="Search for a location..."
-                    placeholderTextColor="#9ca3af"
-                    value={searchQuery}
-                    onChangeText={setSearchQuery}
-                    autoFocus={true}
-                  />
-                  {isSearching && (
-                    <ActivityIndicator size="small" color="#BF5700" />
-                  )}
-                </View>
-                
-                {showResults && searchResults.length > 0 && (
-                  <View style={styles.searchResultsContainer}>
-                    <FlatList
-                      data={searchResults}
-                      keyExtractor={(item) => item.place_id.toString()}
-                      scrollEnabled={false}
-                      renderItem={({ item }) => (
-                        <Pressable
-                          style={styles.searchResultItem}
-                          onPress={() => selectLocation(item)}
-                        >
-                          <Text style={styles.searchResultText} numberOfLines={2}>
-                            {item.display_name}
-                          </Text>
-                        </Pressable>
-                      )}
-                    />
-                  </View>
-                )}
-              </>
-            )}
-          </View>
-          
-          <View style={styles.locationButtonsContainer}>
-            <Pressable
-              style={styles.locationButton}
-              onPress={() => setIsEditingLocation(!isEditingLocation)}
-            >
-              <Text style={styles.locationButtonText}>
-                {isEditingLocation ? 'Cancel' : 'Update Location'}
-              </Text>
-            </Pressable>
-            
-            {selectedLocation && selectedLocation.name !== 'University of Texas at Austin' && (
-              <Pressable
-                style={[styles.locationButton, styles.resetButton]}
-                onPress={resetToDefaultLocation}
-              >
-                <Text style={styles.locationButtonText}>Reset to UT</Text>
-              </Pressable>
-            )}
-          </View>
-          <Text style={styles.redoDescription}>
-            View and update your current search location for nearby housing recommendations
-          </Text>
-        </View>
-
-        {/* Preferences Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Preferences</Text>
-          
-          <Pressable 
-            style={styles.redoPreferencesButton}
-            onPress={handleRedoPreferences}
-          >
-            <Text style={styles.redoPreferencesText}>Redo Preferences & Swiping</Text>
-          </Pressable>
-          
-          <Text style={styles.redoDescription}>
-            Update your housing preferences and go through the swiping experience again
-          </Text>
-        </View>
-
-        {/* Sign Out Button */}
-        <Pressable 
-          style={styles.signOutButton}
-          onPress={handleSignOut}
-        >
-          <Text style={styles.signOutText}>Sign Out</Text>
-        </Pressable>
-
-        {/* App Info */}
-        <Text style={styles.appVersion}>Longhorn Living v1.0</Text>
       </View>
+
+      {/* ── Email Verification Banner ── */}
+      {!user?.emailVerified && (
+        <View style={styles.verificationBanner}>
+          <Text style={styles.verificationTitle}>⚠️ Email Not Verified</Text>
+          <Text style={styles.verificationSub}>Please verify your email to access all features</Text>
+          <View style={styles.verificationButtons}>
+            <TouchableOpacity style={styles.verificationBtn} onPress={handleResendVerification} disabled={sendingEmail}>
+              {sendingEmail ? <ActivityIndicator size="small" color="#BF5700" /> : <Text style={styles.verificationBtnText}>Resend Email</Text>}
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.verificationBtn} onPress={handleRefreshStatus} disabled={refreshing}>
+              {refreshing ? <ActivityIndicator size="small" color="#BF5700" /> : <Text style={styles.verificationBtnText}>Check Status</Text>}
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
+      {/* ── DISPLAY ── */}
+      <SectionLabel title="Display" />
+      <SettingsCard>
+        <SettingsRow
+          //icon={<Icon />}
+          label="Appearance"
+          value={appearance}
+          onPress={() => setShowAppearancePicker(true)}
+          showChevron
+          isLast
+        />
+      </SettingsCard>
+      <Text style={styles.cardNote}>Toggle between light and dark modes.</Text>
+
+      {/* ── ACCOUNT ── */}
+      <SectionLabel title="Account" />
+      <SettingsCard>
+        <SettingsRow
+          //icon={<Icon />}
+          label="Email"
+          value={user?.email || ''}
+          isLast={false}
+        />
+        <SettingsRow
+          //icon={<Icon />}
+          label="Email Verified"
+          value={user?.emailVerified ? '✓ Verified' : 'Not yet'}
+          valueColor={user?.emailVerified ? '#10b981' : '#f59e0b'}
+          isLast
+        />
+      </SettingsCard>
+
+      {/* ── LOCATION ── */}
+      <SectionLabel title="Location" />
+      <SettingsCard>
+        <SettingsRow
+          //icon={<Icon />}
+          label="Current Location"
+          value={selectedLocation?.name || 'UT Austin (Default)'}
+          onPress={() => setIsEditingLocation(!isEditingLocation)}
+          showChevron
+          isLast={!isEditingLocation}
+        />
+        {isEditingLocation && (
+          <>
+            <View style={styles.separator} />
+            <View style={styles.locationSearchRow}>
+              <TextInput
+                style={styles.locationInput}
+                placeholder="Search for a location..."
+                placeholderTextColor="#9ca3af"
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                autoFocus
+              />
+              {isSearching && <ActivityIndicator size="small" color="#BF5700" />}
+            </View>
+            {showResults && searchResults.length > 0 && (
+              <View>
+                {searchResults.map((item: any, idx: number) => (
+                  <React.Fragment key={item.place_id}>
+                    <View style={styles.separator} />
+                    <TouchableOpacity style={styles.locationResult} onPress={() => selectLocation(item)}>
+                      <Text style={styles.locationResultText} numberOfLines={2}>{item.display_name}</Text>
+                    </TouchableOpacity>
+                  </React.Fragment>
+                ))}
+              </View>
+            )}
+          </>
+        )}
+      </SettingsCard>
+
+      <View style={styles.locationActions}>
+        <TouchableOpacity style={styles.locationActionBtn} onPress={() => setIsEditingLocation(!isEditingLocation)}>
+          <Text style={styles.locationActionText}>{isEditingLocation ? 'Cancel' : 'Update Location'}</Text>
+        </TouchableOpacity>
+        {selectedLocation && selectedLocation.name !== 'University of Texas at Austin' && (
+          <TouchableOpacity style={styles.locationActionBtn} onPress={resetToDefaultLocation}>
+            <Text style={styles.locationActionText}>Reset to UT</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+      <Text style={styles.cardNote}>View and update your search location for nearby housing recommendations.</Text>
+
+      {/* ── PREFERENCES ── */}
+      <SectionLabel title="Preferences" />
+      <SettingsCard>
+        <SettingsRow
+          //icon={<Icon />}
+          label="Redo Preferences & Swiping"
+          onPress={handleRedoPreferences}
+          showChevron
+          isLast
+        />
+      </SettingsCard>
+      <Text style={styles.cardNote}>Update your housing preferences and go through the swiping experience again.</Text>
+
+      {/* ── ABOUT ── */}
+      <SectionLabel title="About" />
+      <SettingsCard>
+        <SettingsRow
+          icon={<InfoIcon width={ICON_SIZE} height={ICON_SIZE} fill="#6b7280" />}
+          label="Version"
+          value="1.0.0"
+          isLast={false}
+        />
+        <SettingsRow
+          icon={<Icon />}
+          label="Developer"
+          value="Aryan Jalota"
+          isLast
+        />
+      </SettingsCard>
+      <Text style={styles.cardNote}>Made for college students, by college students.</Text>
+
+      {/* ── SUPPORT ── */}
+      <SectionLabel title="Support" />
+      <SettingsCard>
+        <SettingsRow
+          icon={<Icon />}
+          label="Contact Support"
+          onPress={() => Linking.openURL('mailto:support@longhornliving.com')}
+          showArrow
+          isLast={false}
+        />
+        <SettingsRow
+          icon={<Icon />}
+          label="Rate Longhorn Living"
+          onPress={() => Linking.openURL('https://apps.apple.com')}
+          showArrow
+          isLast={false}
+        />
+        <SettingsRow
+          icon={<Icon />}
+          label="Follow on Instagram"
+          onPress={() => Linking.openURL('https://instagram.com')}
+          showArrow
+          isLast={false}
+        />
+        <SettingsRow
+          icon={<Icon />}
+          label="Share Longhorn Living"
+          onPress={handleShare}
+          showChevron
+          isLast
+        />
+      </SettingsCard>
+
+      {/* ── SIGN OUT ── */}
+      <SectionLabel title="" />
+      <SettingsCard>
+        <SettingsRow
+          label="Sign Out"
+          onPress={handleSignOut}
+          danger
+          isLast
+        />
+      </SettingsCard>
+
+      <Text style={styles.appVersion}>Longhorn Living v1.0</Text>
+
+      {/* ── Appearance Picker Modal ── */}
+      <AppearancePicker
+        visible={showAppearancePicker}
+        current={appearance}
+        onSelect={setAppearance}
+        onClose={() => setShowAppearancePicker(false)}
+      />
     </ScrollView>
   );
 }
+
+// ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
   container: {
@@ -468,217 +481,284 @@ const styles = StyleSheet.create({
     backgroundColor: '#f2f2f6',
   },
   content: {
-    padding: 20,
+    paddingHorizontal: 20,
     paddingTop: 60,
-    paddingBottom: 120
+    paddingBottom: 120,
   },
-  header: {
+
+  // Page title
+  pageTitle: {
+    fontSize: 34,
+    fontWeight: '700',
+    color: '#000',
+    marginBottom: 24,
+  },
+
+  // Profile header
+  profileHeader: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 32,
+    backgroundColor: '#fff',
+    borderRadius: 14,
+    padding: 16,
+    marginBottom: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
   },
   avatarContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     backgroundColor: '#BF5700',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
+    marginRight: 14,
   },
   avatarText: {
-    fontSize: 36,
-    fontWeight: 'bold',
+    fontSize: 24,
+    fontWeight: '700',
     color: '#fff',
   },
-  emailText: {
-    fontSize: 20,
+  profileInfo: {
+    flex: 1,
+  },
+  profileEmail: {
+    fontSize: 16,
     fontWeight: '600',
     color: '#000',
-    marginBottom: 4,
+    marginBottom: 3,
   },
-  memberSince: {
-    fontSize: 14,
+  profileSub: {
+    fontSize: 13,
     color: '#6b7280',
-    width: '100%',
-    textAlign: 'center',
-    paddingHorizontal: 20,
   },
-  verificationAlert: {
+
+  // Verification banner
+  verificationBanner: {
     backgroundColor: '#fef3c7',
     borderRadius: 12,
-    padding: 16,
-    marginBottom: 24,
+    padding: 14,
+    marginBottom: 8,
     borderWidth: 1,
     borderColor: '#f59e0b',
   },
-  verificationAlertTitle: {
-    fontSize: 16,
+  verificationTitle: {
+    fontSize: 15,
     fontWeight: '700',
     color: '#92400e',
     marginBottom: 4,
   },
-  verificationAlertText: {
-    fontSize: 14,
+  verificationSub: {
+    fontSize: 13,
     color: '#92400e',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   verificationButtons: {
     flexDirection: 'row',
     gap: 8,
   },
-  verificationButton: {
+  verificationBtn: {
     flex: 1,
     backgroundColor: '#fff',
-    paddingVertical: 10,
-    paddingHorizontal: 16,
+    paddingVertical: 9,
     borderRadius: 8,
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#BF5700',
-    minHeight: 40,
+    minHeight: 36,
     justifyContent: 'center',
   },
-  verificationButtonText: {
+  verificationBtnText: {
     color: '#BF5700',
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
   },
-  section: {
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#000',
-    marginBottom: 12,
-  },
-  infoCard: {
-    backgroundColor: '#f9fafb',
-    borderRadius: 12,
-    padding: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 8,
-  },
-  borderTop: {
-    borderTopWidth: 0,
-    borderTopColor: '#f3f4f6',
-  },
-  infoLabel: {
-    fontSize: 15,
-    color: '#000000',
-    fontWeight: '500',
-  },
-  infoValue: {
-    fontSize: 15,
-    color: '#000',
-    fontWeight: '500',
-    flex: 1,
-    textAlign: 'right',
-    paddingLeft: 54,
 
+  // Section label
+  sectionLabel: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#929298',
+    marginTop: 20,
+    marginBottom: 6,
+    marginLeft: 4,
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
   },
-  verified: {
-    color: '#10b981',
-  },
-  notVerified: {
-    color: '#f59e0b',
-  },
-  locationSearchInput: {
-    flex: 1,
-    fontSize: 12,
-    color: '#000',
-    padding: 8,
-    backgroundColor: '#f3f4f6',
-    borderRadius: 8,
-  },
-  searchResultsContainer: {
-    marginTop: 8,
-    maxHeight: 150,
-  },
-  searchResultItem: {
-    padding: 13,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
-  },
-  searchResultText: {
-    fontSize: 14,
-    color: '#000',
-  },
-  locationButtonsContainer: {
-    flexDirection: 'row',
-    gap: 8,
-    marginTop: 12,
-  },
-  locationButton: {
-    flex: 1,
-    backgroundColor: '#f9fafb',
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-  },
-  resetButton: {
-    backgroundColor: '#f9fafb',
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-  },
-  locationButtonText: {
-    color: '#BF5700',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  redoPreferencesButton: {
-    backgroundColor: '#f9fafb',
-    paddingVertical: 16,
-    paddingHorizontal: 10, 
-    borderRadius: 12,
-    alignItems: 'flex-start',
-    borderWidth: 0,
-    borderColor: '#ffffff',
+
+  // Card
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 14,
+    overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
     elevation: 2,
   },
-  redoPreferencesText: {
-    color: '#000000',
-    fontSize: 15,
-    fontWeight: '500',
-  },
-  redoDescription: {
+  cardNote: {
     fontSize: 12,
     color: '#6b7280',
-    textAlign: 'center',
-    marginTop: 8,
-    paddingHorizontal: 12,
+    marginTop: 6,
+    marginLeft: 4,
+    lineHeight: 16,
   },
-  signOutButton: {
-    backgroundColor: '#ef4444',
-    paddingVertical: 16,
-    borderRadius: 12,
+
+  // Row
+  row: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 16,
+    paddingVertical: 13,
+    paddingHorizontal: 16,
+    minHeight: 50,
   },
-  signOutText: {
-    color: '#fff',
+  rowIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 6,
+    //backgroundColor: '#fff3ec',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 6,
+  },
+  rowLabel: {
+    flex: 1,
+    fontSize: 15,
+    color: '#000',
+    fontWeight: '400',
+  },
+  rowLabelNoIcon: {
+    marginLeft: 0,
+  },
+  rowLabelDanger: {
+    color: '#ef4444',
+    textAlign: 'center',
+    fontWeight: '500',
+  },
+  rowRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  rowValue: {
+    fontSize: 14,
+    color: '#6b7280',
+    maxWidth: 160,
+    textAlign: 'right',
+  },
+  chevron: {
+    fontSize: 20,
+    color: '#c7c7cc',
+    marginLeft: 4,
+    lineHeight: 22,
+  },
+  externalArrow: {
+    fontSize: 14,
+    color: '#c7c7cc',
+    marginLeft: 4,
+  },
+  separator: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: '#e5e7eb',
+    marginLeft: 56,
+  },
+
+  // Location editing
+  locationSearchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  locationInput: {
+    flex: 1,
+    fontSize: 14,
+    color: '#000',
+    backgroundColor: '#f3f4f6',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  locationResult: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  locationResultText: {
+    fontSize: 14,
+    color: '#000',
+  },
+  locationActions: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 8,
+  },
+  locationActionBtn: {
+    flex: 1,
+    backgroundColor: '#fff',
+    paddingVertical: 11,
+    borderRadius: 10,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  locationActionText: {
+    color: '#BF5700',
     fontSize: 14,
     fontWeight: '600',
   },
+
+  // Appearance picker
+  pickerOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.35)',
+  },
+  pickerBox: {
+    backgroundColor: '#fff',
+    borderRadius: 14,
+    width: 240,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.18,
+    shadowRadius: 16,
+    elevation: 10,
+  },
+  pickerOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+  },
+  pickerOptionBorder: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#e5e7eb',
+  },
+  pickerCheck: {
+    fontSize: 16,
+    color: '#BF5700',
+    marginRight: 12,
+    width: 20,
+  },
+  pickerOptionText: {
+    fontSize: 16,
+    color: '#000',
+  },
+  pickerOptionSelected: {
+    color: '#BF5700',
+    fontWeight: '600',
+  },
+
+  // App version
   appVersion: {
     textAlign: 'center',
     fontSize: 12,
     color: '#9ca3af',
-    marginTop: 24,
+    marginTop: 28,
   },
 });
