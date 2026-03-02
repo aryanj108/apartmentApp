@@ -491,10 +491,24 @@ useEffect(() => {
             }
           }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <ExternalLinkIcon width={24} height={24} fill="#BF5700" />
-              <Text style={styles.viewOriginalButtonText}>Visit Apartment Website</Text>
+                <MaskedView maskElement={<ExternalLinkIcon width={24} height={24} fill="#000000" />}>
+                  <LinearGradient
+                    colors={['#FF8C42', '#BF5700', '#994400']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={{ width: 24, height: 24 }}
+                  />
+                </MaskedView>
+                <Text style={styles.viewOriginalButtonText}>Visit Apartment Website</Text>
               </View>
-              <ArrowUpRightIcon width={25} height={25} stroke="#8B6F47" />
+              <MaskedView maskElement={<ArrowUpRightIcon width={25} height={25} fill="#000000" />}>
+                <LinearGradient
+                  colors={['#FF8C42', '#BF5700', '#994400']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={{ width: 25, height: 25 }}
+                />
+              </MaskedView>
             </TouchableOpacity>
         </View>
       )}

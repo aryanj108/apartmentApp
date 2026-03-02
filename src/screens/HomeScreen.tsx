@@ -85,7 +85,14 @@ function ApartmentCard({ listing, matchScore, onPress, isSaved, onSavePress }) {
           {/* Floating Save Button */}
           {isSaved && (
             <View style={styles.saveBadge}>
-              <Heart width={24} height={24} fill="#BF5700" />
+              <MaskedView maskElement={<Heart width={24} height={24} fill="#000000" />}>
+                <LinearGradient
+                  colors={['#FF8C42', '#BF5700', '#994400']}
+                  start={{ x: 0, y: 1 }}
+                  end={{ x: 0, y: 0 }}
+                  style={{ width: 24, height: 24 }}
+                />
+              </MaskedView>
             </View>
           )}
           {matchScore && (
@@ -658,10 +665,24 @@ export default function Home({ navigation }) {
           onPress={() => navigation.navigate('Search', { resetMap: true, timestamp: Date.now() })}
         >
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <ExternalLinkIcon width={24} height={24} fill="#BF5700" />
+            <MaskedView maskElement={<ExternalLinkIcon width={24} height={24} fill="#000000" />}>
+              <LinearGradient
+                colors={['#FF8C42', '#BF5700', '#994400']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={{ width: 24, height: 24 }}
+              />
+            </MaskedView>
             <Text style={styles.browseAllButtonText}>Search for Apartments</Text>
           </View>
-          <ArrowUpRightIcon width={25} height={25} stroke="#8B6F47" />
+          <MaskedView maskElement={<ArrowUpRightIcon width={25} height={25} fill="#000000" />}>
+            <LinearGradient
+              colors={['#FF8C42', '#BF5700', '#994400']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={{ width: 25, height: 25 }}
+            />
+          </MaskedView>
         </TouchableOpacity>
       </View>
       <View style={{ height: 110 }} />  
