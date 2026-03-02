@@ -493,10 +493,11 @@ const styles = StyleSheet.create({
 
   // Page title
   pageTitle: {
-    fontSize: 34,
-    fontWeight: '700',
+    fontSize: 18,
+    fontWeight: '500',
     color: '#000',
-    marginBottom: 24,
+    marginBottom: 14,
+    textAlign: 'center'
   },
 
   // Profile header
