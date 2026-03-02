@@ -23,6 +23,11 @@ import { db } from '../config/firebaseConfig';
 
 import Stars from '../../assets/stars.svg';
 import InfoIcon from '../../assets/infoIcon.svg'
+import WrenchIcon from '../../assets/wrenchIcon.svg'
+import ContactIcon from '../../assets/contactIcon.svg'
+import RateIcon from '../../assets/starsProfileIcon.svg'
+import InstagramIcon from '../../assets/instagramIcon.svg'
+import ShareIcon from '../../assets/shareIcon1.svg';
 
 const ICON_SIZE = 20;
 
@@ -271,7 +276,7 @@ export default function Profile({ navigation }: any) {
       keyboardShouldPersistTaps="handled"
     >
       {/* ── Page Title ── */}
-      <Text style={styles.pageTitle}>Settings</Text>
+      <Text style={styles.pageTitle}>Profile</Text>
 
       {/* ── Profile Header ── */}
       <View style={styles.profileHeader}>
@@ -408,7 +413,7 @@ export default function Profile({ navigation }: any) {
           isLast={false}
         />
         <SettingsRow
-          icon={<Icon />}
+          icon={<WrenchIcon width={ICON_SIZE} height={ICON_SIZE} fill="#6b7280" />}
           label="Developer"
           value="Aryan Jalota"
           isLast
@@ -420,28 +425,28 @@ export default function Profile({ navigation }: any) {
       <SectionLabel title="Support" />
       <SettingsCard>
         <SettingsRow
-          icon={<Icon />}
+          icon={<ContactIcon width={ICON_SIZE} height={ICON_SIZE} fill="#6b7280" />}
           label="Contact Support"
           onPress={() => Linking.openURL('mailto:support@longhornliving.com')}
           showArrow
           isLast={false}
         />
         <SettingsRow
-          icon={<Icon />}
+          icon={<RateIcon width={ICON_SIZE} height={ICON_SIZE} fill="#6b7280" />}
           label="Rate Longhorn Living"
           onPress={() => Linking.openURL('https://apps.apple.com')}
           showArrow
           isLast={false}
         />
         <SettingsRow
-          icon={<Icon />}
+          icon={<InstagramIcon width={ICON_SIZE} height={ICON_SIZE} stroke="#6b7280" />}
           label="Follow on Instagram"
           onPress={() => Linking.openURL('https://instagram.com')}
           showArrow
           isLast={false}
         />
         <SettingsRow
-          icon={<Icon />}
+          icon={<ShareIcon width={ICON_SIZE} height={ICON_SIZE} stroke="#6b7280" />}
           label="Share Longhorn Living"
           onPress={handleShare}
           showChevron
@@ -585,7 +590,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
     marginBottom: 6,
     marginLeft: 4,
-    textTransform: 'uppercase',
+    //textTransform: 'uppercase',
     letterSpacing: 0.4,
   },
 
