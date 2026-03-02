@@ -130,6 +130,34 @@ function ApartmentCard({ listing, matchScore, onPress, isSaved, onSavePress }) {
                 <Text style={styles.cardDetailText}>{listing.bathrooms} Bath</Text>
               </View>
             </View>
+            
+            {/*
+            <View style={styles.cardDetailsRow}>
+              <View style={styles.leftDetails}>
+                <View style={styles.cardDetailItem}>
+                  <MaskedView maskElement={<BedIcon width={16} height={16} fill="#000000" />}>
+                    <LinearGradient
+                      colors={['#FF8C42', '#BF5700', '#994400']}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                      style={{ width: 16, height: 16 }}
+                    />
+                  </MaskedView>
+                  <Text style={styles.cardDetailText}>{listing.bedrooms} Bed</Text>
+                </View>
+                <View style={styles.cardDetailItem}>
+                  <MaskedView maskElement={<BathIcon width={16} height={16} fill="#000000" />}>
+                    <LinearGradient
+                      colors={['#FF8C42', '#BF5700', '#994400']}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                      style={{ width: 16, height: 16 }}
+                    />
+                  </MaskedView>
+                  <Text style={styles.cardDetailText}>{listing.bathrooms} Bath</Text>
+                </View>
+              </View>
+            */}
             <MaskedView
               maskElement={
                 <Text style={styles.cardPrice}>${formatPrice(listing.price)}</Text>
