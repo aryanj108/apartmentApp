@@ -22,6 +22,7 @@ import ArrowUpRightIcon from '../../assets/arrowUp.svg';
 import { buildingsData } from '../data/buildings';
 import * as Clipboard from 'expo-clipboard';
 import { calculateDistance } from '../navigation/locationUtils';
+import MaskedView from '@react-native-masked-view/masked-view';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 import ImageCarousel from '../navigation/ImageCarousel';
@@ -215,7 +216,21 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
               )}
             </View>
             <View style={styles.rightInfo}>
-              <Text style={styles.price}>${formatPrice(listing.price)}</Text>
+                                      <MaskedView
+                            maskElement={
+                              <Text style={styles.price}>${formatPrice(listing.price)}</Text>
+                            }
+                          >
+                            <LinearGradient
+                              colors={['#FF8C42', '#BF5700', '#994400']}
+                              start={{ x: 0, y: 0 }}
+                              end={{ x: 1, y: 0 }}
+                            >
+                              <Text style={[styles.price, { opacity: 0 }]}>
+                                ${formatPrice(listing.price)}
+                              </Text>
+                            </LinearGradient>
+                          </MaskedView>
               <Text style={styles.perMonth}>per month</Text>
             </View>
           </View>
@@ -256,34 +271,43 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
 
 
         <View style={styles.chipsContainer}>
-          {details.map((detail) => {
-            // Make distance chip pressable
-            if (detail.id === 'distance') {
-              return (
-                <TouchableOpacity 
-                  key={detail.id} 
-                  style={styles.chip}
-                  onPress={() => openMaps(roomData.address)}
-                  activeOpacity={0.7}
-                >
-                  <View style={styles.chipContent}>
-                    <detail.icon width={24} height={24} />
-                    <Text style={styles.chipText}>{detail.label}</Text>
-                  </View>
-                </TouchableOpacity>
-              );
-            }
-            
-            // Other chips remain non-pressable
+        {details.map((detail) => {
+          const iconElement = (
+            <MaskedView maskElement={<detail.icon width={24} height={24} fill="#000000" />}>
+              <LinearGradient
+                colors={['#FF8C42', '#BF5700', '#994400']}
+                start={{ x: 0, y: 1 }}
+                end={{ x: 1, y: 0 }}
+                style={{ width: 24, height: 24 }}
+              />
+            </MaskedView>
+          );
+
+          if (detail.id === 'distance') {
             return (
-              <View key={detail.id} style={styles.chip}>
+              <TouchableOpacity 
+                key={detail.id} 
+                style={styles.chip}
+                onPress={() => openMaps(roomData.address)}
+                activeOpacity={0.7}
+              >
                 <View style={styles.chipContent}>
-                  <detail.icon width={24} height={24} fill="#BF5700"/>
+                  {iconElement}
                   <Text style={styles.chipText}>{detail.label}</Text>
                 </View>
-              </View>
+              </TouchableOpacity>
             );
-          })}
+          }
+
+          return (
+            <View key={detail.id} style={styles.chip}>
+              <View style={styles.chipContent}>
+                {iconElement}
+                <Text style={styles.chipText}>{detail.label}</Text>
+              </View>
+            </View>
+          );
+        })}
         </View>
           
         <View style={styles.separator} />
