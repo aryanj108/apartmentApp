@@ -188,9 +188,23 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
         >
           <BlurView intensity={80} style={styles.circularButton} tint="light">
             {isSaved ? (
-              <SaveFilledIconHeart width={22} height={22} fill="#BF5700"/>
+              <MaskedView maskElement={<SaveFilledIconHeart width={22} height={22} fill="#000000" />}>
+                <LinearGradient
+                  colors={['#FF8C42', '#BF5700', '#994400']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={{ width: 22, height: 22 }}
+                />
+              </MaskedView>
             ) : (
-              <SaveOutlineIconHeart width={22} height={22} stroke="#000000" />
+              <MaskedView maskElement={<SaveOutlineIconHeart width={22} height={22} fill="#000000" />}>
+                <LinearGradient
+                  colors={['#FF8C42', '#BF5700', '#994400']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={{ width: 22, height: 22 }}
+                />
+              </MaskedView>
             )}
           </BlurView>
         </TouchableOpacity>
@@ -418,10 +432,24 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
               style={styles.viewOriginalButton}
             >
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <ExternalLinkIcon width={24} height={24} fill="#BF5700" />
-              <Text style={styles.viewOriginalButtonText}>View Original Listing</Text>
+                <MaskedView maskElement={<ExternalLinkIcon width={24} height={24} fill="#000000" />}>
+                  <LinearGradient
+                    colors={['#FF8C42', '#BF5700', '#994400']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={{ width: 24, height: 24 }}
+                  />
+                </MaskedView>
+                <Text style={styles.viewOriginalButtonText}>View Original Listing</Text>
               </View>
-              <ArrowUpRightIcon width={25} height={25} stroke="#BF5700" />
+              <MaskedView maskElement={<ArrowUpRightIcon width={25} height={25} fill="#000000" />}>
+                <LinearGradient
+                  colors={['#FF8C42', '#BF5700', '#994400']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={{ width: 25, height: 25 }}
+                />
+              </MaskedView>
             </TouchableOpacity>
 
             {/* Row with Save Button and View Apartment Details */}
@@ -441,19 +469,33 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
                 style={styles.bottomSaveButton}
                 activeOpacity={0.8}
               >
-                <View style={isSaved ? styles.saveButtonContent : styles.saveButtonContent}>
-                  {isSaved ? (
-                    <>
-                      <SaveFilledIconHeart width={20} height={20} fill="#BF5700"/>
-                      <Text style={styles.saveButtonText}>Saved</Text>
-                    </>
-                  ) : (
-                    <>
-                      <SaveOutlineIconHeart width={20} height={20} stroke="#BF5700" />
-                      <Text style={styles.saveButtonText}>Save</Text>
-                    </>
-                  )}
-                </View>
+              <View style={styles.saveButtonContent}>
+                {isSaved ? (
+                  <>
+                    <MaskedView maskElement={<SaveFilledIconHeart width={20} height={20} fill="#000000" />}>
+                      <LinearGradient
+                        colors={['#FF8C42', '#BF5700', '#994400']}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 0 }}
+                        style={{ width: 20, height: 20 }}
+                      />
+                    </MaskedView>
+                    <Text style={styles.saveButtonText}>Saved</Text>
+                  </>
+                ) : (
+                  <>
+                    <MaskedView maskElement={<SaveOutlineIconHeart width={20} height={20} fill="#000000" />}>
+                      <LinearGradient
+                        colors={['#FF8C42', '#BF5700', '#994400']}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 0 }}
+                        style={{ width: 20, height: 20 }}
+                      />
+                    </MaskedView>
+                    <Text style={styles.saveButtonText}>Save</Text>
+                  </>
+                )}
+              </View>
               </TouchableOpacity>
 
               {/* View Apartment Details Button */}
@@ -470,12 +512,19 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
         )}
       </ScrollView>
       <TouchableOpacity 
-            style={styles.backButtonOverlay}
-            onPress={() => navigation.goBack()}
-          >
-            <BlurView intensity={80} style={styles.circularButton} tint="light">
-              <BackIcon width={22} height={22} fill="#000000"/>
-            </BlurView>
+        style={styles.backButtonOverlay}
+        onPress={() => navigation.goBack()}
+      >
+        <BlurView intensity={80} style={styles.circularButton} tint="light">
+          <MaskedView maskElement={<BackIcon width={22} height={22} fill="#000000" />}>
+            <LinearGradient
+              colors={['#FF8C42', '#BF5700', '#994400']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={{ width: 22, height: 22 }}
+            />
+          </MaskedView>
+        </BlurView>
       </TouchableOpacity>
     </View>
   );

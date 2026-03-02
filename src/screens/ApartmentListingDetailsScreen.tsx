@@ -21,7 +21,7 @@ import { buildingsData } from '../data/buildings';
 import { listingsData } from '../data/listings';
 import { calculateMatchScore } from '../data/matchingAlgorithm';
 import BedIcon from '../../assets/bedFilledIcon.svg';
-import DistanceIcon from '../../assets/distanceIcon(2).svg';
+import DistanceIcon from '../../assets/arrowFilledIcon.svg';
 import BathIcon from '../../assets/bathFilledIcon.svg';
 import DescriptionIcon from '../../assets/descriptionIcon.svg';
 import ReviewIcon from '../../assets/reviewIcon.svg';
@@ -280,9 +280,25 @@ useEffect(() => {
               activeOpacity={0.8}
               delayPressIn={0}
             >
+
               <BlurView intensity={80} style={styles.distanceButtonBlur} tint="light">
-                <DistanceIcon width={20} height={20} />
-                <Text style={styles.distanceText}>{calculatedDistance} mi</Text>
+                <MaskedView maskElement={<DistanceIcon width={20} height={20} fill="#000000" />}>
+                  <LinearGradient
+                    colors={['#FF8C42', '#BF5700', '#994400']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={{ width: 20, height: 20 }}
+                  />
+                </MaskedView>
+                <MaskedView maskElement={<Text style={styles.distanceText}>{calculatedDistance} mi</Text>}>
+                  <LinearGradient
+                    colors={['#FF8C42', '#BF5700', '#994400']}
+                    start={{ x: 1, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                  >
+                    <Text style={[styles.distanceText, { opacity: 0 }]}>{calculatedDistance} mi</Text>
+                  </LinearGradient>
+                </MaskedView>
               </BlurView>
             </TouchableOpacity>
           </View>
@@ -485,12 +501,19 @@ useEffect(() => {
 
       </ScrollView>
       <TouchableOpacity 
-      style={styles.backButtonOverlay}
-      onPress={() => navigation.goBack()}
-          >
-          <BlurView intensity={80} style={styles.circularButton} tint="light">
-          <BackIcon width={22} height={22} fill="#000000"/>
-          </BlurView>
+        style={styles.backButtonOverlay}
+        onPress={() => navigation.goBack()}
+      >
+        <BlurView intensity={80} style={styles.circularButton} tint="light">
+          <MaskedView maskElement={<BackIcon width={22} height={22} fill="#000000" />}>
+            <LinearGradient
+              colors={['#FF8C42', '#BF5700', '#994400']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={{ width: 22, height: 22 }}
+            />
+          </MaskedView>
+        </BlurView>
       </TouchableOpacity>
     </View>
   );
@@ -558,7 +581,7 @@ const styles = StyleSheet.create({
   },
   distanceText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '700',
     color: '#000000',
   },
   saveBadge: {
