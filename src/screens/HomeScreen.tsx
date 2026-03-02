@@ -25,8 +25,8 @@ import { usePreferences } from '../context/PreferencesContext';
 import { calculateMatchScore, getMatchColor } from '../data/matchingAlgorithm';
 import { useAuth } from '../context/AuthContext';
 
-import BedIcon from '../../assets/bedIcon.svg';
-import BathIcon from '../../assets/bathIcon.svg';
+import BedIcon from '../../assets/bedFilledIcon.svg';
+import BathIcon from '../../assets/bathFilledIcon.svg';
 import Stars from '../../assets/stars.svg';
 import Heart from '../../assets/heart.svg';
 import Logo from '../../assets/longhornLivingIcon1.png';
@@ -119,17 +119,19 @@ function ApartmentCard({ listing, matchScore, onPress, isSaved, onSavePress }) {
             </Text>
           </View>
 
+          
           <View style={styles.cardDetailsRow}>
             <View style={styles.leftDetails}>
               <View style={styles.cardDetailItem}>
-                <BedIcon width={16} height={16} />
+                <BedIcon width={16} height={16} fill="#BF5700"/>
                 <Text style={styles.cardDetailText}>{listing.bedrooms} Bed</Text>
               </View>
               <View style={styles.cardDetailItem}>
-                <BathIcon width={16} height={16} />
+                <BathIcon width={16} height={16} fill="#BF5700" />
                 <Text style={styles.cardDetailText}>{listing.bathrooms} Bath</Text>
               </View>
             </View>
+            
             
             {/*
             <View style={styles.cardDetailsRow}>
@@ -156,8 +158,8 @@ function ApartmentCard({ listing, matchScore, onPress, isSaved, onSavePress }) {
                   </MaskedView>
                   <Text style={styles.cardDetailText}>{listing.bathrooms} Bath</Text>
                 </View>
-              </View>
-            */}
+              </View>*/}
+            
             <MaskedView
               maskElement={
                 <Text style={styles.cardPrice}>${formatPrice(listing.price)}</Text>

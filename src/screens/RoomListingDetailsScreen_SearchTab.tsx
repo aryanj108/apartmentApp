@@ -2,9 +2,9 @@ import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Dimensions, ScrollView, TouchableOpacity, Alert, Animated, Linking, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
-import BedIcon from '../../assets/bedIcon.svg';
+import BedIcon from '../../assets/bedFilledIcon.svg';
 import DistanceIcon from '../../assets/distanceIcon(2).svg';
-import BathIcon from '../../assets/bathIcon.svg';
+import BathIcon from '../../assets/bathFilledIcon.svg';
 import DescriptionIcon from '../../assets/descriptionIcon.svg';
 import ReviewIcon from '../../assets/reviewIcon.svg';
 import FeaturesIcon from '../../assets/featuresIcon.svg';
@@ -278,7 +278,7 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
             return (
               <View key={detail.id} style={styles.chip}>
                 <View style={styles.chipContent}>
-                  <detail.icon width={24} height={24} />
+                  <detail.icon width={24} height={24} fill="#BF5700"/>
                   <Text style={styles.chipText}>{detail.label}</Text>
                 </View>
               </View>
@@ -579,7 +579,7 @@ const styles = StyleSheet.create({
   },
   address: {
     fontSize: 14,
-    color: '#6b7280',
+    color: '#8e8e91',
   },
   rightInfo: {
     marginLeft: 16,
@@ -610,8 +610,8 @@ const styles = StyleSheet.create({
   },
   chipText: {
     fontSize: 12,
-    color: '#000000ff',
-    fontWeight: '800',
+    color: '#8e8e91',
+    fontWeight: '400',
   },
   chipContent: {
     flexDirection: 'column',
@@ -781,7 +781,7 @@ const styles = StyleSheet.create({
   },
   sqftText: {
     fontSize: 14,
-    color: '#6b7280',
+    color: '#8e8e91',
   },
   contactItem: {
     marginBottom: 12,
@@ -805,7 +805,7 @@ const styles = StyleSheet.create({
   },
   perMonth: {
     fontSize: 12,
-    color: '#6b7280',
+    color: '#8e8e91',
     marginTop: 2,
   },
   separator: {
