@@ -108,8 +108,21 @@ function UnitCard({ listing, matchScore, onPress }) {
               <Text style={styles.unitDetailText}>{listing.bathrooms} Bath</Text>
             </View>
           </View>
-
-          <Text style={styles.unitPrice}>${formatPrice(listing.price)}/mo</Text>
+          <MaskedView
+            maskElement={
+              <Text style={styles.unitPrice}>${formatPrice(listing.price)}/mo</Text>
+            }
+          >
+            <LinearGradient
+              colors={['#FF8C42', '#BF5700', '#994400']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+            >
+              <Text style={[styles.unitPrice, { opacity: 0 }]}>
+                ${formatPrice(listing.price)}/mo
+              </Text>
+            </LinearGradient>
+          </MaskedView>
         </View>
       </View>
     </TouchableOpacity>
