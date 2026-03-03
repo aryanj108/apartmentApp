@@ -668,9 +668,10 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   separator: {
-    height: StyleSheet.hairlineWidth,
+    height: 1,
     backgroundColor: '#e5e7eb',
-    marginLeft: 56,
+    marginLeft: 16,
+    marginRight: 16,
   },
 
   // Location editing
