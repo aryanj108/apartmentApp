@@ -16,16 +16,21 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../context/AuthContext';
 import EyeOffOutline from '../../assets/eye-off-outline.svg';
 import EyeOpenOutline from '../../assets/eye-open.svg';
-import LoginLogo from '../../assets/loginLogo.svg'; 
+import LoginLogo from '../../assets/loginLogo.svg';
 import CancelIcon from '../../assets/cancel-svg.svg';
 import CustomLoadingScreen from './CustomLoadingScreen';
 
 const { width, height } = Dimensions.get('window');
+
+// Scales any size value relative to a 375px baseline so layout stays
+// proportional across different screen sizes
 const scale = (size: number) => (width / 375) * size;
 
+// Maps Firebase error codes to user-friendly messages so we never
+// surface raw technical errors like "auth/invalid-credential" in the UI
 const getErrorMessage = (error: any): string => {
   const errorCode = error.code || '';
-    
+
   switch (errorCode) {
     case 'auth/invalid-email':
       return 'Invalid email address format';
@@ -52,22 +57,27 @@ const getErrorMessage = (error: any): string => {
   }
 };
 
-// Animated Input Component
-const AnimatedInput = ({ 
-  placeholder, 
-  value, 
-  onChangeText, 
-  secureTextEntry, 
+// A text input with a floating label that animates up and shrinks when the
+// field is focused or has a value — similar to Material Design's outlined input.
+// Also supports an optional clear button and a show/hide password toggle.
+const AnimatedInput = ({
+  placeholder,
+  value,
+  onChangeText,
+  secureTextEntry,
   autoCapitalize = 'none',
   keyboardType = 'default',
   autoComplete,
   showPasswordToggle = false,
   showPassword,
   onTogglePassword,
-  showClearButton = false,  
+  showClearButton = false,
   onClear,
 }: any) => {
   const [isFocused, setIsFocused] = useState(false);
+
+  // animatedValue drives both the label's font size and vertical position.
+  // 0 = resting (full size, centered in the input), 1 = active (small, at the top).
   const animatedValue = useRef(new Animated.Value(value ? 1 : 0)).current;
 
   const handleFocus = () => {
@@ -81,6 +91,8 @@ const AnimatedInput = ({
 
   const handleBlur = () => {
     setIsFocused(false);
+    // Only animate back down if the field is empty — if it has a value,
+    // the label should stay small so it doesn't cover the text
     if (!value) {
       Animated.timing(animatedValue, {
         toValue: 0,
@@ -90,6 +102,8 @@ const AnimatedInput = ({
     }
   };
 
+  // Interpolate font size and position from the animated value so the label
+  // smoothly floats upward as the user focuses the input
   const labelStyle = {
     position: 'absolute' as 'absolute',
     left: scale(16),
@@ -128,9 +142,9 @@ const AnimatedInput = ({
         autoComplete={autoComplete}
       />
 
-      {/* Clear Button */}
+      {/* Clear button — only visible while the field is focused and has text */}
       {showClearButton && value.length > 0 && isFocused && (
-        <Pressable 
+        <Pressable
           style={styles.clearButton}
           onPress={onClear}
         >
@@ -138,8 +152,9 @@ const AnimatedInput = ({
         </Pressable>
       )}
 
+      {/* Show/hide password toggle for the password field */}
       {showPasswordToggle && (
-        <Pressable 
+        <Pressable
           style={styles.eyeButton}
           onPress={onTogglePassword}
         >
@@ -157,13 +172,18 @@ const AnimatedInput = ({
 export default function LoginScreen({ navigation }: any) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
+  // Single screen handles both login and sign-up — isSignUp toggles between the two modes
   const [isSignUp, setIsSignUp] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  // localLoading drives the loading screen overlay independently from AuthContext's
+  // loading state so we can show it during the artificial 2s delay before auth fires
   const [localLoading, setLocalLoading] = useState(false);
-  
+
   const { signInWithEmail, signUpWithEmail, sendVerificationEmail, loading, error, setError } = useAuth();
 
-    const testLoading = () => {
+  const testLoading = () => {
     setLocalLoading(true);
     setTimeout(() => {
       setLocalLoading(false);
@@ -171,15 +191,18 @@ export default function LoginScreen({ navigation }: any) {
   };
 
   console.log('Loading state:', loading);
+
   const handleConfirm = async () => {
     console.log('handleConfirm called, loading:', loading);
     try {
       setError(null);
       setLocalLoading(true);
 
+      // Brief artificial delay so the loading screen is always visible long
+      // enough for the user to register it — avoids a jarring instant transition
       await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Validation
+
+      // Client-side validation before hitting Firebase — avoids unnecessary network calls
       if (!email.trim()) {
         Alert.alert('Error', 'Please enter your email address');
         setLocalLoading(false);
@@ -200,11 +223,11 @@ export default function LoginScreen({ navigation }: any) {
         setLocalLoading(false);
         return;
       }
-      
+
       if (isSignUp) {
         await signUpWithEmail(email, password);
-        
-        // Send verification email automatically
+
+        // Automatically send a verification email right after account creation
         try {
           await sendVerificationEmail();
           Alert.alert(
@@ -213,14 +236,15 @@ export default function LoginScreen({ navigation }: any) {
             [{ text: 'OK' }]
           );
         } catch (err) {
-          // Account was still created, just failed to send email
+          // The account was created successfully even if the verification email fails
           Alert.alert('Account Created', 'Account created successfully!');
         }
       } else {
         await signInWithEmail(email, password);
       }
-      
-      // Navigation happens automatically via AuthContext - no manual navigation needed!
+
+      // Navigation is handled automatically by AppNavigator watching auth state —
+      // no manual navigation.navigate() call needed here
     } catch (err: any) {
       console.error('Auth error:', err);
       const friendlyMessage = getErrorMessage(err);
@@ -228,115 +252,118 @@ export default function LoginScreen({ navigation }: any) {
         isSignUp ? 'Sign Up Failed' : 'Login Failed',
         friendlyMessage,
         [{ text: 'OK' }]
-      ); 
+      );
     } finally {
-      setLocalLoading(false); 
+      setLocalLoading(false);
     }
   };
 
-
   console.log('Current localLoading value:', localLoading);
+
   return (
-     <>
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <LinearGradient
-        colors={['#1a1a1a', '#2d1810', '#BF5700']}
-        style={styles.gradient}
-        start={{ x: 0.5, y: 1 }}
-        end={{ x: 0.5, y: 0 }}
+    <>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <View style={styles.container}>
-          {/* Logo */}
-          <View style={styles.logoContainer}>
-            <LoginLogo width={scale(200)} height={scale(200)}/>
-          </View>
+        <LinearGradient
+          colors={['#1a1a1a', '#2d1810', '#BF5700']}
+          style={styles.gradient}
+          start={{ x: 0.5, y: 1 }}
+          end={{ x: 0.5, y: 0 }}
+        >
+          <View style={styles.container}>
 
-          {/* Input Fields */}
-          <View style={styles.inputContainer}>
-            <AnimatedInput
-              placeholder="Email"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoComplete="email"
-              showClearButton={true}        
-              onClear={() => setEmail('')}
-            />
+            <View style={styles.logoContainer}>
+              <LoginLogo width={scale(200)} height={scale(200)}/>
+            </View>
 
-            <AnimatedInput
-              placeholder="Password"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry={!showPassword}
-              autoComplete={isSignUp ? 'password-new' : 'password'}
-              showPasswordToggle={true}
-              showPassword={showPassword}
-              onTogglePassword={() => setShowPassword(!showPassword)}
-            />
+            <View style={styles.inputContainer}>
+              <AnimatedInput
+                placeholder="Email"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoComplete="email"
+                showClearButton={true}
+                onClear={() => setEmail('')}
+              />
 
-            {/* Login Button */}
-            <Pressable
-              style={[styles.loginButton, localLoading  && styles.buttonDisabled]}
-              onPress={handleConfirm}
-              disabled={localLoading }
-            >
-              {localLoading  ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Text style={styles.loginButtonText} allowFontScaling={false}>
-                  {isSignUp ? 'Sign up' : 'Log in'}
-                </Text>
-              )}
-            </Pressable>
+              <AnimatedInput
+                placeholder="Password"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword}
+                autoComplete={isSignUp ? 'password-new' : 'password'}
+                showPasswordToggle={true}
+                showPassword={showPassword}
+                onTogglePassword={() => setShowPassword(!showPassword)}
+              />
 
-            {/* Forgot Password Link - only show on Sign In */}
-            {!isSignUp && (
+              {/* Disabled while loading to prevent duplicate submissions */}
               <Pressable
-                style={styles.forgotPasswordButton}
-                onPress={() => navigation.navigate('ForgotPassword')}
+                style={[styles.loginButton, localLoading && styles.buttonDisabled]}
+                onPress={handleConfirm}
+                disabled={localLoading}
               >
-                <Text style={styles.forgotPasswordText}>
-                  Forgot password?
+                {localLoading ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={styles.loginButtonText} allowFontScaling={false}>
+                    {isSignUp ? 'Sign up' : 'Log in'}
+                  </Text>
+                )}
+              </Pressable>
+
+              {/* Only shown in login mode — sign-up flow doesn't need this */}
+              {!isSignUp && (
+                <Pressable
+                  style={styles.forgotPasswordButton}
+                  onPress={() => navigation.navigate('ForgotPassword')}
+                >
+                  <Text style={styles.forgotPasswordText}>
+                    Forgot password?
+                  </Text>
+                </Pressable>
+              )}
+            </View>
+
+            {/* TEST BUTTON
+            <Pressable
+              style={styles.loginButton}
+              onPress={testLoading}
+            >
+              <Text style={styles.loginButtonText}>🧪 Test Loading Screen (5s)</Text>
+            </Pressable>*/}
+
+            <View style={styles.spacer} />
+
+            {/* Toggles between login and sign-up mode, clearing the form each time */}
+            <View style={styles.bottomContainer}>
+              <Pressable
+                style={styles.createAccountButton}
+                onPress={() => {
+                  setIsSignUp(!isSignUp);
+                  setError(null);
+                  setEmail('');
+                  setPassword('');
+                }}
+              >
+                <Text style={styles.createAccountText}>
+                  {isSignUp
+                    ? 'Already have an account? Log in'
+                    : 'Create new account'}
                 </Text>
               </Pressable>
-            )}
+            </View>
+
           </View>
+        </LinearGradient>
+      </KeyboardAvoidingView>
 
-          {/* TEST BUTTON 
-          <Pressable
-            style={styles.loginButton}
-            onPress={testLoading}
-          >
-            <Text style={styles.loginButtonText}>🧪 Test Loading Screen (5s)</Text>
-          </Pressable>*/}
-
-          {/* Spacer */}
-          <View style={styles.spacer} />
-
-          <View style={styles.bottomContainer}>
-          <Pressable
-            style={styles.createAccountButton}
-            onPress={() => {
-              setIsSignUp(!isSignUp);
-              setError(null);
-              setEmail('');      
-              setPassword('');
-            }}
-          >
-            <Text style={styles.createAccountText}>
-              {isSignUp 
-                ? 'Already have an account? Log in' 
-                : 'Create new account'}
-            </Text>
-          </Pressable>
-        </View>
-        </View>
-      </LinearGradient>
-    </KeyboardAvoidingView>
-  <CustomLoadingScreen visible={localLoading} />
+      {/* Rendered outside KeyboardAvoidingView so it covers the full screen including
+          the keyboard area — prevents the loading overlay from being pushed up */}
+      <CustomLoadingScreen visible={localLoading} />
     </>
   );
 }
@@ -376,7 +403,7 @@ const styles = StyleSheet.create({
   inputWithLabel: {
     paddingTop: scale(22),
   },
-  inputFocused: { 
+  inputFocused: {
     borderColor: '#cccccc',
   },
   eyeButton: {
@@ -429,11 +456,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   bottomContainer: {
-  paddingBottom: scale(90),
-  paddingHorizontal: scale(8),
-  alignItems: 'center',
+    paddingBottom: scale(90),
+    paddingHorizontal: scale(8),
+    alignItems: 'center',
   },
-  clearButton: {  
+  clearButton: {
     position: 'absolute',
     right: scale(16),
     top: scale(14),

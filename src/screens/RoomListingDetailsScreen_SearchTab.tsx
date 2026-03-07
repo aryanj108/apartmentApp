@@ -17,7 +17,7 @@ import SaveFilledIcon from '../../assets/filledInSaveIcon.svg';
 import SaveOutlineIconHeart from '../../assets/heartOutline.svg';
 import SaveFilledIconHeart from '../../assets/heart.svg';
 import StarIcon from '../../assets/stars.svg';
-import ExternalLinkIcon from '../../assets/compass.svg'; 
+import ExternalLinkIcon from '../../assets/compass.svg';
 import ArrowUpRightIcon from '../../assets/arrowUp.svg';
 import { buildingsData } from '../data/buildings';
 import * as Clipboard from 'expo-clipboard';
@@ -27,6 +27,7 @@ import MaskedView from '@react-native-masked-view/masked-view';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 import ImageCarousel from '../navigation/ImageCarousel';
 
+// Formats a number like 1800 into "1,800" for display
 function formatPrice(price) {
   return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
@@ -35,50 +36,51 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
   const { savedIds, toggleSave, preferences } = usePreferences();
   const { listing, matchScore } = route.params;
   const scoreValue = matchScore || 0;
+
+  // animatedWidth drives the match score progress bar — animates from 0 to the
+  // score value over 1 second when the screen first renders
   const animatedWidth = useRef(new Animated.Value(0)).current;
 
-    const copyToClipboard = async (text, label) => {
+  // Copies a string to the clipboard and shows a confirmation alert
+  const copyToClipboard = async (text, label) => {
     await Clipboard.setStringAsync(text);
     Alert.alert('Copied!', `${label} has been copied to your clipboard.`);
   };
-  // Helper function to open maps with directions
-  const openMaps = (destinationAddress: string) => {
-      // Use custom location if set in preferences, otherwise default to UT Austin
-      const destinationLatitude = preferences.location?.lat || 30.285340698031447;
-      const destinationLongitude = preferences.location?.lon || -97.73208396036748;
-      
-      // Encode the apartment address for URL (this is now the ORIGIN)
-      const encodedAddress = encodeURIComponent(destinationAddress);
-      
-      let url = '';
-      
-      if (Platform.OS === 'ios') {
-        // Apple Maps URL scheme - swapped saddr and daddr
-        url = `maps://app?saddr=${encodedAddress}&daddr=${destinationLatitude},${destinationLongitude}`;
-        
-        // Fallback to Google Maps on iOS if Apple Maps fails
-        const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodedAddress}&destination=${destinationLatitude},${destinationLongitude}`;
-        
-        Linking.canOpenURL(url).then(supported => {
-          if (supported) {
-            Linking.openURL(url);
-          } else {
-            Linking.openURL(googleMapsUrl);
-          }
-        }).catch(() => {
-          Linking.openURL(googleMapsUrl);
-        });
-      } else {
-        // Google Maps for Android - swapped origin and destination
-        url = `https://www.google.com/maps/dir/?api=1&origin=${encodedAddress}&destination=${destinationLatitude},${destinationLongitude}`;
-        
-        Linking.openURL(url).catch(err => {
-          Alert.alert('Error', 'Unable to open maps. Please make sure you have a maps app installed.');
-          console.error('Error opening maps:', err);
-        });
-      }
-    };
 
+  // Opens the native maps app with directions from the apartment address to the
+  // user's saved location (defaults to UT Austin if none is set).
+  // On iOS we try Apple Maps first and fall back to Google Maps if unavailable.
+  const openMaps = (destinationAddress: string) => {
+    const destinationLatitude = preferences.location?.lat || 30.285340698031447;
+    const destinationLongitude = preferences.location?.lon || -97.73208396036748;
+
+    const encodedAddress = encodeURIComponent(destinationAddress);
+    let url = '';
+
+    if (Platform.OS === 'ios') {
+      url = `maps://app?saddr=${encodedAddress}&daddr=${destinationLatitude},${destinationLongitude}`;
+      const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodedAddress}&destination=${destinationLatitude},${destinationLongitude}`;
+
+      Linking.canOpenURL(url).then(supported => {
+        if (supported) {
+          Linking.openURL(url);
+        } else {
+          Linking.openURL(googleMapsUrl);
+        }
+      }).catch(() => {
+        Linking.openURL(googleMapsUrl);
+      });
+    } else {
+      url = `https://www.google.com/maps/dir/?api=1&origin=${encodedAddress}&destination=${destinationLatitude},${destinationLongitude}`;
+
+      Linking.openURL(url).catch(err => {
+        Alert.alert('Error', 'Unable to open maps. Please make sure you have a maps app installed.');
+        console.error('Error opening maps:', err);
+      });
+    }
+  };
+
+  // Animate the progress bar to the match score on mount
   useEffect(() => {
     Animated.timing(animatedWidth, {
       toValue: scoreValue,
@@ -87,14 +89,18 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
     }).start();
   }, [scoreValue]);
 
+  // Map the animated 0–100 value to a 0%–100% width string for the progress bar
   const widthInterpolate = animatedWidth.interpolate({
     inputRange: [0, 100],
     outputRange: ['0%', '100%'],
   });
 
-  // Get the building data for this listing
+  // Look up the parent building record to pull address, images, and contact info —
+  // these fields live on the building, not the individual unit listing
   const building = buildingsData.find(b => b.id === listing.buildingId) || {};
 
+  // Calculate the real distance if the user has GPS coordinates; otherwise fall
+  // back to the static distance stored on the building record
   let calculatedDistance = building.distance || 0;
   if (preferences.location && building.latitude && building.longitude) {
     calculatedDistance = calculateDistance(
@@ -103,11 +109,12 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
       building.latitude,
       building.longitude
     );
-    // Round to 1 decimal place
     calculatedDistance = Math.round(calculatedDistance * 10) / 10;
   }
 
-  // Merge listing and building data
+  // Merge unit-level and building-level data into a single object so the JSX
+  // below only needs to reference one source. Unit fields take priority; building
+  // fields fill in anything the unit doesn't have.
   const roomData = {
     id: listing.id,
     buildingName: building.name,
@@ -117,11 +124,11 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
     bedrooms: listing.bedrooms || 0,
     bathrooms: listing.bathrooms || 0,
     distance: calculatedDistance,
-    description: (listing.description && listing.description.trim()) 
-      ? listing.description 
+    description: (listing.description && listing.description.trim())
+      ? listing.description
       : (building.description || 'No description available.'),
-    features: (listing.features && listing.features.length > 0) 
-      ? listing.features 
+    features: (listing.features && listing.features.length > 0)
+      ? listing.features
       : (building.features || []),
     images: building.images || [],
     contact: building.contact || {
@@ -138,11 +145,12 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
     sqft: listing.sqft,
     floorPlan: listing.floorPlan,
     smartHousing: listing.smartHousing,
-    moveInFee: listing.moveInFee  
+    moveInFee: listing.moveInFee
   };
 
   const isSaved = savedIds.includes(roomData.id);
 
+  // Navigates up to the building-level detail screen, passing the match score along
   const handleViewApartmentDetails = () => {
     navigation.navigate('ApartmentListingDetails', {
       listing: building,
@@ -158,6 +166,8 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
     }
   };
 
+  // The three stat chips shown below the listing info (beds, baths, distance).
+  // Distance is special-cased to be tappable — pressing it opens maps.
   const details = [
     { id: 'bed', label: `${roomData.bedrooms} Bed${roomData.bedrooms !== 1 ? 's' : ''}`, icon: BedIcon },
     { id: 'bath', label: `${roomData.bathrooms} Bath${roomData.bathrooms !== 1 ? 's' : ''}`, icon: BathIcon },
@@ -167,69 +177,70 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
   return (
     <View style={styles.container}>
       <ScrollView style={styles.content}>
-        {/* Image Gallery Section */}
+
+        {/* Image carousel with save button overlaid in the top-right corner */}
         <View style={styles.imageGalleryContainer}>
           <ImageCarousel images={roomData.images} />
-          
-        <TouchableOpacity
-          onPress={() => {
-            const wasSaved = isSaved;
-            Alert.alert(
-              wasSaved ? 'Listing Unsaved' : 'Listing Saved',
-              wasSaved
-                ? 'This listing has been removed from your saved listings.'
-                : 'This listing has been added to your saved listings.'
-            );
-            toggleSave(roomData.id);
-          }}
-          style={styles.saveButtonContainer}
-          activeOpacity={0.8}
-          delayPressIn={0}
-        >
-          <BlurView intensity={80} style={styles.circularButton} tint="light">
-            {isSaved ? (
-              <MaskedView maskElement={<SaveFilledIconHeart width={22} height={22} fill="#000000" />}>
-                <LinearGradient
-                  colors={['#FF8C42', '#BF5700', '#994400']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={{ width: 22, height: 22 }}
-                />
-              </MaskedView>
-            ) : (
-              <MaskedView maskElement={<SaveOutlineIconHeart width={22} height={22} fill="#000000" />}>
-                <LinearGradient
-                  colors={['#FF8C42', '#BF5700', '#994400']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={{ width: 22, height: 22 }}
-                />
-              </MaskedView>
-            )}
-          </BlurView>
-        </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => {
+              const wasSaved = isSaved;
+              Alert.alert(
+                wasSaved ? 'Listing Unsaved' : 'Listing Saved',
+                wasSaved
+                  ? 'This listing has been removed from your saved listings.'
+                  : 'This listing has been added to your saved listings.'
+              );
+              toggleSave(roomData.id);
+            }}
+            style={styles.saveButtonContainer}
+            activeOpacity={0.8}
+            delayPressIn={0}
+          >
+            <BlurView intensity={80} style={styles.circularButton} tint="light">
+              {isSaved ? (
+                <MaskedView maskElement={<SaveFilledIconHeart width={22} height={22} fill="#000000" />}>
+                  <LinearGradient
+                    colors={['#FF8C42', '#BF5700', '#994400']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={{ width: 22, height: 22 }}
+                  />
+                </MaskedView>
+              ) : (
+                <MaskedView maskElement={<SaveOutlineIconHeart width={22} height={22} fill="#000000" />}>
+                  <LinearGradient
+                    colors={['#FF8C42', '#BF5700', '#994400']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={{ width: 22, height: 22 }}
+                  />
+                </MaskedView>
+              )}
+            </BlurView>
+          </TouchableOpacity>
         </View>
 
-
-        {/* Basic Info */}
+        {/* Unit number, building name, address, price, and match score bar */}
         <View style={styles.infoSection}>
           <View style={styles.infoContent}>
             <View style={styles.leftInfo}>
               {roomData.unitNumber && (
                 <Text style={styles.unitNumberText}>{roomData.unitNumber}</Text>
-                )}
+              )}
               <Text style={styles.apartmentName}>{roomData.buildingName}</Text>
-                <Text style={styles.address}>{roomData.address}</Text>
-                {roomData.sqft && (
-                  <Text style={styles.sqftText}>{roomData.sqft} sq ft</Text>
-                )}
-                {roomData.smartHousing && (
+              <Text style={styles.address}>{roomData.address}</Text>
+              {roomData.sqft && (
+                <Text style={styles.sqftText}>{roomData.sqft} sq ft</Text>
+              )}
+              {roomData.smartHousing && (
                 <Text style={styles.smartHousingLine}>
-                SMART Housing Available
+                  SMART Housing Available
                 </Text>
               )}
             </View>
             <View style={styles.rightInfo}>
+              {/* MaskedView lets the gradient show through the price text */}
               <MaskedView
                 maskElement={
                   <Text style={styles.price}>${formatPrice(listing.price)}</Text>
@@ -249,25 +260,22 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
             </View>
           </View>
 
-          {/* AI Match Score Bar */}
+          {/* Animated match score bar — fills from left to right over 1 second */}
           <View style={styles.matchScoreSection}>
             <View style={styles.matchRow}>
-              
-              {/* Left Side: Icon + Label */}
               <View style={styles.matchLabelGroup}>
                 <StarIcon width={18} height={18} fill="#BF5700" />
                 <Text style={styles.matchScoreTitle}>AI Match Score: </Text>
               </View>
 
-              {/* Center: The Bar (Stretched via flex: 1) */}
               <View style={styles.progressBarTrack}>
-                <Animated.View 
+                <Animated.View
                   style={[
                     { width: widthInterpolate, height: '100%' }
-                  ]} 
+                  ]}
                 >
                   <LinearGradient
-                    colors={['#FF8C00', '#BF5700', '#8B4000']} 
+                    colors={['#FF8C00', '#BF5700', '#8B4000']}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
                     style={styles.progressBarFill}
@@ -275,7 +283,6 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
                 </Animated.View>
               </View>
 
-              {/* Right Side: Percentage */}
               <Text style={styles.matchScorePercent}>{scoreValue}%</Text>
             </View>
           </View>
@@ -283,47 +290,47 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
 
         <View style={styles.separator} />
 
-
+        {/* Bed / Bath / Distance chips. Distance chip is tappable to open maps. */}
         <View style={styles.chipsContainer}>
-        {details.map((detail) => {
-          const iconElement = (
-            <MaskedView maskElement={<detail.icon width={26} height={26} fill="#000000" />}>
-              <LinearGradient
-                colors={['#FF8C42', '#BF5700', '#994400']}
-                start={{ x: 0, y: 1 }}
-                end={{ x: 1, y: 0 }}
-                style={{ width: 26, height: 26 }}
-              />
-            </MaskedView>
-          );
+          {details.map((detail) => {
+            const iconElement = (
+              <MaskedView maskElement={<detail.icon width={26} height={26} fill="#000000" />}>
+                <LinearGradient
+                  colors={['#FF8C42', '#BF5700', '#994400']}
+                  start={{ x: 0, y: 1 }}
+                  end={{ x: 1, y: 0 }}
+                  style={{ width: 26, height: 26 }}
+                />
+              </MaskedView>
+            );
 
-          if (detail.id === 'distance') {
+            if (detail.id === 'distance') {
+              return (
+                <TouchableOpacity
+                  key={detail.id}
+                  style={styles.chip}
+                  onPress={() => openMaps(roomData.address)}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.chipContent}>
+                    {iconElement}
+                    <Text style={styles.chipText}>{detail.label}</Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            }
+
             return (
-              <TouchableOpacity 
-                key={detail.id} 
-                style={styles.chip}
-                onPress={() => openMaps(roomData.address)}
-                activeOpacity={0.7}
-              >
+              <View key={detail.id} style={styles.chip}>
                 <View style={styles.chipContent}>
                   {iconElement}
                   <Text style={styles.chipText}>{detail.label}</Text>
                 </View>
-              </TouchableOpacity>
-            );
-          }
-
-          return (
-            <View key={detail.id} style={styles.chip}>
-              <View style={styles.chipContent}>
-                {iconElement}
-                <Text style={styles.chipText}>{detail.label}</Text>
               </View>
-            </View>
-          );
-        })}
+            );
+          })}
         </View>
-          
+
         <View style={styles.separator} />
 
         {/* Description */}
@@ -339,7 +346,7 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
 
         <View style={styles.separator} />
 
-        {/* Features */}
+        {/* Features — hidden if the listing has none */}
         {roomData.features && roomData.features.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
@@ -356,7 +363,7 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
 
         <View style={styles.separator} />
 
-        {/* Contact */}
+        {/* Contact — phone and email are tappable to call/email, long-press copies */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <ContactIcon width={22} height={22} style={styles.sectionIcon} />
@@ -365,10 +372,10 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
           {roomData.contact?.phone && (
             <View style={styles.contactItem}>
               <Text style={styles.contactLabel}>Phone:</Text>
-              <TouchableOpacity 
+              <TouchableOpacity
                 onPress={() => Linking.openURL(`tel:${roomData.contact.phone}`)}
-                onLongPress={() => copyToClipboard(roomData.contact.phone, 'Phone number')} 
-                delayLongPress={500} 
+                onLongPress={() => copyToClipboard(roomData.contact.phone, 'Phone number')}
+                delayLongPress={500}
                 activeOpacity={0.7}
               >
                 <Text style={styles.contactValueClickable}>{roomData.contact.phone}</Text>
@@ -378,9 +385,9 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
           {roomData.contact?.email && (
             <View style={styles.contactItem}>
               <Text style={styles.contactLabel}>Email:</Text>
-              <TouchableOpacity 
+              <TouchableOpacity
                 onPress={() => Linking.openURL(`mailto:${roomData.contact.email}`)}
-                onLongPress={() => copyToClipboard(roomData.contact.email, 'Email address')} 
+                onLongPress={() => copyToClipboard(roomData.contact.email, 'Email address')}
                 delayLongPress={500}
                 activeOpacity={0.7}
               >
@@ -401,7 +408,7 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
 
         <View style={styles.separator} />
 
-        {/* Lease Details */}
+        {/* Lease details */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <LeaseIcon width={22} height={22} style={styles.sectionIcon} />
@@ -423,11 +430,10 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
 
         <View style={styles.separator} />
 
-        {/* Bottom Buttons */}
+        {/* Bottom action buttons — only shown when the listing has a website URL */}
         {roomData.website && (
           <View style={styles.buttonContainer}>
-            {/* View Original Listing Button (Full Width) */}
-            <TouchableOpacity 
+            <TouchableOpacity
               onPress={handleOpenWebsite}
               style={styles.viewOriginalButton}
             >
@@ -452,9 +458,8 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
               </MaskedView>
             </TouchableOpacity>
 
-            {/* Row with Save Button and View Apartment Details */}
+            {/* Save and View Apt. Details sit side by side in a row */}
             <View style={styles.bottomButtonRow}>
-              {/* Save Button */}
               <TouchableOpacity
                 onPress={() => {
                   const wasSaved = isSaved;
@@ -469,37 +474,37 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
                 style={styles.bottomSaveButton}
                 activeOpacity={0.8}
               >
-              <View style={styles.saveButtonContent}>
-                {isSaved ? (
-                  <>
-                    <MaskedView maskElement={<SaveFilledIconHeart width={20} height={20} fill="#000000" />}>
-                      <LinearGradient
-                        colors={['#FF8C42', '#BF5700', '#994400']}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 0 }}
-                        style={{ width: 20, height: 20 }}
-                      />
-                    </MaskedView>
-                    <Text style={styles.saveButtonText}>Saved</Text>
-                  </>
-                ) : (
-                  <>
-                    <MaskedView maskElement={<SaveOutlineIconHeart width={20} height={20} fill="#000000" />}>
-                      <LinearGradient
-                        colors={['#FF8C42', '#BF5700', '#994400']}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 0 }}
-                        style={{ width: 20, height: 20 }}
-                      />
-                    </MaskedView>
-                    <Text style={styles.saveButtonText}>Save</Text>
-                  </>
-                )}
-              </View>
+                <View style={styles.saveButtonContent}>
+                  {isSaved ? (
+                    <>
+                      <MaskedView maskElement={<SaveFilledIconHeart width={20} height={20} fill="#000000" />}>
+                        <LinearGradient
+                          colors={['#FF8C42', '#BF5700', '#994400']}
+                          start={{ x: 0, y: 0 }}
+                          end={{ x: 1, y: 0 }}
+                          style={{ width: 20, height: 20 }}
+                        />
+                      </MaskedView>
+                      <Text style={styles.saveButtonText}>Saved</Text>
+                    </>
+                  ) : (
+                    <>
+                      <MaskedView maskElement={<SaveOutlineIconHeart width={20} height={20} fill="#000000" />}>
+                        <LinearGradient
+                          colors={['#FF8C42', '#BF5700', '#994400']}
+                          start={{ x: 0, y: 0 }}
+                          end={{ x: 1, y: 0 }}
+                          style={{ width: 20, height: 20 }}
+                        />
+                      </MaskedView>
+                      <Text style={styles.saveButtonText}>Save</Text>
+                    </>
+                  )}
+                </View>
               </TouchableOpacity>
 
-              {/* View Apartment Details Button */}
-              <TouchableOpacity 
+              {/* Navigates up to the parent building's detail screen */}
+              <TouchableOpacity
                 onPress={handleViewApartmentDetails}
                 style={styles.bottomDetailsButton}
               >
@@ -510,8 +515,11 @@ export default function RoomListingDetailsScreen({ navigation, route }) {
             </View>
           </View>
         )}
+
       </ScrollView>
-      <TouchableOpacity 
+
+      {/* Blurred circular back button overlaid on top of the image carousel */}
+      <TouchableOpacity
         style={styles.backButtonOverlay}
         onPress={() => navigation.goBack()}
       >
@@ -596,8 +604,6 @@ const styles = StyleSheet.create({
   section: {
     paddingVertical: 20,
     paddingHorizontal: 20,
-    //borderTopWidth: 1,
-    //borderTopColor: '#e5e7eb',
   },
   sectionTitle: {
     fontSize: 16,
@@ -670,8 +676,6 @@ const styles = StyleSheet.create({
     gap: 13,
     paddingVertical: 20,
     paddingHorizontal: 20,
-    //borderTopWidth: 1,
-    //borderTopColor: '#e5e7eb',
   },
   chip: {
     width: '31%',
@@ -719,8 +723,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 24,
     gap: 12,
-    //borderTopWidth: 1,          
-    //borderTopColor: '#e5e7eb', 
   },
   viewOriginalButton: {
     backgroundColor: '#f3f4f6',
@@ -751,7 +753,6 @@ const styles = StyleSheet.create({
   },
   saveButtonContent: {
     backgroundColor: '#f5f0ebb2',
-    //f5f0eb91
     paddingVertical: 14,
     paddingHorizontal: 20,
     borderRadius: 12,
@@ -844,12 +845,12 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: '#000000',
-    marginBottom: 2, 
+    marginBottom: 2,
   },
   smartHousingLine: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#BF5700', 
+    color: '#BF5700',
     marginTop: 2,
   },
   sqftText: {
@@ -872,9 +873,9 @@ const styles = StyleSheet.create({
   },
   contactValueClickable: {
     fontSize: 15,
-    color: '#BF5700',  
+    color: '#BF5700',
     lineHeight: 24,
-    textDecorationLine: 'underline', 
+    textDecorationLine: 'underline',
   },
   perMonth: {
     fontSize: 12,
@@ -885,13 +886,13 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: '#e5e7eb',
     marginHorizontal: 20,
-    marginVertical: 10, 
+    marginVertical: 10,
   },
   innerSeparator: {
     height: 1,
     backgroundColor: '#e5e7eb',
-    marginHorizontal: 0, 
+    marginHorizontal: 0,
     marginBottom: 20,
-    marginTop: 0 
+    marginTop: 0,
   },
 });

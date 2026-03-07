@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, StyleSheet, ActivityIndicator, TextInput, FlatList, Keyboard } from 'react-native';
 import { Image } from 'react-native';
 import { usePreferences } from '../context/PreferencesContext';
-import { useAuth } from '../context/AuthContext';  
-import { updateUserPreferences } from '../services/userService';  
+import { useAuth } from '../context/AuthContext';
+import { updateUserPreferences } from '../services/userService';
 
 import { TouchableOpacity } from 'react-native';
 import Slider from '@react-native-community/slider';
@@ -20,16 +20,17 @@ import FurnishedIcon from '../../assets/furnishedIcon.svg';
 import PetIcon from '../../assets/petIcon.svg';
 import BedIcon from '../../assets/bedIcon.svg';
 import StarIcon from '../../assets/stars.svg';
-import Arrow from '../../assets/rightArrowIcon.svg'
+import Arrow from '../../assets/rightArrowIcon.svg';
 import CustomLoadingScreen from './CustomLoadingScreen';
 
 {/* https://my.locationiq.com/dashboard#reports */}
 
+// Formats a number like 1800 into "1,800" for display
 function formatPrice(price) {
   return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
-// Default UT Austin coordinates
+// Fallback coordinates used when the user hasn't set a custom location
 const DEFAULT_LOCATION = {
   name: 'University of Texas at Austin',
   lat: 30.285340698031447,
@@ -40,16 +41,19 @@ export default function PreferencesScreen({ navigation, route }) {
   const [isSaving, setIsSaving] = useState(false);
   const { user } = useAuth();
   const { preferences, setPreferences, loading } = usePreferences();
-  
-  // Check if this is a redo flow
+
+  // When this screen is reached from a "redo preferences" flow, we pass this
+  // flag along to SwipeSearch so it knows to treat it as a fresh search
   const isRedoingPreferences = route?.params?.isRedo || false;
-  
+
   const MAPBOX_TOKEN = 'pk.e493efe80245c480f2ef5d41058283e2';
 
   console.log("Current Render minPrice:", preferences.minPrice);
   console.log("Current Render beds:", preferences.beds);
 
-  // LOCAL STATE - Only for UI updates, doesn't trigger Firebase saves
+  // All slider/toggle state is kept locally so that moving a slider doesn't
+  // trigger a Firebase write on every change — we only save to Firestore when
+  // the user taps "Find your dream apartment".
   const [localPreferences, setLocalPreferences] = useState({
     minPrice: 0,
     maxPrice: 5000,
@@ -64,12 +68,14 @@ export default function PreferencesScreen({ navigation, route }) {
     petFriendly: false,
   });
 
-  // Location search states
+  // Location search state
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
-  const [selectedLocation, setSelectedLocation] = useState(null); // null = no location set
+
+  // null means no custom location — falls back to DEFAULT_LOCATION on save
+  const [selectedLocation, setSelectedLocation] = useState(null);
 
   const [amenities, setAmenities] = useState([
     { id: 'wifi', label: 'WiFi', selected: false, icon: WifiIcon },
@@ -80,7 +86,8 @@ export default function PreferencesScreen({ navigation, route }) {
     { id: 'petFriendly', label: 'Pet Friendly', selected: false, icon: PetIcon },
   ]);
 
-  // Initialize local state from context preferences when they load
+  // Once Firestore preferences finish loading, hydrate local state so the
+  // sliders and toggles reflect the user's previously saved values
   useEffect(() => {
     if (!loading && preferences) {
       setLocalPreferences({
@@ -96,54 +103,55 @@ export default function PreferencesScreen({ navigation, route }) {
         pool: preferences.pool,
         petFriendly: preferences.petFriendly,
       });
-      
-      // Load saved location if exists
+
       if (preferences.location) {
         setSelectedLocation(preferences.location);
       }
     }
   }, [loading, preferences]);
 
-  // Search location using Nominatim API
+  // Calls the LocationIQ API to get address suggestions for the search query.
+  // Results are bounded to Austin, TX so users only see relevant local addresses.
   const searchLocation = async (query) => {
     if (!query || query.length < 3) {
       setSearchResults([]);
       return;
     }
 
-  setIsSearching(true);
-  try {
-    const LOCATIONIQ_TOKEN = 'pk.e493efe80245c480f2ef5d41058283e2'; 
-    
-    const response = await fetch(
-      `https://us1.locationiq.com/v1/search.php?` +
-      `key=${LOCATIONIQ_TOKEN}&` +
-      `q=${encodeURIComponent(query + ', Austin, TX')}&` +
-      `format=json&` +
-      `limit=5&` +
-      `countrycodes=us&` +
-      `viewbox=-97.9,30.5,-97.5,30.1&` + // Austin bounding box
-      `bounded=1`
-    );
-    
-    if (!response.ok) {
-      console.error('LocationIQ API error:', response.status);
+    setIsSearching(true);
+    try {
+      const LOCATIONIQ_TOKEN = 'pk.e493efe80245c480f2ef5d41058283e2';
+
+      const response = await fetch(
+        `https://us1.locationiq.com/v1/search.php?` +
+        `key=${LOCATIONIQ_TOKEN}&` +
+        `q=${encodeURIComponent(query + ', Austin, TX')}&` +
+        `format=json&` +
+        `limit=5&` +
+        `countrycodes=us&` +
+        `viewbox=-97.9,30.5,-97.5,30.1&` + // Bounding box limits results to the Austin area
+        `bounded=1`
+      );
+
+      if (!response.ok) {
+        console.error('LocationIQ API error:', response.status);
+        setSearchResults([]);
+        return;
+      }
+
+      const data = await response.json();
+      setSearchResults(data);
+      setShowResults(true);
+    } catch (error) {
+      console.error('Error searching location:', error);
       setSearchResults([]);
-      return;
+    } finally {
+      setIsSearching(false);
     }
+  };
 
-    const data = await response.json();
-    setSearchResults(data);
-    setShowResults(true);
-  } catch (error) {
-    console.error('Error searching location:', error);
-    setSearchResults([]);
-  } finally {
-    setIsSearching(false);
-  }
-};
-
-  // Debounced search
+  // Debounce the search by 2 seconds so we don't fire an API call on every
+  // keystroke — waits until the user pauses typing before hitting LocationIQ
   useEffect(() => {
     const timer = setTimeout(() => {
       if (searchQuery) {
@@ -154,9 +162,11 @@ export default function PreferencesScreen({ navigation, route }) {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
+  // Stores just the place name and coordinates from the selected result,
+  // then clears the search UI
   const selectLocation = (location) => {
     setSelectedLocation({
-      name: location.display_name.split(',')[0], // Get just the building/place name
+      name: location.display_name.split(',')[0],
       lat: parseFloat(location.lat),
       lon: parseFloat(location.lon)
     });
@@ -179,7 +189,8 @@ export default function PreferencesScreen({ navigation, route }) {
     );
   }
 
-  // Sync amenities state with LOCAL preferences
+  // Keep the amenities chip list in sync with localPreferences when any
+  // amenity toggle changes — the two states mirror each other
   useEffect(() => {
     setAmenities([
       { id: 'wifi', label: 'WiFi', selected: localPreferences.wifi, icon: WifiIcon },
@@ -191,8 +202,9 @@ export default function PreferencesScreen({ navigation, route }) {
     ]);
   }, [localPreferences.wifi, localPreferences.gym, localPreferences.pool, localPreferences.parking, localPreferences.furnished, localPreferences.petFriendly]);
 
+  // Flips an amenity's selected state in both the chips list and localPreferences
   const toggleAmenity = (id) => {
-    setAmenities(amenities.map(amenity => 
+    setAmenities(amenities.map(amenity =>
       amenity.id === id ? { ...amenity, selected: !amenity.selected } : amenity
     ));
     setLocalPreferences({
@@ -201,6 +213,7 @@ export default function PreferencesScreen({ navigation, route }) {
     });
   };
 
+  // Resets all sliders, toggles, and the location back to their default values
   const resetPreferences = () => {
     setLocalPreferences({
       minPrice: 0,
@@ -224,371 +237,365 @@ export default function PreferencesScreen({ navigation, route }) {
       { id: 'furnished', label: 'Furnished', selected: false, icon: FurnishedIcon },
       { id: 'petFriendly', label: 'Pet Friendly', selected: false, icon: PetIcon },
     ]);
-    
+
     resetToDefaultLocation();
   };
 
   return (
-  <>
-    <ScrollView style={styles.container} keyboardShouldPersistTaps="handled">
-      {/* Section 1 */}
-      <View style={[styles.section, styles.firstSection]}>
-        <View style={styles.header}>
-          <View style={styles.iconContainer}>
-            <LocationIcon width={28} height={28} style={styles.icon} />
-          </View>
-          <View style={styles.headerText}>
-            <Text style={styles.title}>City & State</Text>
-            <Text style={styles.content}>Austin, TX</Text>
-          </View>
-        </View>
-      </View>
+    <>
+      <ScrollView style={styles.container} keyboardShouldPersistTaps="handled">
 
-      {/* Section 2 - Location Search */}
-      <View style={[styles.section]}>
-        <View style={styles.header}>
-          <View style={styles.iconContainer}>
-            <CampusIcon width={28} height={28} style={styles.icon} />
+        {/* Section 1 — City is fixed to Austin, TX */}
+        <View style={[styles.section, styles.firstSection]}>
+          <View style={styles.header}>
+            <View style={styles.iconContainer}>
+              <LocationIcon width={28} height={28} style={styles.icon} />
+            </View>
+            <View style={styles.headerText}>
+              <Text style={styles.title}>City & State</Text>
+              <Text style={styles.content}>Austin, TX</Text>
+            </View>
           </View>
-          <View style={styles.headerText}>
-            <Text style={styles.title}>Location (Optional)</Text>
-            
-            {/* Show selected location name OR search input */}
-            {selectedLocation && !searchQuery ? (
-              <Text style={styles.content}>{selectedLocation.name}</Text>
-            ) : (
-              <TextInput
-                style={styles.inlineSearchInput}
-                placeholder="e.g., University of Texas at Austin"
-                placeholderTextColor="#d1d5db"
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-                onFocus={() => setShowResults(true)}
-              />
-            )}
-            
-            {isSearching && (
-              <ActivityIndicator 
-                style={styles.inlineSearchLoader} 
-                size="small" 
-                color="#6b7280" 
-              />
-            )}
-          </View>
-        </View>
-        
-        {/* Info text */}
-        <View style={styles.infoContainer}>
-          <Text style={styles.infoIcon}>ⓘ</Text>
-          <Text style={styles.infoText}>Automatically set to UT Austin if left blank</Text>
         </View>
 
-        {/* Search Results Dropdown */}
-        {showResults && searchResults.length > 0 && (
-          <View style={styles.resultsContainer}>
-            <FlatList
-              data={searchResults}
-              keyExtractor={(item) => item.place_id.toString()}
-              scrollEnabled={false}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.resultItem}
-                  onPress={() => selectLocation(item)}
-                >
-                  <Text style={styles.resultText} numberOfLines={2}>
-                    {item.display_name}
-                  </Text>
-                </TouchableOpacity>
+        {/* Section 2 — Optional custom location. Shows a search input that hits
+            the LocationIQ API with a 2s debounce and displays a results dropdown. */}
+        <View style={[styles.section]}>
+          <View style={styles.header}>
+            <View style={styles.iconContainer}>
+              <CampusIcon width={28} height={28} style={styles.icon} />
+            </View>
+            <View style={styles.headerText}>
+              <Text style={styles.title}>Location (Optional)</Text>
+
+              {/* Show the selected location name when chosen, otherwise show the search input */}
+              {selectedLocation && !searchQuery ? (
+                <Text style={styles.content}>{selectedLocation.name}</Text>
+              ) : (
+                <TextInput
+                  style={styles.inlineSearchInput}
+                  placeholder="e.g., University of Texas at Austin"
+                  placeholderTextColor="#d1d5db"
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                  onFocus={() => setShowResults(true)}
+                />
               )}
-            />
-          </View>
-        )}
 
-        {/* Reset to Default Button */}
-        {selectedLocation && (
-          <TouchableOpacity
-            style={styles.resetLocationButton}
-            onPress={resetToDefaultLocation}
-          >
-            <Text style={styles.resetLocationText}>Clear location</Text>
-          </TouchableOpacity>
-        )}
-      </View>
+              {isSearching && (
+                <ActivityIndicator
+                  style={styles.inlineSearchLoader}
+                  size="small"
+                  color="#6b7280"
+                />
+              )}
+            </View>
+          </View>
 
-      {/* Section 3 */}
-      <View style={[styles.section]}>
-        <View style={styles.header}>
-          <View style={styles.iconContainer}>
-            <MoneyIcon width={36} height={36} style={styles.icon} />
+          <View style={styles.infoContainer}>
+            <Text style={styles.infoIcon}>ⓘ</Text>
+            <Text style={styles.infoText}>Automatically set to UT Austin if left blank</Text>
           </View>
-          <View style={styles.headerText}>
-            <Text style={styles.title}>Monthly Rent</Text>
-            <Text style={styles.content}>
-              ${formatPrice(localPreferences.minPrice)} - ${formatPrice(localPreferences.maxPrice)}
-            </Text>
-          </View>
-        </View>
 
-        {/* Min Price Slider */}
-        <View style={styles.sliderContainer}>
-          <View style={styles.sliderRow}>
-            <Text style={styles.sliderLabel}>Min</Text>
-            <Text style={styles.sliderValue}>${formatPrice(localPreferences.minPrice)}</Text>
-          </View>
-          <Slider
-            style={styles.slider}
-            minimumValue={0}
-            maximumValue={5000}
-            step={100}
-            value={localPreferences.minPrice}
-            onValueChange={(value) => setLocalPreferences({...localPreferences, minPrice: value})}
-            minimumTrackTintColor="#000000"
-            maximumTrackTintColor="#d1d5db"
-            thumbTintColor="#000000"
-          />
-          <View style={styles.sliderBounds}>
-            <Text style={styles.boundText}>$0</Text>
-            <Text style={styles.boundText}>$5000</Text>
-          </View>
-        </View>
-
-        {/* Max Price Slider */}
-        <View style={styles.sliderContainer}>
-          <View style={styles.sliderRow}>
-            <Text style={styles.sliderLabel}>Max</Text>
-            <Text style={styles.sliderValue}>${formatPrice(localPreferences.maxPrice)}</Text>
-          </View>
-          <Slider
-            style={styles.slider}
-            minimumValue={0}
-            maximumValue={5000}
-            step={100}
-            value={localPreferences.maxPrice}
-            onValueChange={(value) => setLocalPreferences({...localPreferences, maxPrice: value})}
-            minimumTrackTintColor="#000000"
-            maximumTrackTintColor="#d1d5db"
-            thumbTintColor="#000000"
-          />
-          <View style={styles.sliderBounds}>
-            <Text style={styles.boundText}>$0</Text>
-            <Text style={styles.boundText}>$5000</Text>
-          </View>
-        </View>
-      </View>
-
-      {/* Section 3.5 */}
-      <View style={[styles.section]}>
-        <View style={styles.header}>
-          <View style={styles.iconContainer}>
-            <BedIcon width={32} height={32} style={styles.icon} />
-          </View>
-          <View style={styles.headerText}>
-            <Text style={styles.title}>Beds & Bathrooms</Text>
-            <Text style={styles.content}>
-              {localPreferences.beds} {localPreferences.beds === 1 ? 'Bed' : 'Beds'} ×{' '}
-              {localPreferences.bathrooms} {localPreferences.bathrooms === 1 ? 'Bathroom' : 'Bathrooms'}
-            </Text>
-          </View>
-        </View>
-
-        {/* Beds Slider */}
-        <View style={styles.sliderContainer}>
-          <View style={styles.sliderRow}>
-            <Text style={styles.sliderLabel}>Beds</Text>
-            <Text style={styles.sliderValueBB}>{localPreferences.beds}</Text>
-          </View>
-          <Slider
-            style={styles.slider}
-            minimumValue={1}
-            maximumValue={10}
-            step={1}
-            value={localPreferences.beds}
-            onValueChange={(value) => setLocalPreferences({...localPreferences, beds: value})}
-            minimumTrackTintColor="#000000"
-            maximumTrackTintColor="#d1d5db"
-            thumbTintColor="#000000"
-          />
-          <View style={styles.sliderBounds}>
-            <Text style={styles.boundText}>1</Text>
-            <Text style={styles.boundText}>10</Text>
-          </View>
-        </View>
-
-        {/* Bathrooms Slider */}
-        <View style={styles.sliderContainer}>
-          <View style={styles.sliderRow}>
-            <Text style={styles.sliderLabel}>Bathrooms</Text>
-            <Text style={styles.sliderValueBB}>{localPreferences.bathrooms}</Text>
-          </View>
-          <Slider
-            style={styles.slider}
-            minimumValue={1}
-            maximumValue={10}
-            step={1}
-            value={localPreferences.bathrooms}
-            onValueChange={(value) => setLocalPreferences({...localPreferences, bathrooms: value})}
-            minimumTrackTintColor="#000000"
-            maximumTrackTintColor="#d1d5db"
-            thumbTintColor="#000000"
-          />
-          <View style={styles.sliderBounds}>
-            <Text style={styles.boundText}>1</Text>
-            <Text style={styles.boundText}>10</Text>
-          </View>
-        </View>
-      </View>
-
-      {/* Section 4 */}
-      <View style={[styles.section]}>
-        <View style={styles.header}>
-          <View style={styles.iconContainerDistance}>
-            <DistanceIcon width={26} height={26} style={styles.icon} />
-          </View>
-          <View style={styles.headerText}>
-            <Text style={styles.title}>Max Distance</Text>
-            <Text style={styles.selectedContent}>{localPreferences.distance} Miles</Text>
-            <View style={styles.sliderContainerDistance}>
-              <View style={styles.sliderRow}></View>
-              <Slider
-                style={styles.slider}
-                minimumValue={0.5}
-                maximumValue={10}
-                step={0.5}
-                value={localPreferences.distance}
-                onValueChange={(value) => setLocalPreferences({...localPreferences, distance: value})}
-                minimumTrackTintColor="#000000"
-                maximumTrackTintColor="#d1d5db"
-                thumbTintColor="#000000"
+          {/* Dropdown with search results from LocationIQ */}
+          {showResults && searchResults.length > 0 && (
+            <View style={styles.resultsContainer}>
+              <FlatList
+                data={searchResults}
+                keyExtractor={(item) => item.place_id.toString()}
+                scrollEnabled={false}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={styles.resultItem}
+                    onPress={() => selectLocation(item)}
+                  >
+                    <Text style={styles.resultText} numberOfLines={2}>
+                      {item.display_name}
+                    </Text>
+                  </TouchableOpacity>
+                )}
               />
-              <View style={styles.sliderBounds}>
-                <Text style={styles.boundText}>0.5</Text>
-                <Text style={styles.boundText}>10</Text>
+            </View>
+          )}
+
+          {/* Only shown after a location has been selected */}
+          {selectedLocation && (
+            <TouchableOpacity
+              style={styles.resetLocationButton}
+              onPress={resetToDefaultLocation}
+            >
+              <Text style={styles.resetLocationText}>Clear location</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {/* Section 3 — Min/max rent sliders */}
+        <View style={[styles.section]}>
+          <View style={styles.header}>
+            <View style={styles.iconContainer}>
+              <MoneyIcon width={36} height={36} style={styles.icon} />
+            </View>
+            <View style={styles.headerText}>
+              <Text style={styles.title}>Monthly Rent</Text>
+              <Text style={styles.content}>
+                ${formatPrice(localPreferences.minPrice)} - ${formatPrice(localPreferences.maxPrice)}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.sliderContainer}>
+            <View style={styles.sliderRow}>
+              <Text style={styles.sliderLabel}>Min</Text>
+              <Text style={styles.sliderValue}>${formatPrice(localPreferences.minPrice)}</Text>
+            </View>
+            <Slider
+              style={styles.slider}
+              minimumValue={0}
+              maximumValue={5000}
+              step={100}
+              value={localPreferences.minPrice}
+              onValueChange={(value) => setLocalPreferences({...localPreferences, minPrice: value})}
+              minimumTrackTintColor="#000000"
+              maximumTrackTintColor="#d1d5db"
+              thumbTintColor="#000000"
+            />
+            <View style={styles.sliderBounds}>
+              <Text style={styles.boundText}>$0</Text>
+              <Text style={styles.boundText}>$5000</Text>
+            </View>
+          </View>
+
+          <View style={styles.sliderContainer}>
+            <View style={styles.sliderRow}>
+              <Text style={styles.sliderLabel}>Max</Text>
+              <Text style={styles.sliderValue}>${formatPrice(localPreferences.maxPrice)}</Text>
+            </View>
+            <Slider
+              style={styles.slider}
+              minimumValue={0}
+              maximumValue={5000}
+              step={100}
+              value={localPreferences.maxPrice}
+              onValueChange={(value) => setLocalPreferences({...localPreferences, maxPrice: value})}
+              minimumTrackTintColor="#000000"
+              maximumTrackTintColor="#d1d5db"
+              thumbTintColor="#000000"
+            />
+            <View style={styles.sliderBounds}>
+              <Text style={styles.boundText}>$0</Text>
+              <Text style={styles.boundText}>$5000</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Section 3.5 — Beds and bathrooms sliders */}
+        <View style={[styles.section]}>
+          <View style={styles.header}>
+            <View style={styles.iconContainer}>
+              <BedIcon width={32} height={32} style={styles.icon} />
+            </View>
+            <View style={styles.headerText}>
+              <Text style={styles.title}>Beds & Bathrooms</Text>
+              <Text style={styles.content}>
+                {localPreferences.beds} {localPreferences.beds === 1 ? 'Bed' : 'Beds'} ×{' '}
+                {localPreferences.bathrooms} {localPreferences.bathrooms === 1 ? 'Bathroom' : 'Bathrooms'}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.sliderContainer}>
+            <View style={styles.sliderRow}>
+              <Text style={styles.sliderLabel}>Beds</Text>
+              <Text style={styles.sliderValueBB}>{localPreferences.beds}</Text>
+            </View>
+            <Slider
+              style={styles.slider}
+              minimumValue={1}
+              maximumValue={10}
+              step={1}
+              value={localPreferences.beds}
+              onValueChange={(value) => setLocalPreferences({...localPreferences, beds: value})}
+              minimumTrackTintColor="#000000"
+              maximumTrackTintColor="#d1d5db"
+              thumbTintColor="#000000"
+            />
+            <View style={styles.sliderBounds}>
+              <Text style={styles.boundText}>1</Text>
+              <Text style={styles.boundText}>10</Text>
+            </View>
+          </View>
+
+          <View style={styles.sliderContainer}>
+            <View style={styles.sliderRow}>
+              <Text style={styles.sliderLabel}>Bathrooms</Text>
+              <Text style={styles.sliderValueBB}>{localPreferences.bathrooms}</Text>
+            </View>
+            <Slider
+              style={styles.slider}
+              minimumValue={1}
+              maximumValue={10}
+              step={1}
+              value={localPreferences.bathrooms}
+              onValueChange={(value) => setLocalPreferences({...localPreferences, bathrooms: value})}
+              minimumTrackTintColor="#000000"
+              maximumTrackTintColor="#d1d5db"
+              thumbTintColor="#000000"
+            />
+            <View style={styles.sliderBounds}>
+              <Text style={styles.boundText}>1</Text>
+              <Text style={styles.boundText}>10</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Section 4 — Max distance from the chosen location */}
+        <View style={[styles.section]}>
+          <View style={styles.header}>
+            <View style={styles.iconContainerDistance}>
+              <DistanceIcon width={26} height={26} style={styles.icon} />
+            </View>
+            <View style={styles.headerText}>
+              <Text style={styles.title}>Max Distance</Text>
+              <Text style={styles.selectedContent}>{localPreferences.distance} Miles</Text>
+              <View style={styles.sliderContainerDistance}>
+                <View style={styles.sliderRow}></View>
+                <Slider
+                  style={styles.slider}
+                  minimumValue={0.5}
+                  maximumValue={10}
+                  step={0.5}
+                  value={localPreferences.distance}
+                  onValueChange={(value) => setLocalPreferences({...localPreferences, distance: value})}
+                  minimumTrackTintColor="#000000"
+                  maximumTrackTintColor="#d1d5db"
+                  thumbTintColor="#000000"
+                />
+                <View style={styles.sliderBounds}>
+                  <Text style={styles.boundText}>0.5</Text>
+                  <Text style={styles.boundText}>10</Text>
+                </View>
               </View>
             </View>
           </View>
         </View>
-      </View>
 
-      {/* Section 5 */}
-      <View style={[styles.section]}>
-        <View style={styles.header}>
-          <View style={styles.iconContainer}>
-            <AmenatiesIcon width={32} height={32} style={styles.icon} />
+        {/* Section 5 — Amenity chips. Each chip toggles its selected state in
+            both the chips array and localPreferences simultaneously. */}
+        <View style={[styles.section]}>
+          <View style={styles.header}>
+            <View style={styles.iconContainer}>
+              <AmenatiesIcon width={32} height={32} style={styles.icon} />
+            </View>
+            <View style={styles.headerText}>
+              <Text style={styles.title}>Preferred Amenities</Text>
+              <Text style={styles.selectedContent}>
+                {amenities.filter(a => a.selected).length} selected
+              </Text>
+            </View>
           </View>
-          <View style={styles.headerText}>
-            <Text style={styles.title}>Preferred Amenities</Text>
-            <Text style={styles.selectedContent}>
-              {amenities.filter(a => a.selected).length} selected
-            </Text>
+
+          <View style={styles.chipsContainer}>
+            {amenities.map((amenity) => (
+              <TouchableOpacity
+                key={amenity.id}
+                style={[
+                  styles.chip,
+                  amenity.selected && styles.chipSelected
+                ]}
+                onPress={() => toggleAmenity(amenity.id)}
+              >
+                <View style={styles.chipContent}>
+                  <amenity.icon
+                    width={22}
+                    height={22}
+                    style={styles.chipIconLeft}
+                    fill={amenity.selected ? '#ffffff' : '#6b7280'}
+                  />
+                  <Text style={[
+                    styles.chipText,
+                    amenity.selected && styles.chipTextSelected
+                  ]}>
+                    {amenity.label}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            ))}
           </View>
         </View>
 
-        <View style={styles.chipsContainer}>
-          {amenities.map((amenity) => (
-            <TouchableOpacity
-              key={amenity.id}
-              style={[
-                styles.chip,
-                amenity.selected && styles.chipSelected
-              ]}
-              onPress={() => toggleAmenity(amenity.id)}
-            >
-              <View style={styles.chipContent}>
-                <amenity.icon 
-                  width={22} 
-                  height={22} 
-                  style={styles.chipIconLeft}
-                  fill={amenity.selected ? '#ffffff' : '#6b7280'}
-                />
-                <Text style={[
-                  styles.chipText,
-                  amenity.selected && styles.chipTextSelected
-                ]}>
-                  {amenity.label}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
+        {/* Section 6 — Save button. Writes localPreferences to Firestore, updates
+            the PreferencesContext, then navigates to SwipeSearch. */}
+        <TouchableOpacity
+          style={styles.startButton}
+          onPress={async () => {
+            try {
+              setIsSaving(true);
+              if (user?.uid) {
+                await updateUserPreferences(user.uid, {
+                  minPrice: localPreferences.minPrice,
+                  maxPrice: localPreferences.maxPrice,
+                  bedrooms: localPreferences.beds,
+                  bathrooms: localPreferences.bathrooms,
+                  maxDistance: localPreferences.distance,
+                  parking: localPreferences.parking,
+                  furnished: localPreferences.furnished,
+                  wifi: localPreferences.wifi,
+                  gym: localPreferences.gym,
+                  pool: localPreferences.pool,
+                  petFriendly: localPreferences.petFriendly,
+                  location: selectedLocation || DEFAULT_LOCATION,
+                });
 
-      {/* Section 6 */}
-      <TouchableOpacity
-        style={styles.startButton}
-        onPress={async () => {
-          try {
-            setIsSaving(true);
-            if (user?.uid) {
-              // Save to Firebase
-              await updateUserPreferences(user.uid, {
-                minPrice: localPreferences.minPrice,
-                maxPrice: localPreferences.maxPrice,
-                bedrooms: localPreferences.beds,
-                bathrooms: localPreferences.bathrooms,
-                maxDistance: localPreferences.distance,
-                parking: localPreferences.parking,
-                furnished: localPreferences.furnished,
-                wifi: localPreferences.wifi,
-                gym: localPreferences.gym,
-                pool: localPreferences.pool,
-                petFriendly: localPreferences.petFriendly,
-                location: selectedLocation || DEFAULT_LOCATION, 
-              });
-              
-              // Update context state AFTER successful save
-              setPreferences({
-                ...localPreferences,
-                location: selectedLocation || DEFAULT_LOCATION
-              });
-              
-              console.log('Saved preferences:', localPreferences);
-              console.log('Saved location:', selectedLocation);              
-              navigation.navigate('SwipeSearch', { isRedo: isRedoingPreferences });
-              setTimeout(() => setIsSaving(false), 200);
+                // Update context only after the Firestore write succeeds
+                setPreferences({
+                  ...localPreferences,
+                  location: selectedLocation || DEFAULT_LOCATION
+                });
+
+                console.log('Saved preferences:', localPreferences);
+                console.log('Saved location:', selectedLocation);
+                navigation.navigate('SwipeSearch', { isRedo: isRedoingPreferences });
+                setTimeout(() => setIsSaving(false), 200);
+              }
+            } catch (error) {
+              console.error('Error saving preferences:', error);
+              alert('Error saving preferences');
+            } finally {
+              setIsSaving(false);
             }
-          } catch (error) {
-            console.error('Error saving preferences:', error);
-            alert('Error saving preferences');
-          } finally {
-              setIsSaving(false); 
-          }
-        }}
-      >
-
-      {/* Text */}
-        <View style={styles.headerWithIcons}>
-          {/* Left Icon */}
-          <View style={styles.headerIconLeft}>
-            <StarIcon width={24} height={24} />
+          }}
+        >
+          <View style={styles.headerWithIcons}>
+            <View style={styles.headerIconLeft}>
+              <StarIcon width={24} height={24} />
+            </View>
+            <View style={styles.headerTextContent}>
+              <Text style={styles.startButtonText}>Find your dream apartment</Text>
+            </View>
+            <View style={styles.headerIconRight}>
+              <Arrow width={24} height={24} />
+            </View>
           </View>
-          
-          {/* Text Content */}
+        </TouchableOpacity>
+
+        {/* Section 7 — Resets all local state back to defaults without saving */}
+        <TouchableOpacity
+          style={styles.startButton}
+          onPress={() => {
+            alert('Preferences reset!');
+            resetPreferences();
+          }}
+        >
           <View style={styles.headerTextContent}>
-            <Text style={styles.startButtonText}>Find your dream apartment</Text>
-          </View>
-          
-          {/* Right Icon */}
-          <View style={styles.headerIconRight}>
-            <Arrow width={24} height={24} />
-          </View>
-        </View>
-      </TouchableOpacity>
-
-      {/* Section 7 */}
-      <TouchableOpacity
-        style={styles.startButton} 
-        onPress={() => {
-          alert('Preferences reset!');
-          resetPreferences();
-        }}
-      >  
-        <View style={styles.headerTextContent}>
             <Text style={styles.startButtonText}>Reset Preferences</Text>
           </View>
-      </TouchableOpacity>
-    </ScrollView>
-  <CustomLoadingScreen visible={isSaving} />
-  </>
+        </TouchableOpacity>
+
+      </ScrollView>
+
+      {/* Full-screen loading overlay shown while Firestore is saving */}
+      <CustomLoadingScreen visible={isSaving} />
+    </>
   );
 }
 
@@ -616,7 +623,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 14,
-    color: '#6b7280'
+    color: '#6b7280',
   },
   header: {
     flexDirection: 'row',
@@ -652,7 +659,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 15,
-    marginLeft: -5
+    marginLeft: -5,
   },
   iconContainerDistance: {
     width: 44,
@@ -663,12 +670,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 15,
     marginLeft: -5,
-    marginBottom: 60
+    marginBottom: 60,
   },
   headerText: {
     flex: 1,
-  }, 
-  // Location Search Styles
+  },
   inlineSearchInput: {
     fontSize: 18,
     color: '#000000ff',
@@ -771,14 +777,14 @@ const styles = StyleSheet.create({
     minWidth: 50,
     fontWeight: '500',
     color: '#000000ff',
-    marginRight: 0
+    marginRight: 0,
   },
   sliderValueBB: {
     fontSize: 23,
     minWidth: 50,
     fontWeight: '500',
     color: '#000000ff',
-    marginRight: -19
+    marginRight: -19,
   },
   slider: {
     width: '100%',
@@ -796,7 +802,7 @@ const styles = StyleSheet.create({
   },
   sliderContainerDistance: {
     marginTop: 5,
-    marginLeft: -50
+    marginLeft: -50,
   },
   chipsContainer: {
     flexDirection: 'row',
@@ -856,10 +862,10 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   headerWithIcons: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
   },
   headerIconLeft: {
     marginLeft: 14,
@@ -869,7 +875,7 @@ const styles = StyleSheet.create({
   },
   headerTextContent: {
     flex: 1,
-    alignItems: 'center', 
+    alignItems: 'center',
   },
   headerTitle: {
     fontSize: 24,

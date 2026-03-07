@@ -30,7 +30,7 @@ import ContactIcon from '../../assets/contactIcon.svg';
 import LeaseIcon from '../../assets/leaseIcon.svg';
 import BackIcon from '../../assets/backIcon.svg';
 import KeysIcon from '../../assets/keys.svg';
-import ExternalLinkIcon from '../../assets/apartment.svg'; 
+import ExternalLinkIcon from '../../assets/apartment.svg';
 import ArrowUpRightIcon from '../../assets/arrowUp.svg';
 import { usePreferences } from '../context/PreferencesContext';
 import SaveOutlineIcon from '../../assets/saveIcon.svg';
@@ -39,15 +39,18 @@ import SaveOutlineIconHeart from '../../assets/heartOutline.svg';
 import SaveFilledIconHeart from '../../assets/heart.svg';
 import { calculateDistance } from '../navigation/locationUtils';
 
-
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 import ImageCarousel from '../navigation/ImageCarousel';
 
+// Formats a number like 1800 into "1,800" for display in the UI
 function formatPrice(price) {
   return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
+// Renders a single available unit card inside the building's "Available Units" section.
+// Each card shows the unit number, bed/bath count, price, and a match score badge.
+// Tapping it navigates to the full room listing detail screen.
 function UnitCard({ listing, matchScore, onPress }) {
   return (
     <TouchableOpacity
@@ -56,18 +59,17 @@ function UnitCard({ listing, matchScore, onPress }) {
       activeOpacity={0.9}
     >
       <View style={styles.unitCardContent}>
-        {/* Top Row: Unit Number and Match Badge */}
+        {/* Top row: unit number on the left, match score badge on the right */}
         <View style={styles.unitCardTop}>
-          {/* Wrap container for the text */}
-          <View style={{ flex: 1, marginRight: 8 }}> 
+          <View style={{ flex: 1, marginRight: 8 }}>
             <Text style={styles.unitNumber}>
               {listing.unitNumber}
             </Text>
           </View>
 
-          {/* Badge stays anchored to the top right */}
+          {/* Only render the badge if a match score was actually calculated */}
           {matchScore !== undefined && (
-            <View style={{ alignSelf: 'flex-start' }}> 
+            <View style={{ alignSelf: 'flex-start' }}>
               <LinearGradient
                 colors={['#FF8C42', '#BF5700', '#994400']}
                 start={{ x: 0, y: 1 }}
@@ -81,7 +83,7 @@ function UnitCard({ listing, matchScore, onPress }) {
           )}
         </View>
 
-        {/* Bottom Row: Icons on Left, Price on Right */}
+        {/* Bottom row: bed/bath icons on the left, price on the right */}
         <View style={styles.unitDetailsRow}>
           <View style={styles.unitDetails}>
             <View style={styles.unitDetailItem}>
@@ -108,6 +110,8 @@ function UnitCard({ listing, matchScore, onPress }) {
               <Text style={styles.unitDetailText}>{listing.bathrooms} Bath</Text>
             </View>
           </View>
+
+          {/* MaskedView lets the LinearGradient show through the text shape */}
           <MaskedView
             maskElement={
               <Text style={styles.unitPrice}>${formatPrice(listing.price)}/mo</Text>
@@ -129,6 +133,7 @@ function UnitCard({ listing, matchScore, onPress }) {
   );
 }
 
+// Copies a string to the clipboard and shows a confirmation alert
 const copyToClipboard = async (text, label) => {
   await Clipboard.setStringAsync(text);
   Alert.alert('Copied!', `${label} has been copied to your clipboard.`);
@@ -136,59 +141,68 @@ const copyToClipboard = async (text, label) => {
 
 export default function ApartmentListingDetailsScreen({ navigation, visible, onClose, route }) {
 
-const { savedIds, toggleSave, preferences } = usePreferences();
+  const { savedIds, toggleSave, preferences } = usePreferences();
 
-const [building, setBuilding] = useState(null);
-const [availableUnits, setAvailableUnits] = useState([]);
+  const [building, setBuilding] = useState(null);
+  const [availableUnits, setAvailableUnits] = useState([]);
 
-useEffect(() => {
-  console.log('passedListing:', apartment);
-  console.log('preferences:', preferences);
-  
-  if (!apartment?.id) return;
+  // When the screen loads (or the apartment/preferences change), find the matching
+  // building record, fetch its units, score each one against the user's preferences,
+  // and sort them best-match-first.
+  useEffect(() => {
+    console.log('passedListing:', apartment);
+    console.log('preferences:', preferences);
 
-  const foundBuilding =
-    buildingsData.find(b => b.id === apartment.buildingId || b.id === apartment.id) ||
-    apartment;
+    if (!apartment?.id) return;
 
-  console.log('foundBuilding:', foundBuilding);
-  setBuilding(foundBuilding);
+    // Try to find the building in our local data — fall back to the apartment object
+    // itself if it already contains the building-level fields we need.
+    const foundBuilding =
+      buildingsData.find(b => b.id === apartment.buildingId || b.id === apartment.id) ||
+      apartment;
 
-  const buildingId = apartment.buildingId || apartment.id;
-  const units = listingsData.filter(l => l.buildingId === buildingId);
-  
-  console.log('units found:', units.length);
+    console.log('foundBuilding:', foundBuilding);
+    setBuilding(foundBuilding);
 
-  const allAmenities = ['wifi', 'gym', 'pool', 'parking', 'furnished', 'petFriendly'];
-  
-  const selectedAmenities = allAmenities.map(amenity => ({
-    id: amenity,
-    selected: preferences?.[amenity] || false,
-  }));
+    const buildingId = apartment.buildingId || apartment.id;
+    const units = listingsData.filter(l => l.buildingId === buildingId);
 
-  console.log('selectedAmenities:', selectedAmenities);
+    console.log('units found:', units.length);
 
-  const scoredUnits = units.map(unit => {
-    const enrichedUnit = { 
-      ...unit, 
-      amenities: foundBuilding.amenities || [],
-      distance: foundBuilding.distance || 0,
-    };
-    
-    const score = calculateMatchScore(
-      enrichedUnit,
-      preferences,
-      selectedAmenities
-    );
-    
-    console.log('Unit:', unit.unitNumber, 'Score:', score);
-    return { ...unit, matchScore: score };
-  });
+    // Build the amenity selection list that the scoring algorithm expects
+    const allAmenities = ['wifi', 'gym', 'pool', 'parking', 'furnished', 'petFriendly'];
+    const selectedAmenities = allAmenities.map(amenity => ({
+      id: amenity,
+      selected: preferences?.[amenity] || false,
+    }));
 
-  scoredUnits.sort((a, b) => b.matchScore - a.matchScore);
-  setAvailableUnits(scoredUnits);
-}, [apartment, preferences]);
+    console.log('selectedAmenities:', selectedAmenities);
 
+    // Enrich each unit with building-level data (amenities, distance) before scoring,
+    // since the algorithm needs fields that live on the building, not the unit.
+    const scoredUnits = units.map(unit => {
+      const enrichedUnit = {
+        ...unit,
+        amenities: foundBuilding.amenities || [],
+        distance: foundBuilding.distance || 0,
+      };
+
+      const score = calculateMatchScore(
+        enrichedUnit,
+        preferences,
+        selectedAmenities
+      );
+
+      console.log('Unit:', unit.unitNumber, 'Score:', score);
+      return { ...unit, matchScore: score };
+    });
+
+    scoredUnits.sort((a, b) => b.matchScore - a.matchScore);
+    setAvailableUnits(scoredUnits);
+  }, [apartment, preferences]);
+
+  // Pull the listing passed in from the previous screen, with a full set of
+  // fallback values so the screen never crashes on missing data.
   const apartment = route.params?.listing || {
     name: 'Modern Downtown Loft',
     address: '123 Main St, Downtown',
@@ -212,7 +226,8 @@ useEffect(() => {
     website: ''
   };
 
-  // Calculate distance
+  // If the user has set a custom location in preferences and the listing has
+  // GPS coordinates, calculate the real distance; otherwise use the stored value.
   let calculatedDistance = apartment.distance || 0;
   if (preferences.location && apartment.latitude && apartment.longitude) {
     calculatedDistance = calculateDistance(
@@ -221,28 +236,25 @@ useEffect(() => {
       apartment.latitude,
       apartment.longitude
     );
-    // Round to 1 decimal place
     calculatedDistance = Math.round(calculatedDistance * 10) / 10;
   }
 
-  // Helper function to open maps with directions
+  // Opens the native maps app with directions from the apartment address to the
+  // user's saved location (defaults to UT Austin if none is set).
+  // On iOS we try Apple Maps first and fall back to Google Maps if it's unavailable.
   const openMaps = (destinationAddress) => {
-    // Use custom location if set in preferences, otherwise default to UT Austin
     const destinationLatitude = preferences.location?.lat || 30.285340698031447;
     const destinationLongitude = preferences.location?.lon || -97.73208396036748;
-    
-    // Encode the apartment address for URL (this is now the ORIGIN)
+
     const encodedAddress = encodeURIComponent(destinationAddress);
-    
+
     let url = '';
-    
+
     if (Platform.OS === 'ios') {
-      // Apple Maps URL scheme - swapped saddr and daddr
       url = `maps://app?saddr=${encodedAddress}&daddr=${destinationLatitude},${destinationLongitude}`;
-      
-      // Fallback to Google Maps on iOS if Apple Maps fails
+
       const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodedAddress}&destination=${destinationLatitude},${destinationLongitude}`;
-      
+
       Linking.canOpenURL(url).then(supported => {
         if (supported) {
           Linking.openURL(url);
@@ -253,9 +265,8 @@ useEffect(() => {
         Linking.openURL(googleMapsUrl);
       });
     } else {
-      // Google Maps for Android - swapped origin and destination
       url = `https://www.google.com/maps/dir/?api=1&origin=${encodedAddress}&destination=${destinationLatitude},${destinationLongitude}`;
-      
+
       Linking.openURL(url).catch(err => {
         Alert.alert('Error', 'Unable to open maps. Please make sure you have a maps app installed.');
         console.error('Error opening maps:', err);
@@ -268,19 +279,17 @@ useEffect(() => {
   return (
     <View style={styles.container}>
       <ScrollView style={styles.content}>
-        
-        {/* Image Gallery Section */}
+
+        {/* Image carousel with a blurred distance button overlaid in the top-right corner */}
         <View style={styles.imageGalleryContainer}>
           <ImageCarousel images={apartment.images || []} />
-          
-          {/* Distance Button - Top Right */}
+
           <View style={styles.distanceButtonContainer}>
             <TouchableOpacity
               onPress={() => openMaps(apartment.address)}
               activeOpacity={0.8}
               delayPressIn={0}
             >
-
               <BlurView intensity={80} style={styles.distanceButtonBlur} tint="light">
                 <MaskedView maskElement={<DistanceIcon width={20} height={20} fill="#000000" />}>
                   <LinearGradient
@@ -304,10 +313,9 @@ useEffect(() => {
           </View>
         </View>
 
-        {/* Basic Info */}
+        {/* Apartment name and address */}
         <View style={styles.infoSection}>
           <View style={styles.infoContent}>
-            {/* Left side: Name and Address */}
             <View style={styles.leftInfo}>
               <Text style={styles.apartmentName}>{apartment.name}</Text>
               <Text style={styles.address}>{apartment.address}</Text>
@@ -330,7 +338,7 @@ useEffect(() => {
 
         <View style={styles.separator} />
 
-        {/* Reviews - Only show if there are reviews */}
+        {/* Reviews — hidden if the listing has none */}
         {apartment.reviews && apartment.reviews.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
@@ -345,7 +353,7 @@ useEffect(() => {
 
         <View style={styles.separator} />
 
-        {/* Features - Only show if there are features */}
+        {/* Features — hidden if the listing has none */}
         {apartment.features && apartment.features.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
@@ -360,7 +368,8 @@ useEffect(() => {
 
         <View style={styles.separator} />
 
-        {/* Contact */}
+        {/* Contact — phone and email are tappable to call/email directly,
+            and long-pressing copies the value to clipboard */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <ContactIcon width={24} height={24} style={styles.sectionIcon} />
@@ -369,10 +378,10 @@ useEffect(() => {
           {apartment.contact?.phone && (
             <View style={styles.contactItem}>
               <Text style={styles.contactLabel}>Phone:</Text>
-              <TouchableOpacity 
+              <TouchableOpacity
                 onPress={() => Linking.openURL(`tel:${apartment.contact.phone}`)}
-                onLongPress={() => copyToClipboard(apartment.contact.phone, 'Phone number')} 
-                delayLongPress={500} 
+                onLongPress={() => copyToClipboard(apartment.contact.phone, 'Phone number')}
+                delayLongPress={500}
                 activeOpacity={0.7}
               >
                 <Text style={styles.contactValueClickable}>{apartment.contact.phone}</Text>
@@ -382,9 +391,9 @@ useEffect(() => {
           {apartment.contact?.email && (
             <View style={styles.contactItem}>
               <Text style={styles.contactLabel}>Email:</Text>
-              <TouchableOpacity 
+              <TouchableOpacity
                 onPress={() => Linking.openURL(`mailto:${apartment.contact.email}`)}
-                onLongPress={() => copyToClipboard(apartment.contact.email, 'Email address')} 
+                onLongPress={() => copyToClipboard(apartment.contact.email, 'Email address')}
                 delayLongPress={500}
                 activeOpacity={0.7}
               >
@@ -405,7 +414,7 @@ useEffect(() => {
 
         <View style={styles.separator} />
 
-        {/* Lease Details */}
+        {/* Lease details */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <LeaseIcon width={24} height={24} style={styles.sectionIcon} />
@@ -427,14 +436,17 @@ useEffect(() => {
 
         <View style={styles.separator} />
 
-        {/* Available Units */}
+        {/* Available units — each card is scored and sorted by match percentage.
+            Tapping one navigates to the room-level detail screen, passing along
+            building-level fields (name, images, contact, etc.) that the unit
+            record doesn't store on its own. */}
         {availableUnits.length > 0 && (
           <View style={styles.section}>
             <View style={styles.unitsSectionHeader}>
-          <View style={styles.sectionHeader}>
-            <KeysIcon width={24} height={24} style={styles.sectionIcon} />
-            <Text style={styles.sectionTitle}>Available Units</Text>
-          </View>
+              <View style={styles.sectionHeader}>
+                <KeysIcon width={24} height={24} style={styles.sectionIcon} />
+                <Text style={styles.sectionTitle}>Available Units</Text>
+              </View>
               <Text style={styles.description}>
                 Tap a unit to view details
               </Text>
@@ -454,42 +466,39 @@ useEffect(() => {
                       distance: apartment.distance,
                       images: apartment.images,
                       description: unit.description || apartment.description,
-                      reviews: apartment.reviews,          
-                      features: unit.features || apartment.features,         
+                      reviews: apartment.reviews,
+                      features: unit.features || apartment.features,
                       contact: apartment.contact,
-                      leaseDetails: apartment.leaseDetails, 
+                      leaseDetails: apartment.leaseDetails,
                       website: unit.website || building?.website || '',
                     },
                     matchScore: unit.matchScore,
                   })
-              }
+                }
               />
             ))}
           </View>
         )}
 
-      <View style={styles.separator} />
+        <View style={styles.separator} />
 
-
-
-              {/* Bottom Buttons */}
+        {/* Website button — only shown if the listing has a URL */}
         {apartment.website && (
           <View style={styles.websiteButtonContainer}>
-            {/* View Original Listing Button (Full Width) */}
-            <TouchableOpacity 
-            style={styles.viewOriginalButton}
-            onPress={async () => {
-            try {
-              const supported = await Linking.canOpenURL(apartment.website);
-              if (supported) {
-                await Linking.openURL(apartment.website);
-              } else {
-                Alert.alert('Error', 'Cannot open this URL');
-              }
-            } catch (error) {
-              Alert.alert('Error', 'Failed to open website');
-            }
-          }}>
+            <TouchableOpacity
+              style={styles.viewOriginalButton}
+              onPress={async () => {
+                try {
+                  const supported = await Linking.canOpenURL(apartment.website);
+                  if (supported) {
+                    await Linking.openURL(apartment.website);
+                  } else {
+                    Alert.alert('Error', 'Cannot open this URL');
+                  }
+                } catch (error) {
+                  Alert.alert('Error', 'Failed to open website');
+                }
+              }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                 <MaskedView maskElement={<ExternalLinkIcon width={24} height={24} fill="#000000" />}>
                   <LinearGradient
@@ -510,11 +519,13 @@ useEffect(() => {
                 />
               </MaskedView>
             </TouchableOpacity>
-        </View>
-      )}
+          </View>
+        )}
 
       </ScrollView>
-      <TouchableOpacity 
+
+      {/* Blurred circular back button overlaid on top of the image carousel */}
+      <TouchableOpacity
         style={styles.backButtonOverlay}
         onPress={() => navigation.goBack()}
       >
@@ -623,8 +634,6 @@ const styles = StyleSheet.create({
   section: {
     paddingVertical: 20,
     paddingHorizontal: 20,
-    //borderTopWidth: 1,
-    //borderTopColor: '#e5e7eb',
   },
   sectionTitle: {
     fontSize: 16,
@@ -668,8 +677,8 @@ const styles = StyleSheet.create({
   infoSection: {
     backgroundColor: '#ffffff',
     paddingTop: 20,
-    paddingHorizontal: 20,  
-    paddingBottom: 20,      
+    paddingHorizontal: 20,
+    paddingBottom: 20,
   },
   infoContent: {
     flexDirection: 'row',
@@ -782,7 +791,7 @@ const styles = StyleSheet.create({
   },
   unitCardContent: {
     padding: 16,
-    flexDirection: 'column', 
+    flexDirection: 'column',
     gap: 8,
   },
   unitCardTop: {
@@ -792,9 +801,9 @@ const styles = StyleSheet.create({
   },
   unitDetailsRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between', 
+    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: 12, 
+    paddingTop: 12,
   },
   unitDetails: {
     flexDirection: 'row',
@@ -848,7 +857,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   contactItem: {
-  marginBottom: 12,
+    marginBottom: 12,
   },
   contactLabel: {
     fontSize: 15,
@@ -863,15 +872,15 @@ const styles = StyleSheet.create({
   },
   contactValueClickable: {
     fontSize: 15,
-    color: '#BF5700',  
+    color: '#BF5700',
     lineHeight: 24,
-    textDecorationLine: 'underline', 
+    textDecorationLine: 'underline',
   },
   separator: {
     height: 1,
     backgroundColor: '#e5e7eb',
     marginHorizontal: 20,
-    marginVertical: 10, 
+    marginVertical: 10,
   },
   circularButton: {
     width: 44,

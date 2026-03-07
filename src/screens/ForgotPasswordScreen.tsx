@@ -15,26 +15,34 @@ import { useAuth } from '../context/AuthContext';
 import { LinearGradient } from 'expo-linear-gradient';
 
 const { width } = Dimensions.get('window');
+
+// Scales any size value relative to a 375px baseline (iPhone SE width).
+// This keeps font sizes and spacing proportional across different screen sizes.
 const scale = (size: number) => (width / 375) * size;
 
 export default function ForgotPasswordScreen({ navigation }: any) {
   const [email, setEmail] = useState('');
+
+  // Tracks whether the reset email has already been sent so we can disable
+  // the button and show a confirmation message after a successful submission.
   const [emailSent, setEmailSent] = useState(false);
-  
+
   const { resetPassword, loading, error, setError } = useAuth();
 
   const handleResetPassword = async () => {
     try {
       setError(null);
-      
-      // Validation
+
+      // Basic format check before hitting Firebase — avoids an unnecessary network call
       if (!email.includes('@')) {
         Alert.alert('Error', 'Please enter a valid email address');
         return;
       }
-      
+
       await resetPassword(email);
       setEmailSent(true);
+
+      // Navigate back to login once the user acknowledges the confirmation
       Alert.alert(
         'Email Sent!',
         'Check your email for a password reset link.',
@@ -52,13 +60,15 @@ export default function ForgotPasswordScreen({ navigation }: any) {
   };
 
   return (
+    // Shifts the layout up on iOS when the keyboard opens so the input stays visible
     <KeyboardAvoidingView
       style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <View style={styles.container}>
-        {/* Back Button */}
-        <Pressable 
+
+        {/* Back button — absolutely positioned so it doesn't affect the centered layout */}
+        <Pressable
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
@@ -68,12 +78,12 @@ export default function ForgotPasswordScreen({ navigation }: any) {
         <Text style={styles.title} allowFontScaling={false}>
           Reset Password
         </Text>
-        
+
         <Text style={styles.subtitle} allowFontScaling={false}>
           Enter your email address and we'll send you a link to reset your password
         </Text>
 
-        {/* Email Input */}
+        {/* Disabled after sending so the user can't trigger multiple reset emails */}
         <TextInput
           placeholder="Email"
           placeholderTextColor="#999"
@@ -86,12 +96,12 @@ export default function ForgotPasswordScreen({ navigation }: any) {
           editable={!emailSent}
         />
 
-        {/* Error Message */}
+        {/* Surfaces any Firebase auth errors (e.g. user not found) from AuthContext */}
         {error && (
           <Text style={styles.errorText}>{error}</Text>
         )}
 
-        {/* Send Reset Email Button */}
+        {/* Disabled while loading or after the email has already been sent */}
         <Pressable
           style={[styles.button, (loading || emailSent) && styles.buttonDisabled]}
           onPress={handleResetPassword}
@@ -106,6 +116,7 @@ export default function ForgotPasswordScreen({ navigation }: any) {
           )}
         </Pressable>
 
+        {/* Inline confirmation shown below the button after a successful send */}
         {emailSent && (
           <View style={styles.successBox}>
             <Text style={styles.successText}>
@@ -113,6 +124,7 @@ export default function ForgotPasswordScreen({ navigation }: any) {
             </Text>
           </View>
         )}
+
       </View>
     </KeyboardAvoidingView>
   );

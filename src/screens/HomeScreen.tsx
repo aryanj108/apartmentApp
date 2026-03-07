@@ -30,22 +30,26 @@ import BathIcon from '../../assets/bathFilledIcon.svg';
 import Stars from '../../assets/stars.svg';
 import Heart from '../../assets/heart.svg';
 import Logo from '../../assets/longhornLivingIcon1.png';
-import ExternalLinkIcon from '../../assets/apartment.svg'; 
+import ExternalLinkIcon from '../../assets/apartment.svg';
 import ArrowUpRightIcon from '../../assets/arrowUp.svg';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH * 0.7;
 const CARD_MARGIN = 20;
 
+// Required to enable LayoutAnimation on Android — it's on by default on iOS
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
+// Formats a number like 1800 into "1,800" for display
 function formatPrice(price) {
   return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
-// Helper function to combine listing with building data
+// Listings and buildings are stored separately in our data layer. This joins them
+// so each listing carries the building-level fields (name, address, images, etc.)
+// that the UI needs without us having to look them up on every render.
 function getEnrichedListings() {
   return listingsData.map(listing => {
     const building = buildingsData.find(b => b.id === listing.buildingId);
@@ -66,7 +70,8 @@ function getEnrichedListings() {
   });
 }
 
-// Apartment Card Component
+// Renders a single listing card in a horizontal carousel section.
+// Shows the first image, a save indicator, match score badge, and key details.
 function ApartmentCard({ listing, matchScore, onPress, isSaved, onSavePress }) {
   const hasImages = listing.images && listing.images.length > 0;
 
@@ -82,7 +87,7 @@ function ApartmentCard({ listing, matchScore, onPress, isSaved, onSavePress }) {
             </View>
           )}
 
-          {/* Floating Save Button */}
+          {/* Heart icon shown in the top-left corner when the listing is saved */}
           {isSaved && (
             <View style={styles.saveBadge}>
               <MaskedView maskElement={<Heart width={24} height={24} fill="#000000" />}>
@@ -95,6 +100,8 @@ function ApartmentCard({ listing, matchScore, onPress, isSaved, onSavePress }) {
               </MaskedView>
             </View>
           )}
+
+          {/* Match score badge in the top-right corner */}
           {matchScore && (
             <LinearGradient
               colors={['#FF8C42', '#BF5700', '#994400']}
@@ -110,7 +117,6 @@ function ApartmentCard({ listing, matchScore, onPress, isSaved, onSavePress }) {
           )}
         </View>
 
-        {/* Card Content */}
         <View style={styles.cardContent}>
           <View>
             <Text style={styles.cardTitle}>{listing.unitNumber}</Text>
@@ -139,35 +145,35 @@ function ApartmentCard({ listing, matchScore, onPress, isSaved, onSavePress }) {
               </View>
             </View>
             */}
-            
-            
-            
-            <View style={styles.cardDetailsRow}>
-              <View style={styles.leftDetails}>
-                <View style={styles.cardDetailItem}>
-                  <MaskedView maskElement={<BedIcon width={16} height={16} fill="#000000" />}>
-                    <LinearGradient
-                      colors={['#FF8C42', '#BF5700', '#994400']}
-                      start={{ x: 0, y: 1 }}
-                      end={{ x: 1, y: 0 }}
-                      style={{ width: 16, height: 16 }}
-                    />
-                  </MaskedView>
-                  <Text style={styles.cardDetailText}>{listing.bedrooms} Bed</Text>
-                </View>
-                <View style={styles.cardDetailItem}>
-                  <MaskedView maskElement={<BathIcon width={16} height={16} fill="#000000" />}>
-                    <LinearGradient
-                      colors={['#FF8C42', '#BF5700', '#994400']}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 0 }}
-                      style={{ width: 16, height: 16 }}
-                    />
-                  </MaskedView>
-                  <Text style={styles.cardDetailText}>{listing.bathrooms} Bath</Text>
-                </View>
+
+          {/* Bed/bath icons use MaskedView to apply the brand gradient through the SVG shape */}
+          <View style={styles.cardDetailsRow}>
+            <View style={styles.leftDetails}>
+              <View style={styles.cardDetailItem}>
+                <MaskedView maskElement={<BedIcon width={16} height={16} fill="#000000" />}>
+                  <LinearGradient
+                    colors={['#FF8C42', '#BF5700', '#994400']}
+                    start={{ x: 0, y: 1 }}
+                    end={{ x: 1, y: 0 }}
+                    style={{ width: 16, height: 16 }}
+                  />
+                </MaskedView>
+                <Text style={styles.cardDetailText}>{listing.bedrooms} Bed</Text>
               </View>
-            
+              <View style={styles.cardDetailItem}>
+                <MaskedView maskElement={<BathIcon width={16} height={16} fill="#000000" />}>
+                  <LinearGradient
+                    colors={['#FF8C42', '#BF5700', '#994400']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={{ width: 16, height: 16 }}
+                  />
+                </MaskedView>
+                <Text style={styles.cardDetailText}>{listing.bathrooms} Bath</Text>
+              </View>
+            </View>
+
+            {/* MaskedView lets the gradient show through the price text */}
             <MaskedView
               maskElement={
                 <Text style={styles.cardPrice}>${formatPrice(listing.price)}</Text>
@@ -190,12 +196,14 @@ function ApartmentCard({ listing, matchScore, onPress, isSaved, onSavePress }) {
   );
 }
 
-// Filter Modal Component
+// Bottom sheet modal that lets users show/hide individual home screen sections.
+// Supports dragging down to dismiss, tapping the backdrop to dismiss, and a
+// reset button to turn all sections back on.
 function FilterModal({ visible, onClose, sections, visibleSections, toggleSection, onApply, onReset }) {
   const translateY = useRef(new Animated.Value(0)).current;
   const opacity = useRef(new Animated.Value(0)).current;
 
-  // Fade in animation when modal becomes visible
+  // Fade the modal in when it becomes visible, and reset opacity when it closes
   useEffect(() => {
     if (visible) {
       translateY.setValue(0);
@@ -209,7 +217,8 @@ function FilterModal({ visible, onClose, sections, visibleSections, toggleSectio
     }
   }, [visible]);
 
-  // Create pan responder for drag gesture
+  // PanResponder on the drag handle area lets the user swipe the modal down to
+  // dismiss it. If they release before dragging 150px, it snaps back up.
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
@@ -226,6 +235,7 @@ function FilterModal({ visible, onClose, sections, visibleSections, toggleSectio
       },
       onPanResponderRelease: (_, gestureState) => {
         if (gestureState.dy > 150) {
+          // Drag was far enough — slide off screen and close
           Animated.parallel([
             Animated.timing(translateY, {
               toValue: SCREEN_HEIGHT,
@@ -241,6 +251,7 @@ function FilterModal({ visible, onClose, sections, visibleSections, toggleSectio
             onClose();
           });
         } else {
+          // Drag wasn't far enough — spring back to the open position
           Animated.parallel([
             Animated.spring(translateY, {
               toValue: 0,
@@ -260,6 +271,7 @@ function FilterModal({ visible, onClose, sections, visibleSections, toggleSectio
     })
   ).current;
 
+  // Tapping the dark backdrop slides the modal off and closes it
   const handleBackdropPress = () => {
     Animated.parallel([
       Animated.timing(translateY, {
@@ -277,6 +289,7 @@ function FilterModal({ visible, onClose, sections, visibleSections, toggleSectio
     });
   };
 
+  // Android back button also closes the modal with an animation
   const handleBackButtonPress = () => {
     Animated.parallel([
       Animated.timing(translateY, {
@@ -303,45 +316,43 @@ function FilterModal({ visible, onClose, sections, visibleSections, toggleSectio
       statusBarTranslucent={true}
     >
       <View style={styles.modalOverlay}>
+        {/* Tappable backdrop — pressing it closes the modal */}
         <TouchableOpacity
           activeOpacity={1}
           onPress={handleBackdropPress}
           style={StyleSheet.absoluteFill}
         >
-          <Animated.View 
+          <Animated.View
             style={[
               StyleSheet.absoluteFill,
               { backgroundColor: 'rgba(0, 0, 0, 0.5)', opacity }
-            ]} 
+            ]}
           />
         </TouchableOpacity>
-        
-        {/* Modal content that slides down */}
-        <Animated.View 
+
+        <Animated.View
           style={[
             styles.modalContent,
             { transform: [{ translateY }] }
           ]}
         >
-          {/* DRAGGABLE AREA - Only the top section */}
+          {/* Only the top area is draggable — the ScrollView below handles its own scrolling */}
           <View {...panResponder.panHandlers} style={styles.dragArea}>
-            {/* Drag Handle */}
             <View style={styles.dragHandleContainer}>
               <View style={styles.dragHandle} />
             </View>
 
-          <View style={styles.modalHeader}>
-            <TouchableOpacity onPress={onReset}>
-              <Text style={styles.resetText}>Reset</Text>
-            </TouchableOpacity>
-            <Text style={styles.modalTitle}>Filter Sections</Text>
-            <View style={{ width: 50 }} />
-          </View>
+            <View style={styles.modalHeader}>
+              <TouchableOpacity onPress={onReset}>
+                <Text style={styles.resetText}>Reset</Text>
+              </TouchableOpacity>
+              <Text style={styles.modalTitle}>Filter Sections</Text>
+              <View style={{ width: 50 }} />
+            </View>
           </View>
 
-          {/* NON-DRAGGABLE AREA - ScrollView */}
-          <ScrollView 
-          style={styles.filterList}>
+          {/* Scrollable list of toggleable section checkboxes */}
+          <ScrollView style={styles.filterList}>
             {sections.map((section) => (
               <TouchableOpacity
                 key={section.key}
@@ -372,18 +383,24 @@ function FilterModal({ visible, onClose, sections, visibleSections, toggleSectio
 }
 
 export default function Home({ navigation }) {
-  const scrollViewRef = useRef(null);  
-    useEffect(() => {
+
+  // Ref used to programmatically scroll back to the top when the user taps
+  // the Home tab while already on this screen
+  const scrollViewRef = useRef(null);
+
+  useEffect(() => {
     const unsubscribe = navigation.addListener('tabPress', (e) => {
       if (navigation.isFocused()) {
         scrollViewRef.current?.scrollTo({ y: 0, animated: true });
       }
     });
-
     return unsubscribe;
   }, [navigation]);
 
   const { user } = useAuth();
+
+  // Wraps toggleSave with a LayoutAnimation so any layout changes (e.g. a saved
+  // section appearing/disappearing) animate smoothly instead of jumping
   const handleToggleSave = (id) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     toggleSave(id);
@@ -399,8 +416,11 @@ export default function Home({ navigation }) {
   const [hasAllAmenities, setHasAllAmenities] = useState([]);
   const [lovedByLonghorns, setLonghornFavorites] = useState([]);
 
-  // Filter modal state
   const [filterModalVisible, setFilterModalVisible] = useState(false);
+
+  // visibleSections is the committed state — what's actually shown on screen.
+  // tempVisibleSections holds in-progress changes while the filter modal is open,
+  // and is only applied to visibleSections when the user presses "Apply Filters".
   const [visibleSections, setVisibleSections] = useState({
     recentlyViewed: true,
     savedListings: true,
@@ -409,22 +429,21 @@ export default function Home({ navigation }) {
     hasAllAmenities: true,
     lovedByLonghorns: true,
   });
-  // Temporary state for filter changes (not saved until Apply is pressed)
   const [tempVisibleSections, setTempVisibleSections] = useState(visibleSections);
 
-  // Get selected amenities from preferences
+  // Build the amenity list the scoring algorithm expects from the user's preferences
   const allAmenities = ['wifi', 'gym', 'pool', 'parking', 'furnished', 'petFriendly'];
   const selectedAmenities = allAmenities.filter((amenity) => preferences?.[amenity]);
 
-  // Load filter preferences from Firebase on mount
+  // Load the user's saved filter preferences from Firestore when the screen mounts
   useEffect(() => {
     const loadFilterPreferences = async () => {
       if (!user?.uid) return;
-      
+
       try {
         const userDocRef = doc(db, 'users', user.uid);
         const userDoc = await getDoc(userDocRef);
-        
+
         if (userDoc.exists() && userDoc.data().filterPreferences) {
           const savedFilters = userDoc.data().filterPreferences;
           setVisibleSections(savedFilters);
@@ -438,10 +457,10 @@ export default function Home({ navigation }) {
     loadFilterPreferences();
   }, [user?.uid]);
 
-  // Save filter preferences to Firebase
+  // Persists the current filter state to Firestore so it survives app restarts
   const saveFilterPreferences = async (filters) => {
     if (!user?.uid) return;
-    
+
     try {
       const userDocRef = doc(db, 'users', user.uid);
       await updateDoc(userDocRef, {
@@ -452,12 +471,14 @@ export default function Home({ navigation }) {
     }
   };
 
-  // Load enriched listings on mount
+  // Combine listings with their building data once on mount
   useEffect(() => {
     const listings = getEnrichedListings();
     setEnrichedListings(listings);
   }, []);
 
+  // Re-compute all sections whenever preferences, saved IDs, or the listing data changes.
+  // Each section is filtered differently but all are sorted by match score descending.
   useEffect(() => {
     if (!preferences || !savedIds || enrichedListings.length === 0) return;
 
@@ -509,42 +530,40 @@ export default function Home({ navigation }) {
     }
   }, [preferences, savedIds, enrichedListings]);
 
+  // Calculate the match score at press time and navigate to the room detail screen
   const handleCardPress = (listing) => {
     const score = calculateMatchScore(
       listing,
       preferences,
       selectedAmenities.map((id) => ({ id, selected: true }))
     );
-    // Home screen: go to individual unit details first
     navigation.navigate('RoomListingDetailsScreen_SearchVersion', {
       listing: listing,
       matchScore: score,
     });
   };
 
-  // Toggle section in temporary state (not saved yet)
+  // Updates only the temp state — changes aren't committed until Apply is pressed
   const toggleSection = (sectionKey) => {
     setTempVisibleSections((prev) => ({ ...prev, [sectionKey]: !prev[sectionKey] }));
   };
 
-  // Apply filters and save to Firebase
+  // Commits temp filter changes, saves them to Firestore, and closes the modal
   const handleApplyFilters = async () => {
-    // Apply the temporary changes to actual state
     setVisibleSections(tempVisibleSections);
-    
-    // Save to Firebase
     await saveFilterPreferences(tempVisibleSections);
-    
-    // Close modal
     setFilterModalVisible(false);
   };
 
-  // Reset temp state when modal opens
+  // Syncs temp state to the current committed state when opening the modal so
+  // any previously discarded changes don't reappear
   const handleOpenFilterModal = () => {
     setTempVisibleSections(visibleSections);
     setFilterModalVisible(true);
   };
 
+  // Renders a titled horizontal carousel for a given section, or returns null
+  // if the section is empty or toggled off by the user
   const renderSection = (title, data, sectionKey) => {
     if (data.length === 0 || !visibleSections[sectionKey]) {
       if (sectionKey === 'savedListings') {
@@ -553,53 +572,53 @@ export default function Home({ navigation }) {
       return null;
     }
 
-  return (
-    <View style={styles.section}>
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>{title}</Text>
-        <MaskedView
-          maskElement={<Stars width={22} height={22} fill="#000000" />}
-        >
-          <LinearGradient
-            colors={['#FF8C42', '#BF5700', '#994400']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={{ width: 22, height: 22 }}
-          />
-        </MaskedView>
-      </View>
+    return (
+      <View style={styles.section}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>{title}</Text>
+          <MaskedView
+            maskElement={<Stars width={22} height={22} fill="#000000" />}
+          >
+            <LinearGradient
+              colors={['#FF8C42', '#BF5700', '#994400']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={{ width: 22, height: 22 }}
+            />
+          </MaskedView>
+        </View>
 
-      <LinearGradient
-        colors={['#ffffff', '#fafafa', '#f0f0f0']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
-      >
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.carouselContainer}
+        <LinearGradient
+          colors={['#ffffff', '#fafafa', '#f0f0f0']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0, y: 1 }}
         >
-          {data.map((listing) => {
-            const score = calculateMatchScore(
-              listing,
-              preferences,
-              selectedAmenities.map((id) => ({ id, selected: true }))
-            );
-            return (
-              <ApartmentCard
-                key={listing.id}
-                listing={listing}
-                matchScore={score}
-                onPress={() => handleCardPress(listing)}
-                isSaved={savedIds.includes(listing.id)}
-                onSavePress={() => handleToggleSave(listing.id)}
-              />
-            );
-          })}
-        </ScrollView>
-      </LinearGradient>
-    </View>
-  );
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.carouselContainer}
+          >
+            {data.map((listing) => {
+              const score = calculateMatchScore(
+                listing,
+                preferences,
+                selectedAmenities.map((id) => ({ id, selected: true }))
+              );
+              return (
+                <ApartmentCard
+                  key={listing.id}
+                  listing={listing}
+                  matchScore={score}
+                  onPress={() => handleCardPress(listing)}
+                  isSaved={savedIds.includes(listing.id)}
+                  onSavePress={() => handleToggleSave(listing.id)}
+                />
+              );
+            })}
+          </ScrollView>
+        </LinearGradient>
+      </View>
+    );
   };
 
   const sections = [
@@ -613,84 +632,83 @@ export default function Home({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <ScrollView 
-      ref={scrollViewRef}
-      style={styles.scrollView} 
-      showsVerticalScrollIndicator={true}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerContent}>
-          <View style={styles.headerLeft}>
-            {/* Logo 
-            <Image
-              source={Logo}
-              style={styles.headerLogo}
-              resizeMode="contain"
-            />*/}
-            
-            {/* Text */}
-            <View style={styles.headerTextContainer}>
-              <Text style={styles.headerTitle}>Longhorn Living</Text>
-              <Text style={styles.headerSubtitle}>Find your dream apartment</Text>
-            </View>
-          </View>
-          
-          {/* Filter Button */}
-          <TouchableOpacity style={styles.filterButton} onPress={handleOpenFilterModal}>
-            <MaskedView
-              maskElement={<Stars width={31} height={31} fill="#000000" />}
-            >
-              <LinearGradient
-                colors={['#FF8C42', '#BF5700', '#994400']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={{ width: 30, height: 30 }}
-              />
-            </MaskedView>
-          </TouchableOpacity>
-        </View>
-      </View>
+      <ScrollView
+        ref={scrollViewRef}
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={true}
+      >
+        <View style={styles.header}>
+          <View style={styles.headerContent}>
+            <View style={styles.headerLeft}>
+              {/* Logo
+              <Image
+                source={Logo}
+                style={styles.headerLogo}
+                resizeMode="contain"
+              />*/}
 
-        {/* Sections */}
+              <View style={styles.headerTextContainer}>
+                <Text style={styles.headerTitle}>Longhorn Living</Text>
+                <Text style={styles.headerSubtitle}>Find your dream apartment</Text>
+              </View>
+            </View>
+
+            {/* Opens the filter modal to toggle which sections are visible */}
+            <TouchableOpacity style={styles.filterButton} onPress={handleOpenFilterModal}>
+              <MaskedView
+                maskElement={<Stars width={31} height={31} fill="#000000" />}
+              >
+                <LinearGradient
+                  colors={['#FF8C42', '#BF5700', '#994400']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={{ width: 30, height: 30 }}
+                />
+              </MaskedView>
+            </TouchableOpacity>
+          </View>
+        </View>
+
         {sections.map((section) => (
           <React.Fragment key={section.key}>
             {renderSection(section.title, section.data, section.key)}
           </React.Fragment>
         ))}
 
-      {/* Browse All Listings Button */}
-      <View style={styles.browseAllContainer}>
-        <TouchableOpacity 
-          style={styles.browseAllButton}
-          onPress={() => navigation.navigate('Search', { resetMap: true, timestamp: Date.now() })}
-        >
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <MaskedView maskElement={<ExternalLinkIcon width={24} height={24} fill="#000000" />}>
+        {/* Button at the bottom that takes the user to the full search/map tab */}
+        <View style={styles.browseAllContainer}>
+          <TouchableOpacity
+            style={styles.browseAllButton}
+            onPress={() => navigation.navigate('Search', { resetMap: true, timestamp: Date.now() })}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <MaskedView maskElement={<ExternalLinkIcon width={24} height={24} fill="#000000" />}>
+                <LinearGradient
+                  colors={['#FF8C42', '#BF5700', '#994400']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={{ width: 24, height: 24 }}
+                />
+              </MaskedView>
+              <Text style={styles.browseAllButtonText}>Search for Apartments</Text>
+            </View>
+            <MaskedView maskElement={<ArrowUpRightIcon width={25} height={25} fill="#000000" />}>
               <LinearGradient
                 colors={['#FF8C42', '#BF5700', '#994400']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
-                style={{ width: 24, height: 24 }}
+                style={{ width: 25, height: 25 }}
               />
             </MaskedView>
-            <Text style={styles.browseAllButtonText}>Search for Apartments</Text>
-          </View>
-          <MaskedView maskElement={<ArrowUpRightIcon width={25} height={25} fill="#000000" />}>
-            <LinearGradient
-              colors={['#FF8C42', '#BF5700', '#994400']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={{ width: 25, height: 25 }}
-            />
-          </MaskedView>
-        </TouchableOpacity>
-      </View>
-      <View style={{ height: 110 }} />  
+          </TouchableOpacity>
+        </View>
+
+        {/* Extra bottom padding so content isn't hidden behind the floating tab bar */}
+        <View style={{ height: 110 }} />
       </ScrollView>
 
-      {/* Filter Modal */}
       <FilterModal
-            onReset={() => {
+        onReset={() => {
           const allOn = Object.fromEntries(sections.map(s => [s.key, true]));
           setTempVisibleSections(allOn);
         }}
@@ -714,10 +732,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-  padding: 20,
-  paddingTop: 60,
-  backgroundColor: '#ffffff',
-  marginBottom: 10,
+    padding: 20,
+    paddingTop: 60,
+    backgroundColor: '#ffffff',
+    marginBottom: 10,
   },
   headerContent: {
     flexDirection: 'row',
@@ -762,7 +780,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   section: {
-    marginBottom: 20
+    marginBottom: 20,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -775,9 +793,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     color: '#000000',
-    //paddingHorizontal: 20,
     letterSpacing: 0.3,
-    //paddingVertical: 8,
   },
   carouselContainer: {
     paddingLeft: 20,
@@ -854,7 +870,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 'auto'
+    marginTop: 'auto',
   },
   leftDetails: {
     flexDirection: 'row',
@@ -910,8 +926,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginHorizontal: 20,
     paddingBottom: 16,
-    //borderBottomWidth: 1,
-    //borderBottomColor: '#e5e7eb',
   },
   modalTitle: {
     fontSize: 20,
@@ -996,23 +1010,23 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
   },
   browseAllContainer: {
-  paddingHorizontal: 20,
-  paddingVertical: 10,
-  marginTop: 10,
-},
-browseAllButton: {
-  backgroundColor: '#f3f4f6',
-  paddingVertical: 14,
-  paddingHorizontal: 20,
-  borderRadius: 12,
-  flexDirection: 'row',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  gap: 8,
-},
-browseAllButtonText: {
-  color: '#BF5700',
-  fontSize: 15,
-  fontWeight: '500',
-},
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    marginTop: 10,
+  },
+  browseAllButton: {
+    backgroundColor: '#f3f4f6',
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  browseAllButtonText: {
+    color: '#BF5700',
+    fontSize: 15,
+    fontWeight: '500',
+  },
 });

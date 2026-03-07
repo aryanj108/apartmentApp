@@ -33,17 +33,17 @@ import DistanceIcon from '../../assets/arrowFilledIcon.svg';
 import Stars from '../../assets/stars.svg';
 import SaveFilledIconHeart from '../../assets/heart.svg';
 import PinIcon from '../../assets/pinIcon2.svg';
-import SearchIcon from '../../assets/searchIcon.svg'; 
+import SearchIcon from '../../assets/searchIcon.svg';
 import ResetIcon from '../../assets/resetIcon.svg';
 import CancelIcon from '../../assets/cancel-svg.svg';
 import ApartmentIcon from '../../assets/arrowUp.svg';
 import UTIcon from '../../assets/campusIcon.svg';
 import PersonIcon from '../../assets/personIcon.svg';
 
-
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-// Austin, TX coordinates
+// Default map region centered on Austin, TX. Used as both the initial region
+// and the target when the user hits the reset button.
 const AUSTIN_REGION = {
   latitude: 30.2672,
   longitude: -97.7431,
@@ -51,16 +51,20 @@ const AUSTIN_REGION = {
   longitudeDelta: 0.15,
 };
 
-// Helper function to format price with commas
+// Formats a price number into a comma-separated string (e.g. 1500 → "1,500").
 function formatPrice(price) {
   return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
-// Helper function to combine listing with building data
-function getEnrichedListings(customLocation?: {lat: number, lon: number} | null) {
-  return listingsData.map(listing => {
-    const building = buildingsData.find(b => b.id === listing.buildingId);
-    // Calculate distance from custom location if provided
+// Joins listing data with its parent building data, computing a live distance
+// from the user's custom location if one is set in preferences. Falls back to
+// the building's pre-set distance if no custom location is provided.
+// This enriched shape is what all downstream components and the scoring
+// algorithm expect to receive.
+function getEnrichedListings(customLocation?: { lat: number; lon: number } | null) {
+  return listingsData.map((listing) => {
+    const building = buildingsData.find((b) => b.id === listing.buildingId);
+
     let calculatedDistance = building?.distance || 0;
     if (customLocation && building?.latitude && building?.longitude) {
       calculatedDistance = calculateDistance(
@@ -77,7 +81,7 @@ function getEnrichedListings(customLocation?: {lat: number, lon: number} | null)
       ...listing,
       name: building?.name || 'Unknown',
       address: building?.address || 'Unknown Address',
-      distance: calculatedDistance,  
+      distance: calculatedDistance,
       amenities: building?.amenities || [],
       images: building?.images || [],
       description: listing.description || building?.description || '',
@@ -92,7 +96,10 @@ function getEnrichedListings(customLocation?: {lat: number, lon: number} | null)
   });
 }
 
-// Custom marker component - shows building pins
+// Wrapping Marker in React.memo prevents the entire map from re-rendering every
+// marker whenever unrelated state changes. tracksViewChanges is set to false
+// after 100ms — keeping it true indefinitely is a known performance issue on
+// Android that causes markers to flicker and re-render continuously.
 const CustomMarker = React.memo(({ building, onPress }) => {
   const [tracksViewChanges, setTracksViewChanges] = React.useState(true);
 
@@ -119,16 +126,14 @@ const CustomMarker = React.memo(({ building, onPress }) => {
   );
 });
 
-// Vertical Listing Card Component
+// Renders a single apartment listing card in the list view.
+// The price text uses MaskedView + LinearGradient so the gradient shows through
+// the text shape — the same technique used in the tab bar icons.
 function ListingVerticalCard({ listing, matchScore, onPress, isSaved }) {
   const hasImages = listing.images && listing.images.length > 0;
-  
+
   return (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={onPress}
-      activeOpacity={0.9}
-    >
+    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.9}>
       <View style={styles.cardImageContainer}>
         {hasImages ? (
           <Image
@@ -141,19 +146,19 @@ function ListingVerticalCard({ listing, matchScore, onPress, isSaved }) {
             <Text style={styles.placeholderText}>No Image</Text>
           </View>
         )}
-        
-          {isSaved && (
-            <View style={styles.saveBadge}>
-              <MaskedView maskElement={<SaveFilledIconHeart width={25} height={25} fill="#000000" />}>
-                <LinearGradient
-                  colors={['#FF8C42', '#BF5700', '#994400']}
-                  start={{ x: 0, y: 1 }}
-                  end={{ x: 0, y: 0 }}
-                  style={{ width: 25, height: 25 }}
-                />
-              </MaskedView>
-            </View>
-          )}
+
+        {isSaved && (
+          <View style={styles.saveBadge}>
+            <MaskedView maskElement={<SaveFilledIconHeart width={25} height={25} fill="#000000" />}>
+              <LinearGradient
+                colors={['#FF8C42', '#BF5700', '#994400']}
+                start={{ x: 0, y: 1 }}
+                end={{ x: 0, y: 0 }}
+                style={{ width: 25, height: 25 }}
+              />
+            </MaskedView>
+          </View>
+        )}
 
         {matchScore && (
           <LinearGradient
@@ -169,7 +174,7 @@ function ListingVerticalCard({ listing, matchScore, onPress, isSaved }) {
           </LinearGradient>
         )}
       </View>
-      
+
       <View style={styles.cardContent}>
         <Text style={styles.cardTitle}>
           {listing.unitNumber} {/*• {listing.floorPlan}*/}
@@ -178,7 +183,7 @@ function ListingVerticalCard({ listing, matchScore, onPress, isSaved }) {
         <Text style={styles.unitNumber} numberOfLines={1}>
           {listing.name}
         </Text>
-        
+
         <Text style={styles.cardAddress} numberOfLines={1}>
           {listing.address}
         </Text>
@@ -243,14 +248,17 @@ function ListingVerticalCard({ listing, matchScore, onPress, isSaved }) {
   );
 }
 
-// Search Modal Component
+// Full-screen bottom sheet modal for searching apartments by name or address.
+// Supports both keyboard search and a drag-to-dismiss gesture using PanResponder.
+// Results are sorted so exact matches and prefix matches surface before
+// substring matches, giving a more intuitive feel than a flat filter.
 function SearchModal({ visible, onClose, buildings, onSelectBuilding }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredBuildings, setFilteredBuildings] = useState([]);
   const translateY = useRef(new Animated.Value(0)).current;
   const opacity = useRef(new Animated.Value(0)).current;
 
-  // Fade in animation when modal becomes visible
+  // Fade the modal in when it becomes visible and reset opacity on close.
   useEffect(() => {
     if (visible) {
       translateY.setValue(0);
@@ -264,7 +272,9 @@ function SearchModal({ visible, onClose, buildings, onSelectBuilding }) {
     }
   }, [visible]);
 
-  // Create pan responder for drag gesture
+  // PanResponder on the drag handle area. Only activates for downward drags
+  // (dy > 5) so vertical scrolling inside the FlatList still works normally.
+  // Dragging past 150px commits the dismiss animation; below that it springs back.
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
@@ -275,7 +285,7 @@ function SearchModal({ visible, onClose, buildings, onSelectBuilding }) {
       onPanResponderMove: (_, gestureState) => {
         if (gestureState.dy > 0) {
           translateY.setValue(gestureState.dy);
-          const newOpacity = Math.max(0, 1 - (gestureState.dy / 400));
+          const newOpacity = Math.max(0, 1 - gestureState.dy / 400);
           opacity.setValue(newOpacity);
         }
       },
@@ -291,7 +301,7 @@ function SearchModal({ visible, onClose, buildings, onSelectBuilding }) {
               toValue: 0,
               duration: 250,
               useNativeDriver: true,
-            })
+            }),
           ]).start(() => {
             onClose();
           });
@@ -308,41 +318,45 @@ function SearchModal({ visible, onClose, buildings, onSelectBuilding }) {
               useNativeDriver: true,
               tension: 65,
               friction: 10,
-            })
+            }),
           ]).start();
         }
       },
     })
   ).current;
 
+  // Re-filter and re-sort results every time the query or building list changes.
+  // Sorting priority: exact name match → name starts with query → address starts
+  // with query → alphabetical. This keeps the most relevant result at the top.
   useEffect(() => {
     if (searchQuery.trim() === '') {
       setFilteredBuildings([]);
     } else {
       const query = searchQuery.toLowerCase();
-      const filtered = buildings.filter(building =>
-        building.name.toLowerCase().includes(query) ||
-        building.address.toLowerCase().includes(query)
+      const filtered = buildings.filter(
+        (building) =>
+          building.name.toLowerCase().includes(query) ||
+          building.address.toLowerCase().includes(query)
       );
-      
+
       const sorted = filtered.sort((a, b) => {
         const aName = a.name.toLowerCase();
         const bName = b.name.toLowerCase();
         const aAddress = a.address.toLowerCase();
         const bAddress = b.address.toLowerCase();
-        
+
         if (aName === query) return -1;
         if (bName === query) return 1;
-        
+
         if (aName.startsWith(query) && !bName.startsWith(query)) return -1;
         if (bName.startsWith(query) && !aName.startsWith(query)) return 1;
-        
+
         if (aAddress.startsWith(query) && !bAddress.startsWith(query)) return -1;
         if (bAddress.startsWith(query) && !aAddress.startsWith(query)) return 1;
-        
+
         return aName.localeCompare(bName);
       });
-      
+
       setFilteredBuildings(sorted);
     }
   }, [searchQuery, buildings]);
@@ -354,7 +368,8 @@ function SearchModal({ visible, onClose, buildings, onSelectBuilding }) {
     onClose();
   };
 
-  const handleBackdropPress = () => {
+  // Shared dismiss animation used by both backdrop tap and back button press.
+  const dismissModal = () => {
     Animated.parallel([
       Animated.timing(translateY, {
         toValue: SCREEN_HEIGHT,
@@ -365,28 +380,14 @@ function SearchModal({ visible, onClose, buildings, onSelectBuilding }) {
         toValue: 0,
         duration: 250,
         useNativeDriver: true,
-      })
+      }),
     ]).start(() => {
       onClose();
     });
   };
 
-  const handleBackButtonPress = () => {
-    Animated.parallel([
-      Animated.timing(translateY, {
-        toValue: SCREEN_HEIGHT,
-        duration: 250,
-        useNativeDriver: true,
-      }),
-      Animated.timing(opacity, {
-        toValue: 0,
-        duration: 250,
-        useNativeDriver: true,
-      })
-    ]).start(() => {
-      onClose();
-    });
-  };
+  const handleBackdropPress = () => dismissModal();
+  const handleBackButtonPress = () => dismissModal();
 
   return (
     <Modal
@@ -397,31 +398,29 @@ function SearchModal({ visible, onClose, buildings, onSelectBuilding }) {
       statusBarTranslucent={true}
     >
       <View style={styles.modalOverlay}>
+        {/* Tappable backdrop — pressing outside the sheet dismisses it */}
         <TouchableOpacity
           activeOpacity={1}
           onPress={handleBackdropPress}
           style={StyleSheet.absoluteFill}
         >
-          <Animated.View 
+          <Animated.View
             style={[
               StyleSheet.absoluteFill,
-              { backgroundColor: 'rgba(0, 0, 0, 0.5)', opacity }
-            ]} 
+              { backgroundColor: 'rgba(0, 0, 0, 0.5)', opacity },
+            ]}
           />
         </TouchableOpacity>
-        
-        <Animated.View 
-          style={[
-            styles.modalContent,
-            { transform: [{ translateY }] }
-          ]}
+
+        <Animated.View
+          style={[styles.modalContent, { transform: [{ translateY }] }]}
         >
-          {/* DRAGGABLE HEADER AREA */}
+          {/* Drag handle area — PanResponder is attached here so it doesn't
+              interfere with scrolling in the FlatList below */}
           <View {...panResponder.panHandlers} style={styles.dragArea}>
             <View style={styles.dragHandleContainer}>
               <View style={styles.dragHandle} />
             </View>
-
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Search Apartments</Text>
             </View>
@@ -452,18 +451,18 @@ function SearchModal({ visible, onClose, buildings, onSelectBuilding }) {
                 style={styles.searchResultItem}
                 onPress={() => handleSelectBuilding(item)}
               >
-              <View style={styles.searchResultContent}>
-                <Text style={styles.searchResultName}>{item.name}</Text>
-                <Text style={styles.searchResultAddress}>{item.address}</Text>
-              </View>
-              <MaskedView maskElement={<ApartmentIcon width={24} height={24} fill="#000000" />}>
-                <LinearGradient
-                  colors={['#FF8C42', '#BF5700', '#994400']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={{ width: 24, height: 24 }}
-                />
-              </MaskedView>
+                <View style={styles.searchResultContent}>
+                  <Text style={styles.searchResultName}>{item.name}</Text>
+                  <Text style={styles.searchResultAddress}>{item.address}</Text>
+                </View>
+                <MaskedView maskElement={<ApartmentIcon width={24} height={24} fill="#000000" />}>
+                  <LinearGradient
+                    colors={['#FF8C42', '#BF5700', '#994400']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={{ width: 24, height: 24 }}
+                  />
+                </MaskedView>
                 {/*<Text style={styles.searchResultArrow}>→</Text>*/}
               </TouchableOpacity>
             )}
@@ -493,56 +492,71 @@ export default function Search({ navigation }) {
   const [searchModalVisible, setSearchModalVisible] = useState(false);
   const mapRef = useRef(null);
 
+  // Build the selectedAmenities array from the user's boolean preference flags.
+  // calculateMatchScore expects an array of { id, selected } objects, not raw booleans.
   const allAmenities = ['wifi', 'gym', 'pool', 'parking', 'furnished', 'petFriendly'];
-  const selectedAmenities = allAmenities.filter(amenity => preferences?.[amenity]);
+  const selectedAmenities = allAmenities.filter((amenity) => preferences?.[amenity]);
 
+  // Compute header and list padding dynamically based on safe area insets so the
+  // UI respects the notch/status bar on all devices without hardcoding values.
   const headerPaddingTop = Platform.OS === 'ios' ? insets.top + 25 : insets.top || 25;
   const listPaddingTop = Platform.OS === 'ios' ? insets.top + 110 : (insets.top || 10) + 100;
 
-    useEffect(() => {                        
+  // Listens for a resetMap param passed from other screens (e.g. tapping the
+  // Search tab from a detail screen). The timestamp param forces the effect to
+  // re-run even if resetMap was already true from a previous navigation.
+  useEffect(() => {
     if (route.params?.resetMap) {
       setShowMap(true);
       setTimeout(() => handleResetMap(), 100);
     }
   }, [route.params?.timestamp]);
 
+  // Re-scores and re-sorts listings whenever preferences change. Using the
+  // user's custom location for distance calculations if one has been set,
+  // otherwise defaulting to UT Austin's coordinates.
   useEffect(() => {
     if (prefsLoading) return;
-    
+
     setLoading(true);
-    
+
     const userLoc = preferences.location || { lat: 30.2853, lon: -97.7320 };
     const enrichedListings = getEnrichedListings(userLoc);
-    
-    const listingsWithScores = enrichedListings.map(listing => {
+
+    const listingsWithScores = enrichedListings.map((listing) => {
       const score = calculateMatchScore(
         listing,
         preferences,
-        selectedAmenities.map(id => ({ id, selected: true }))
+        selectedAmenities.map((id) => ({ id, selected: true }))
       );
       return { ...listing, matchScore: score };
     });
 
     const sorted = listingsWithScores.sort((a, b) => b.matchScore - a.matchScore);
-    
+
     setSortedListings(sorted);
     setLoading(false);
   }, [preferences, prefsLoading, preferences.location]);
 
+  // Animates the map back to the default Austin region over 750ms.
   const handleResetMap = () => {
     if (mapRef.current) {
       mapRef.current.animateToRegion(initialMapRegion, 750);
     }
   };
-    const scrollViewRef = useRef(null);  
-  // Reset map when tab is pressed while already on Search screen in map view
+
+  // scrollViewRef gives us a handle to the FlatList so we can programmatically
+  // scroll to the top when the tab is pressed while already on the list view.
+  const scrollViewRef = useRef(null);
+
+  // tabPress listener: resets the map if in map view, or scrolls to top if in
+  // list view. Returns the unsubscribe function as the effect cleanup so the
+  // listener is removed when the component unmounts or dependencies change.
   useEffect(() => {
     const unsubscribe = navigation.addListener('tabPress', (e) => {
       if (navigation.isFocused() && showMap) {
-        // If we're already on the Search screen and in map view, reset the map
         handleResetMap();
       } else if (navigation.isFocused() && !showMap) {
-        // If we're in list view, scroll to top
         scrollViewRef.current?.scrollToOffset({ offset: 0, animated: true });
       }
     });
@@ -580,17 +594,20 @@ export default function Search({ navigation }) {
 
   return (
     <View style={styles.container}>
+      {/* Floating header — sits above both the map and list via absolute positioning.
+          BlurView intensity is 0 in map view (fully transparent) and 80 in list view
+          so the header reads clearly against the white list background. */}
       <View style={[styles.header, { paddingTop: headerPaddingTop }]}>
-        <BlurView 
-          intensity={showMap ? 0 : 80} 
-          tint="default" 
-          style={StyleSheet.absoluteFill} 
+        <BlurView
+          intensity={showMap ? 0 : 80}
+          tint="default"
+          style={StyleSheet.absoluteFill}
         />
         <View style={styles.headerTitleRow}>
           {/* Reset Button on the Left */}
           {showMap && (
-            <TouchableOpacity 
-              style={styles.resetButtonTopLeft} 
+            <TouchableOpacity
+              style={styles.resetButtonTopLeft}
               onPress={handleResetMap}
             >
               <ResetIcon width={26} height={20} fill="#000000" />
@@ -600,11 +617,11 @@ export default function Search({ navigation }) {
           <Text style={styles.headerTitle}>Browse Listings</Text>
 
           {/* Search Button on the Right */}
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.searchIconButton}
             onPress={() => setSearchModalVisible(true)}
           >
-            <SearchIcon width={40} height={40}/>
+            <SearchIcon width={40} height={40} />
           </TouchableOpacity>
         </View>
         <View style={styles.headerBottom}>
@@ -631,7 +648,6 @@ export default function Search({ navigation }) {
             showsUserLocation={false}
             showsMyLocationButton={false}
           >
-            
             {/* UT Campus Marker */}
             <Marker
               coordinate={{
@@ -644,19 +660,19 @@ export default function Search({ navigation }) {
               </View>
             </Marker>
 
-              {/* User Location Marker */}
-              {preferences?.location && (
-                <Marker
-                  coordinate={{
-                    latitude: preferences.location.lat,
-                    longitude: preferences.location.lon,
-                  }}
-                >
-                  <View style={styles.personMarkerContainer}>
-                    <PersonIcon width={50} height={30} fill="#000000" />
-                  </View>
-                </Marker>
-              )}
+            {/* User Location Marker — only shown if the user has set a custom location */}
+            {preferences?.location && (
+              <Marker
+                coordinate={{
+                  latitude: preferences.location.lat,
+                  longitude: preferences.location.lon,
+                }}
+              >
+                <View style={styles.personMarkerContainer}>
+                  <PersonIcon width={50} height={30} fill="#000000" />
+                </View>
+              </Marker>
+            )}
 
             {buildingsData.map((building) => (
               <CustomMarker
@@ -666,8 +682,8 @@ export default function Search({ navigation }) {
               />
             ))}
           </MapView>
-          
-          {/*<TouchableOpacity 
+
+          {/*<TouchableOpacity
             style={styles.resetButton}
             onPress={handleResetMap}
           >
@@ -727,18 +743,18 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 100,
-    paddingBottom: 20, 
+    paddingBottom: 20,
     alignItems: 'center',
-    backgroundColor: 'transparent', 
-    borderBottomLeftRadius: 30,   
-    borderBottomRightRadius: 30,   
-    overflow: 'hidden',            
+    backgroundColor: 'transparent',
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
+    overflow: 'hidden',
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255, 255, 255, 0.2)',
   },
   listContainer: {
     padding: 16,
-    paddingBottom: 120
+    paddingBottom: 120,
   },
   headerTitleRow: {
     flexDirection: 'row',
@@ -755,9 +771,9 @@ const styles = StyleSheet.create({
   },
   searchIconButton: {
     position: 'absolute',
-    right: 30,      
-    top: 0,         
-    padding: 4,               
+    right: 30,
+    top: 0,
+    padding: 4,
     zIndex: 101,
   },
   headerBottom: {
@@ -1000,10 +1016,10 @@ const styles = StyleSheet.create({
     color: '#6b7280',
   },
   searchResultArrow: {
-    fontSize: 24, 
+    fontSize: 24,
     color: '#BF5700',
     marginLeft: 12,
-    fontWeight: 'bold', 
+    fontWeight: 'bold',
   },
   emptyState: {
     alignItems: 'center',
@@ -1017,7 +1033,7 @@ const styles = StyleSheet.create({
   resetButtonTopLeft: {
     position: 'absolute',
     left: 30,
-    padding: 10,              
+    padding: 10,
     zIndex: 101,
     top: 5,
   },

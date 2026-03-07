@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   button: {
-    backgroundColor: '#BF5700', // UT orange
+    backgroundColor: '#BF5700', 
     paddingVertical: scale(14),
     paddingHorizontal: scale(40),
     borderRadius: scale(10),

@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
+import {
+  View,
+  Text,
+  StyleSheet,
   Pressable,
   Alert,
   ScrollView,
@@ -22,23 +22,28 @@ import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../config/firebaseConfig';
 
 import Stars from '../../assets/stars.svg';
-import InfoIcon from '../../assets/infoIcon.svg'
-import WrenchIcon from '../../assets/wrenchIcon.svg'
-import ContactIcon from '../../assets/contactIcon.svg'
-import RateIcon from '../../assets/starsProfileIcon.svg'
-import InstagramIcon from '../../assets/instagramIcon.svg'
+import InfoIcon from '../../assets/infoIcon.svg';
+import WrenchIcon from '../../assets/wrenchIcon.svg';
+import ContactIcon from '../../assets/contactIcon.svg';
+import RateIcon from '../../assets/starsProfileIcon.svg';
+import InstagramIcon from '../../assets/instagramIcon.svg';
 import ShareIcon from '../../assets/shareIcon1.svg';
 
 const ICON_SIZE = 20;
 
+// Small label that sits above each settings card group (e.g. "Account", "Support")
 function SectionLabel({ title }: { title: string }) {
   return <Text style={styles.sectionLabel}>{title}</Text>;
 }
 
+// Wraps one or more SettingsRows in a white rounded card with a subtle shadow
 function SettingsCard({ children }: { children: React.ReactNode }) {
   return <View style={styles.card}>{children}</View>;
 }
 
+// A single settings row. Renders a TouchableOpacity if onPress is provided,
+// otherwise a plain View. Supports optional icons, value labels, chevrons,
+// and a danger style for destructive actions like Sign Out.
 function SettingsRow({
   icon,
   label,
@@ -82,11 +87,14 @@ function SettingsRow({
           {showArrow && <Text style={styles.externalArrow}>⎋</Text>}
         </View>
       </Row>
+      {/* Divider line between rows — omitted on the last row in a card */}
       {!isLast && <View style={styles.separator} />}
     </>
   );
 }
 
+// Simple modal that lets the user pick Light, Dark, or System appearance.
+// Tapping the backdrop or selecting an option closes it automatically.
 function AppearancePicker({
   visible,
   current,
@@ -130,13 +138,14 @@ export default function Profile({ navigation }: any) {
   const { preferences } = usePreferences();
   const [refreshing, setRefreshing] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
+
+  // Ref used to scroll back to the top when the user taps the Profile tab again
   const scrollViewRef = useRef(null);
 
-  // Appearance
   const [appearance, setAppearance] = useState('Light');
   const [showAppearancePicker, setShowAppearancePicker] = useState(false);
 
-  // Location
+  // Location editing state — toggled inline within the Location card
   const [isEditingLocation, setIsEditingLocation] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -144,6 +153,7 @@ export default function Profile({ navigation }: any) {
   const [showResults, setShowResults] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState(null);
 
+  // Scroll to top when the tab is pressed while the screen is already focused
   useEffect(() => {
     const unsubscribe = navigation.addListener('tabPress', () => {
       if (navigation.isFocused()) {
@@ -153,10 +163,12 @@ export default function Profile({ navigation }: any) {
     return unsubscribe;
   }, [navigation]);
 
+  // Seed selectedLocation from Firestore preferences when they load
   useEffect(() => {
     if (preferences?.location) setSelectedLocation(preferences.location);
   }, [preferences]);
 
+  // Debounce the location search by 500ms so we don't call LocationIQ on every keystroke
   useEffect(() => {
     const timer = setTimeout(() => {
       if (searchQuery) searchLocation(searchQuery);
@@ -164,6 +176,7 @@ export default function Profile({ navigation }: any) {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
+  // Parses the account creation timestamp from Firebase metadata into a readable date string
   const formatMemberSince = () => {
     try {
       if (!user?.metadata?.creationTime) return 'Recently';
@@ -174,6 +187,7 @@ export default function Profile({ navigation }: any) {
     } catch { return 'Recently'; }
   };
 
+  // Calls LocationIQ with the search query, bounded to the Austin area
   const searchLocation = async (query: string) => {
     if (!query || query.length < 3) { setSearchResults([]); return; }
     setIsSearching(true);
@@ -190,6 +204,7 @@ export default function Profile({ navigation }: any) {
     finally { setIsSearching(false); }
   };
 
+  // Saves the selected location directly to Firestore and updates local state
   const selectLocation = async (location: any) => {
     const newLocation = {
       name: location.display_name.split(',')[0],
@@ -209,6 +224,7 @@ export default function Profile({ navigation }: any) {
     }
   };
 
+  // Resets location back to UT Austin in both local state and Firestore
   const resetToDefaultLocation = async () => {
     const defaultLocation = { name: 'University of Texas at Austin', lat: 30.285340698031447, lon: -97.73208396036748 };
     setSelectedLocation(defaultLocation);
@@ -222,6 +238,7 @@ export default function Profile({ navigation }: any) {
     }
   };
 
+  // Confirmation dialog before signing out to prevent accidental logouts
   const handleSignOut = () => {
     Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
       { text: 'Cancel', style: 'cancel' },
@@ -229,6 +246,7 @@ export default function Profile({ navigation }: any) {
     ]);
   };
 
+  // Resends the Firebase verification email — shown in the unverified banner
   const handleResendVerification = async () => {
     try {
       setSendingEmail(true);
@@ -239,6 +257,8 @@ export default function Profile({ navigation }: any) {
     } finally { setSendingEmail(false); }
   };
 
+  // Calls reloadUser() to re-fetch the Firebase auth token and check if the
+  // email has been verified since the last time the app checked
   const handleRefreshStatus = async () => {
     try {
       setRefreshing(true);
@@ -249,6 +269,8 @@ export default function Profile({ navigation }: any) {
     finally { setRefreshing(false); }
   };
 
+  // Resets the onboarding flag in Firestore so the user goes through the
+  // preferences + swiping flow again without losing their account
   const handleRedoPreferences = () => {
     Alert.alert('Redo Preferences', 'This will take you through the preferences and swiping flow again.', [
       { text: 'Cancel', style: 'cancel' },
@@ -260,6 +282,7 @@ export default function Profile({ navigation }: any) {
     ]);
   };
 
+  // Uses the native Share sheet so the user can share the app via any installed app
   const handleShare = async () => {
     try {
       await Share.share({ message: 'Check out Longhorn Living — the best apartment finder for UT Austin students!' });
@@ -275,10 +298,9 @@ export default function Profile({ navigation }: any) {
       contentContainerStyle={styles.content}
       keyboardShouldPersistTaps="handled"
     >
-      {/* ── Page Title ── */}
       <Text style={styles.pageTitle}>Profile</Text>
 
-      {/* ── Profile Header ── */}
+      {/* Avatar uses the first letter of the email as an initials placeholder */}
       <View style={styles.profileHeader}>
         <View style={styles.avatarContainer}>
           <Text style={styles.avatarText}>{user?.email?.charAt(0).toUpperCase() || 'U'}</Text>
@@ -289,7 +311,7 @@ export default function Profile({ navigation }: any) {
         </View>
       </View>
 
-      {/* ── Email Verification Banner ── */}
+      {/* Warning banner — only shown when the user's email is not yet verified */}
       {!user?.emailVerified && (
         <View style={styles.verificationBanner}>
           <Text style={styles.verificationTitle}>⚠️ Email Not Verified</Text>
@@ -305,11 +327,10 @@ export default function Profile({ navigation }: any) {
         </View>
       )}
 
-      {/* ── DISPLAY ── */}
+      {/* Display */}
       <SectionLabel title="Display" />
       <SettingsCard>
         <SettingsRow
-          //icon={<Icon />}
           label="Appearance"
           value={appearance}
           onPress={() => setShowAppearancePicker(true)}
@@ -319,17 +340,15 @@ export default function Profile({ navigation }: any) {
       </SettingsCard>
       <Text style={styles.cardNote}>Toggle between light and dark modes.</Text>
 
-      {/* ── ACCOUNT ── */}
+      {/* Account */}
       <SectionLabel title="Account" />
       <SettingsCard>
         <SettingsRow
-          //icon={<Icon />}
           label="Email"
           value={user?.email || ''}
           isLast={false}
         />
         <SettingsRow
-          //icon={<Icon />}
           label="Email Verified"
           value={user?.emailVerified ? '✓ Verified' : 'Not yet'}
           valueColor={user?.emailVerified ? '#10b981' : '#f59e0b'}
@@ -337,11 +356,11 @@ export default function Profile({ navigation }: any) {
         />
       </SettingsCard>
 
-      {/* ── LOCATION ── */}
+      {/* Location — tapping "Current Location" expands an inline search input
+          that queries LocationIQ and writes the result straight to Firestore */}
       <SectionLabel title="Location" />
       <SettingsCard>
         <SettingsRow
-          //icon={<Icon />}
           label="Current Location"
           value={selectedLocation?.name || 'UT Austin (Default)'}
           onPress={() => setIsEditingLocation(!isEditingLocation)}
@@ -382,6 +401,7 @@ export default function Profile({ navigation }: any) {
         <TouchableOpacity style={styles.locationActionBtn} onPress={() => setIsEditingLocation(!isEditingLocation)}>
           <Text style={styles.locationActionText}>{isEditingLocation ? 'Cancel' : 'Update Location'}</Text>
         </TouchableOpacity>
+        {/* Reset button only appears when a custom location is set */}
         {selectedLocation && selectedLocation.name !== 'University of Texas at Austin' && (
           <TouchableOpacity style={styles.locationActionBtn} onPress={resetToDefaultLocation}>
             <Text style={styles.locationActionText}>Reset to UT</Text>
@@ -390,11 +410,10 @@ export default function Profile({ navigation }: any) {
       </View>
       <Text style={styles.cardNote}>View and update your search location for nearby housing recommendations.</Text>
 
-      {/* ── PREFERENCES ── */}
+      {/* Preferences */}
       <SectionLabel title="Preferences" />
       <SettingsCard>
         <SettingsRow
-          //icon={<Icon />}
           label="Redo Preferences & Swiping"
           onPress={handleRedoPreferences}
           showChevron
@@ -403,7 +422,7 @@ export default function Profile({ navigation }: any) {
       </SettingsCard>
       <Text style={styles.cardNote}>Update your housing preferences and go through the swiping experience again.</Text>
 
-      {/* ── ABOUT ── */}
+      {/* About */}
       <SectionLabel title="About" />
       <SettingsCard>
         <SettingsRow
@@ -421,7 +440,7 @@ export default function Profile({ navigation }: any) {
       </SettingsCard>
       <Text style={styles.cardNote}>Made for college students, by college students.</Text>
 
-      {/* ── SUPPORT ── */}
+      {/* Support — all rows open external URLs or the native share sheet */}
       <SectionLabel title="Support" />
       <SettingsCard>
         <SettingsRow
@@ -454,7 +473,7 @@ export default function Profile({ navigation }: any) {
         />
       </SettingsCard>
 
-      {/* ── SIGN OUT ── */}
+      {/* Sign Out — danger prop makes the label red to signal a destructive action */}
       <SectionLabel title="" />
       <SettingsCard>
         <SettingsRow
@@ -467,7 +486,6 @@ export default function Profile({ navigation }: any) {
 
       <Text style={styles.appVersion}>Longhorn Living v1.0</Text>
 
-      {/* ── Appearance Picker Modal ── */}
       <AppearancePicker
         visible={showAppearancePicker}
         current={appearance}
@@ -477,8 +495,6 @@ export default function Profile({ navigation }: any) {
     </ScrollView>
   );
 }
-
-// ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
   container: {
@@ -490,17 +506,13 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingBottom: 120,
   },
-
-  // Page title
   pageTitle: {
     fontSize: 18,
     fontWeight: '500',
     color: '#000',
     marginBottom: 14,
-    textAlign: 'center'
+    textAlign: 'center',
   },
-
-  // Profile header
   profileHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -541,8 +553,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#6b7280',
   },
-
-  // Verification banner
   verificationBanner: {
     backgroundColor: '#fef3c7',
     borderRadius: 12,
@@ -582,8 +592,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
   },
-
-  // Section label
   sectionLabel: {
     fontSize: 13,
     fontWeight: '500',
@@ -591,11 +599,8 @@ const styles = StyleSheet.create({
     marginTop: 20,
     marginBottom: 6,
     marginLeft: 4,
-    //textTransform: 'uppercase',
     letterSpacing: 0.4,
   },
-
-  // Card
   card: {
     backgroundColor: '#fff',
     borderRadius: 14,
@@ -613,8 +618,6 @@ const styles = StyleSheet.create({
     marginLeft: 4,
     lineHeight: 16,
   },
-
-  // Row
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -626,7 +629,6 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 6,
-    //backgroundColor: '#fff3ec',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 6,
@@ -673,8 +675,6 @@ const styles = StyleSheet.create({
     marginLeft: 16,
     marginRight: 16,
   },
-
-  // Location editing
   locationSearchRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -717,8 +717,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
   },
-
-  // Appearance picker
   pickerOverlay: {
     flex: 1,
     justifyContent: 'center',
@@ -760,8 +758,6 @@ const styles = StyleSheet.create({
     color: '#BF5700',
     fontWeight: '600',
   },
-
-  // App version
   appVersion: {
     textAlign: 'center',
     fontSize: 12,

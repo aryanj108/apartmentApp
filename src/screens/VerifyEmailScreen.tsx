@@ -11,6 +11,10 @@ import {
 import { useAuth } from '../context/AuthContext';
 
 const { width } = Dimensions.get('window');
+
+// Linear scale function that maps sizes designed for a 375pt wide screen
+// (iPhone SE/14) proportionally to the actual device width. Keeps typography
+// and spacing consistent across screen sizes without hardcoding per-device values.
 const scale = (size: number) => (width / 375) * size;
 
 export default function VerifyEmailScreen() {
@@ -18,13 +22,18 @@ export default function VerifyEmailScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
 
+  // Calls sendVerificationEmail from AuthContext, which delegates to Firebase.
+  // Separate loading state (sendingEmail) so this button can show its own
+  // spinner without blocking the "I've Verified" button.
   const handleResendVerification = async () => {
     try {
       setSendingEmail(true);
       await sendVerificationEmail();
       Alert.alert(
         'Email Sent!',
-        'A new verification email has been sent to ' + user?.email + '. Please check your inbox and spam folder.',
+        'A new verification email has been sent to ' +
+          user?.email +
+          '. Please check your inbox and spam folder.',
         [{ text: 'OK' }]
       );
     } catch (error: any) {
@@ -34,13 +43,18 @@ export default function VerifyEmailScreen() {
     }
   };
 
+  // Calls reloadUser() to force Firebase to re-fetch the User object from the
+  // server — necessary because emailVerified is cached locally and won't flip
+  // to true on its own after the user clicks the link.
+  // If verification is confirmed, AppNavigator picks it up automatically via
+  // onAuthStateChanged and routes to the next screen without any manual navigation here.
   const handleCheckStatus = async () => {
     try {
       setRefreshing(true);
       await reloadUser();
-      
-      // After reloading, check if verified
-      // The AppNavigator will automatically navigate to the app if verified
+
+      // After reloading, check if verified.
+      // The AppNavigator will automatically navigate to the app if verified.
       if (!user?.emailVerified) {
         Alert.alert(
           'Not Verified Yet',
@@ -55,28 +69,27 @@ export default function VerifyEmailScreen() {
     }
   };
 
+  // Confirmation alert before signing out so the user doesn't accidentally
+  // lose their session. Uses the 'destructive' style on iOS to render the
+  // confirm button in red, signaling it's a consequential action.
   const handleSignOut = () => {
-    Alert.alert(
-      'Sign Out',
-      'Are you sure you want to sign out?',
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
+    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
+      {
+        text: 'Cancel',
+        style: 'cancel',
+      },
+      {
+        text: 'Sign Out',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await signOut();
+          } catch (error) {
+            Alert.alert('Error', 'Failed to sign out');
+          }
         },
-        {
-          text: 'Sign Out',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await signOut();
-            } catch (error) {
-              Alert.alert('Error', 'Failed to sign out');
-            }
-          },
-        },
-      ]
-    );
+      },
+    ]);
   };
 
   return (
@@ -95,7 +108,8 @@ export default function VerifyEmailScreen() {
 
         {/* Message */}
         <Text style={styles.message}>
-          We sent a verification link to your email address. Please click the link to verify your account and access the app.
+          We sent a verification link to your email address. Please click the
+          link to verify your account and access the app.
         </Text>
 
         {/* Instructions */}
@@ -106,7 +120,8 @@ export default function VerifyEmailScreen() {
           <Text style={styles.instruction}>3. Return here and tap "I've Verified"</Text>
         </View>
 
-        {/* Action Buttons */}
+        {/* Primary action — triggers the reload check. Shows a spinner while
+            the Firebase fetch is in flight so the user knows something is happening. */}
         <Pressable
           style={[styles.button, styles.primaryButton]}
           onPress={handleCheckStatus}
@@ -119,6 +134,8 @@ export default function VerifyEmailScreen() {
           )}
         </Pressable>
 
+        {/* Secondary action — resends the email. Independently disabled while
+            the send request is in flight to prevent duplicate sends. */}
         <Pressable
           style={[styles.button, styles.secondaryButton]}
           onPress={handleResendVerification}

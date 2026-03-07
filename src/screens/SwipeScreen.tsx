@@ -9,7 +9,7 @@ import {
   ScrollView,
   Alert,
   Linking,
-  Platform
+  Platform,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import MaskedView from '@react-native-masked-view/masked-view';
@@ -29,12 +29,9 @@ import InfoIcon from '../../assets/infoIcon.svg';
 import { buildingsData } from '../data/buildings';
 import { listingsData } from '../data/listings';
 import { usePreferences } from '../context/PreferencesContext';
-import { useAuth } from '../context/AuthContext';  
-import { setUserOnboardingComplete } from '../services/userService'; 
-import {
-  calculateMatchScore,
-} from '../data/matchingAlgorithm';
-// Import the distance calculation utility
+import { useAuth } from '../context/AuthContext';
+import { setUserOnboardingComplete } from '../services/userService';
+import { calculateMatchScore } from '../data/matchingAlgorithm';
 import { calculateDistance, filterApartmentsByDistance } from '../navigation/locationUtils';
 
 import SwipeCard from '../navigation/SwipeCard';
@@ -42,12 +39,17 @@ import CustomLoadingScreen from './CustomLoadingScreen';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
+// Card dimensions are derived from screen size so the layout scales correctly
+// across all device sizes without hardcoded pixel values.
 const CARD_HEIGHT = SCREEN_HEIGHT * 0.85;
 const CARD_WIDTH = SCREEN_WIDTH * 0.92;
 const IMAGE_HEIGHT = CARD_HEIGHT * 0.50;
 const INFO_HEIGHT = CARD_HEIGHT * 0.50;
 const AMENITY_WIDTH = (CARD_WIDTH - 32 - 16) / 3;
 
+// Static amenity definitions. Each entry pairs an id (matching the key used in
+// Firestore preferences and building data) with a display label and SVG icon
+// component, so the UI can be driven from this single source of truth.
 const allAmenities = [
   { id: 'wifi', label: 'WiFi', icon: WifiIcon },
   { id: 'gym', label: 'Gym', icon: GymIcon },
@@ -61,13 +63,13 @@ function formatPrice(price) {
   return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
-// Helper function to combine listing with building data
-// NOW ACCEPTS CUSTOM LOCATION TO CALCULATE DISTANCES
-function getEnrichedListings(customLocation?: {lat: number, lon: number} | null) {
-  return listingsData.map(listing => {
-    const building = buildingsData.find(b => b.id === listing.buildingId);
-    
-    // Calculate distance from custom location if provided
+// Joins each listing with its parent building record, computing a live distance
+// from the user's custom location if one is set. Same pattern as SearchScreen —
+// the enriched shape is what the scoring algorithm and card UI expect to receive.
+function getEnrichedListings(customLocation?: { lat: number; lon: number } | null) {
+  return listingsData.map((listing) => {
+    const building = buildingsData.find((b) => b.id === listing.buildingId);
+
     let calculatedDistance = building?.distance || 0;
     if (customLocation && building?.latitude && building?.longitude) {
       calculatedDistance = calculateDistance(
@@ -79,7 +81,7 @@ function getEnrichedListings(customLocation?: {lat: number, lon: number} | null)
       // Round to 1 decimal place
       calculatedDistance = Math.round(calculatedDistance * 10) / 10;
     }
-    
+
     return {
       ...listing,
       name: building?.name || 'Unknown',
@@ -101,109 +103,113 @@ function getEnrichedListings(customLocation?: {lat: number, lon: number} | null)
 
 export default function SwipeScreen({ navigation, route }: any) {
   const { preferences } = usePreferences();
-  const { user, setHasCompletedOnboarding } = useAuth();  
-  
+  const { user, setHasCompletedOnboarding } = useAuth();
+
+  // isRedoingPreferences controls post-swipe behavior — redos return to MainTabs
+  // with an "updated" message instead of the first-time "setup complete" flow.
   const isRedoingPreferences = route?.params?.isRedo || false;
-  
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAmenities, setSelectedAmenities] = useState<any[]>([]);
   const [enrichedListings, setEnrichedListings] = useState<any[]>([]);
+
+  // Enforces a minimum loading time so the loading screen doesn't flash
+  // briefly before the first card renders — same pattern as AppNavigator.
   const [minLoadingTime, setMinLoadingTime] = useState(true);
 
-  // Helper funciton to open maps
+  // Opens the native maps app with directions from the apartment to the user's
+  // saved location (or UT Austin as the default destination). Handles the
+  // iOS/Android URL scheme difference and falls back to Google Maps on iOS
+  // if Apple Maps isn't available.
   const openMaps = (destinationAddress: string) => {
-    // Use custom location if set in preferences, otherwise default to UT Austin
     const destinationLatitude = preferences.location?.lat || 30.285340698031447;
     const destinationLongitude = preferences.location?.lon || -97.73208396036748;
-    
-    // Encode the apartment address for URL (this is now the ORIGIN)
     const encodedAddress = encodeURIComponent(destinationAddress);
-    
     let url = '';
-    
+
     if (Platform.OS === 'ios') {
       // Apple Maps URL scheme - swapped saddr and daddr
       url = `maps://app?saddr=${encodedAddress}&daddr=${destinationLatitude},${destinationLongitude}`;
-      
+
       // Fallback to Google Maps on iOS if Apple Maps fails
       const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodedAddress}&destination=${destinationLatitude},${destinationLongitude}`;
-      
-      Linking.canOpenURL(url).then(supported => {
-        if (supported) {
-          Linking.openURL(url);
-        } else {
+
+      Linking.canOpenURL(url)
+        .then((supported) => {
+          if (supported) {
+            Linking.openURL(url);
+          } else {
+            Linking.openURL(googleMapsUrl);
+          }
+        })
+        .catch(() => {
           Linking.openURL(googleMapsUrl);
-        }
-      }).catch(() => {
-        Linking.openURL(googleMapsUrl);
-      });
+        });
     } else {
       // Google Maps for Android - swapped origin and destination
       url = `https://www.google.com/maps/dir/?api=1&origin=${encodedAddress}&destination=${destinationLatitude},${destinationLongitude}`;
-      
-      Linking.openURL(url).catch(err => {
+
+      Linking.openURL(url).catch((err) => {
         Alert.alert('Error', 'Unable to open maps. Please make sure you have a maps app installed.');
         console.error('Error opening maps:', err);
       });
     }
   };
 
+  // Minimum splash duration — flips to false after 2.5s so the loading screen
+  // shows long enough for the card stack to fully prepare.
   useEffect(() => {
     const timer = setTimeout(() => {
       setMinLoadingTime(false);
-    }, 2500); 
+    }, 2500);
 
     return () => clearTimeout(timer);
   }, []);
 
+  // Sync selectedAmenities with the user's saved preferences so the match score
+  // always reflects the current preference state, not a stale snapshot.
   useEffect(() => {
-    const selected = allAmenities.map(amenity => ({
+    const selected = allAmenities.map((amenity) => ({
       ...amenity,
       selected: preferences[amenity.id] || false,
     }));
     setSelectedAmenities(selected);
   }, [preferences]);
 
+  // Re-enrich listings whenever the user's location changes so distances
+  // are always calculated from the latest saved location.
   useEffect(() => {
-    // Get all listings with building data combined and recalculated distances
     const listings = getEnrichedListings(preferences.location);
     setEnrichedListings(listings);
-  }, [preferences.location]); // Re-run when location changes
+  }, [preferences.location]);
 
-  // Handle completing onboarding when all cards are swiped
+  // Called when the user swipes through all cards or taps Skip.
+  // Marks onboarding complete in Firestore and updates local auth state so
+  // AppNavigator immediately routes to MainTabs without a reload.
+  // The isRedoingPreferences flag changes the confirmation message but not
+  // the destination screen.
   const handleFinishSwiping = async () => {
     try {
-      // Only mark onboarding complete if this is NOT a redo
       if (user?.uid) {
         await setUserOnboardingComplete(user.uid);
         setHasCompletedOnboarding(true);
 
         if (isRedoingPreferences) {
-        // If redoing, just go back to main tabs
-        Alert.alert(
-          'Preferences Updated',
-          'Your housing preferences have been updated.',
-          [
-            {
-              text: 'Return to Home',
-              onPress: () => navigation.navigate('MainTabs')
-            }
-          ]
-        );
-      } else {                
-        Alert.alert(
-          'Setup Complete!',
-          'Your preferences have been saved. You can now browse apartments.',
-          [
-            {
-              text: 'Start Browsing',
-              onPress: () => navigation.navigate('MainTabs')
-            }
-          ]
-        );
-        navigation.navigate('MainTabs');
+          // If redoing, just go back to main tabs
+          Alert.alert(
+            'Preferences Updated',
+            'Your housing preferences have been updated.',
+            [{ text: 'Return to Home', onPress: () => navigation.navigate('MainTabs') }]
+          );
+        } else {
+          Alert.alert(
+            'Setup Complete!',
+            'Your preferences have been saved. You can now browse apartments.',
+            [{ text: 'Start Browsing', onPress: () => navigation.navigate('MainTabs') }]
+          );
+          navigation.navigate('MainTabs');
+        }
       }
-    }
     } catch (error) {
       console.error('Error completing swiping:', error);
       Alert.alert('Error', 'Something went wrong. Please try again.');
@@ -212,10 +218,11 @@ export default function SwipeScreen({ navigation, route }: any) {
     }
   };
 
-  // Call handleFinishSwiping instead of direct navigation
+  // Watches currentIndex and auto-triggers handleFinishSwiping when the user
+  // reaches the last card. The 500ms delay gives the final swipe animation
+  // time to complete before the alert appears.
   useEffect(() => {
     if (enrichedListings.length > 0 && currentIndex >= enrichedListings.length - 1) {
-      // Finished all listings - complete onboarding
       setTimeout(() => {
         handleFinishSwiping();
       }, 500);
@@ -223,9 +230,9 @@ export default function SwipeScreen({ navigation, route }: any) {
   }, [currentIndex, enrichedListings.length]);
 
   const currentListing = enrichedListings[currentIndex];
-  
+
   if (!currentListing || minLoadingTime) {
-      return <CustomLoadingScreen />;
+    return <CustomLoadingScreen />;
   }
 
   const matchScore = calculateMatchScore(currentListing, preferences, selectedAmenities);
@@ -249,37 +256,46 @@ export default function SwipeScreen({ navigation, route }: any) {
     },
   ];
 
-  const listingAmenities = allAmenities.filter(amenity =>
+  // Only show amenity chips for amenities the building actually has —
+  // filtering allAmenities (rather than the other way around) preserves
+  // the display order defined in the allAmenities array above.
+  const listingAmenities = allAmenities.filter((amenity) =>
     currentListing.amenities.includes(amenity.id)
   );
 
   return (
     <View style={styles.container}>
+      {/* Header: centered title with a Skip button pinned to the right.
+          The sideSpacer view balances the layout so the title stays
+          visually centered even with the skip button present. */}
       <View style={styles.headerRow}>
-  <View style={styles.sideSpacer} />
+        <View style={styles.sideSpacer} />
 
-  <View style={styles.headerCenter}>
-    <Text style={styles.headerTitle}>Your Matches</Text>
-    <Text style={styles.headerSubtitle}>
-      {enrichedListings.length} Listings • Swipe Mode
-    </Text>
-  </View>
+        <View style={styles.headerCenter}>
+          <Text style={styles.headerTitle}>Your Matches</Text>
+          <Text style={styles.headerSubtitle}>
+            {enrichedListings.length} Listings • Swipe Mode
+          </Text>
+        </View>
 
-  <TouchableOpacity onPress={handleFinishSwiping}
-    style={{ marginLeft: 'auto' }}>
-    <Text style={styles.skipText}>Skip</Text>
-  </TouchableOpacity>
-</View>
+        <TouchableOpacity onPress={handleFinishSwiping} style={{ marginLeft: 'auto' }}>
+          <Text style={styles.skipText}>Skip</Text>
+        </TouchableOpacity>
+      </View>
 
-
+      {/* Card stack: render only the current card and the one behind it.
+          Reversing the slice before mapping puts the next card underneath
+          the current one in z-order, giving the stack depth effect.
+          Both cards get their own SwipeCard instance with independent
+          gesture state. */}
       <View style={styles.cardStackContainer}>
         {enrichedListings
           .slice(currentIndex, currentIndex + 2)
           .reverse()
-          .map(listing => {
+          .map((listing) => {
             const score = calculateMatchScore(listing, preferences, selectedAmenities);
             const color = '#BF5700';
-            
+
             return (
               <SwipeCard
                 key={listing.id}
@@ -287,8 +303,8 @@ export default function SwipeScreen({ navigation, route }: any) {
                 navigation={navigation}
                 matchScore={score}
                 matchColor={color}
-                onSwipeLeft={() => setCurrentIndex(i => i + 1)}
-                onSwipeRight={() => setCurrentIndex(i => i + 1)}
+                onSwipeLeft={() => setCurrentIndex((i) => i + 1)}
+                onSwipeRight={() => setCurrentIndex((i) => i + 1)}
               >
                 <View style={styles.cardContent}>
                   {/* Picture Section */}
@@ -298,7 +314,7 @@ export default function SwipeScreen({ navigation, route }: any) {
                       style={styles.apartmentImage}
                       resizeMode="cover"
                     />
-                    {/* Match Badge updated with LinearGradient */}
+                    {/* Match badge overlaid on the image using absolute positioning */}
                     <LinearGradient
                       colors={['#FF8C42', '#BF5700', '#994400']}
                       start={{ x: 0, y: 1 }}
@@ -306,7 +322,7 @@ export default function SwipeScreen({ navigation, route }: any) {
                       style={styles.matchBadge}
                     >
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                        <Stars width={16} height={16} fill={'#fff'}/>
+                        <Stars width={16} height={16} fill={'#fff'} />
                         <Text style={styles.matchScoreText}>{score}%</Text>
                       </View>
                     </LinearGradient>
@@ -314,7 +330,7 @@ export default function SwipeScreen({ navigation, route }: any) {
 
                   {/* Info Section with ScrollView */}
                   <View style={styles.infoSection}>
-                    <ScrollView 
+                    <ScrollView
                       showsVerticalScrollIndicator={false}
                       contentContainerStyle={styles.scrollContent}
                       style={{ flex: 1 }}
@@ -332,26 +348,38 @@ export default function SwipeScreen({ navigation, route }: any) {
                             {currentListing.address}
                           </Text>
                         </View>
-                          <View style={styles.priceContainer}>
-                            <MaskedView maskElement={<Text style={styles.price}>${formatPrice(currentListing.price)}</Text>}>
-                              <LinearGradient
-                                colors={['#FF8C42', '#BF5700', '#994400']}
-                                start={{ x: 0, y: 0 }}
-                                end={{ x: 1, y: 0 }}
-                              >
-                                <Text style={[styles.price, { opacity: 0 }]}>${formatPrice(currentListing.price)}</Text>
-                              </LinearGradient>
-                            </MaskedView>
-                            <Text style={styles.perMonth}>per month</Text>
-                          </View>
+                        <View style={styles.priceContainer}>
+                          <MaskedView
+                            maskElement={
+                              <Text style={styles.price}>
+                                ${formatPrice(currentListing.price)}
+                              </Text>
+                            }
+                          >
+                            <LinearGradient
+                              colors={['#FF8C42', '#BF5700', '#994400']}
+                              start={{ x: 0, y: 0 }}
+                              end={{ x: 1, y: 0 }}
+                            >
+                              <Text style={[styles.price, { opacity: 0 }]}>
+                                ${formatPrice(currentListing.price)}
+                              </Text>
+                            </LinearGradient>
+                          </MaskedView>
+                          <Text style={styles.perMonth}>per month</Text>
                         </View>
+                      </View>
 
-                      {/* Details Chips (Bed, Bath, Distance) */}
+                      {/* Details Chips (Bed, Bath, Distance)
+                          The distance chip is a TouchableOpacity so tapping it
+                          opens the maps app. The other chips are plain Views. */}
                       <View style={styles.chipsContainer}>
-                        {details.map(detail => {
+                        {details.map((detail) => {
                           const Icon = detail.icon;
                           const iconElement = (
-                            <MaskedView maskElement={<Icon width={25} height={25} fill="#000000" />}>
+                            <MaskedView
+                              maskElement={<Icon width={25} height={25} fill="#000000" />}
+                            >
                               <LinearGradient
                                 colors={['#FF8C42', '#BF5700', '#994400']}
                                 start={{ x: 0, y: 1 }}
@@ -384,10 +412,10 @@ export default function SwipeScreen({ navigation, route }: any) {
                         })}
                       </View>
 
-                      {/* Amenities */}
+                      {/* Amenities — only rendered if the building has at least one */}
                       {listingAmenities.length > 0 && (
                         <View style={styles.amenitiesContainer}>
-                          {listingAmenities.map(amenity => (
+                          {listingAmenities.map((amenity) => (
                             <View key={amenity.id} style={styles.amenityChip}>
                               <amenity.icon width={18} height={18} />
                               <Text style={styles.amenityText}>{amenity.label}</Text>
@@ -397,7 +425,8 @@ export default function SwipeScreen({ navigation, route }: any) {
                       )}
                     </ScrollView>
 
-                    {/* Buttons */}
+                    {/* Absolutely positioned button bar so it always sits at the
+                        bottom of the card regardless of scroll position */}
                     <View style={styles.buttonsContainer}>
                       <TouchableOpacity
                         style={styles.detailsButton}
@@ -419,8 +448,8 @@ export default function SwipeScreen({ navigation, route }: any) {
           })}
       </View>
 
-      {/* Optional Manual "Done" Button 
-      <TouchableOpacity 
+      {/* Optional Manual "Done" Button
+      <TouchableOpacity
         style={styles.doneButton}
         onPress={handleFinishSwiping}
       >
@@ -564,7 +593,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 14,
     width: AMENITY_WIDTH,
-    justifyContent: 'center'
+    justifyContent: 'center',
   },
   amenityText: {
     fontSize: 11,
@@ -601,7 +630,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 16,
     paddingHorizontal: 20,
-    zIndex: 10,         
+    zIndex: 10,
     elevation: 10,
   },
   headerTitle: {
@@ -615,10 +644,10 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   cardStackContainer: {
-    flex: 0.95,            
+    flex: 0.95,
     width: '100%',
     alignItems: 'center',
-    justifyContent: 'center', 
+    justifyContent: 'center',
   },
   doneButton: {
     position: 'absolute',
@@ -662,13 +691,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   sideSpacer: {
-    width: 40, 
+    width: 40,
   },
   /*distanceChip: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#FFF5E6', 
+    backgroundColor: '#FFF5E6',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 16,

@@ -9,6 +9,8 @@ import {
   NativeScrollEvent,
 } from 'react-native';
 
+// Grabbed once when the file loads so we're not calling Dimensions.get on
+// every render. Safe here because the carousel always fills the full screen width.
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 interface ImageCarouselProps {
@@ -16,9 +18,17 @@ interface ImageCarouselProps {
 }
 
 export default function ImageCarousel({ images }: ImageCarouselProps) {
+
+  // Tracks which image the user is currently on so we can highlight the right dot
   const [activeIndex, setActiveIndex] = useState(0);
+
+  // A ref gives us direct access to the ScrollView without triggering re-renders.
+  // Useful if we ever want to programmatically scroll (e.g. auto-advance or jump to a slide).
   const scrollViewRef = useRef<ScrollView>(null);
 
+  // As the user swipes, we divide the scroll offset by the screen width to figure
+  // out which page they're on. Math.round snaps to the nearest page mid-swipe
+  // so the active dot updates smoothly instead of only changing at the very end.
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const scrollPosition = event.nativeEvent.contentOffset.x;
     const index = Math.round(scrollPosition / SCREEN_WIDTH);
@@ -27,6 +37,10 @@ export default function ImageCarousel({ images }: ImageCarouselProps) {
 
   return (
     <View style={styles.container}>
+
+      {/* pagingEnabled makes the scroll snap to exact page boundaries on release.
+          scrollEventThrottle={16} fires onScroll roughly every 16ms (~60fps) so
+          the dot indicator stays in sync during the swipe without overloading the JS thread. */}
       <ScrollView
         ref={scrollViewRef}
         horizontal
@@ -45,7 +59,8 @@ export default function ImageCarousel({ images }: ImageCarouselProps) {
         ))}
       </ScrollView>
 
-      {/* Dot Indicators */}
+      {/* Dot indicators — one dot per image. The active dot is slightly larger
+          and fully opaque so it's easy to tell which page you're on at a glance. */}
       <View style={styles.dotsContainer}>
         {images.map((_, index) => (
           <View
@@ -57,6 +72,7 @@ export default function ImageCarousel({ images }: ImageCarouselProps) {
           />
         ))}
       </View>
+
     </View>
   );
 }
